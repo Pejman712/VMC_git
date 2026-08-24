@@ -1,0 +1,1071 @@
+<title>Localisation Explorer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Interactive companion for vehicle localisation — GNSS, IMU 6-DOF, LiDAR SLAM with a live ICP solver, and Visual SLAM feature matching.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+:root{
+  --bg:#F1F4F8; --surface:#FFFFFF; --panel:#F3F6FA; --panel-2:#E7EEF6;
+  --ink:#0E1116; --ink-2:#33404E; --muted:#5B6572; --border:#D9DFE7; --border-2:#C3CCD8;
+  --navy:#00396B;
+  --accent:#0064AF; --accent-ink:#00548F;      /* Aalto blue */
+  --sat:#E4A11B; --alert:#CF3B41; --good:#1E8E56; --match:#D98A00;
+  --axX:#D63C43; --axY:#E08A1E; --axZ:#2FA457; /* roll=red pitch=orange yaw=green (slide) */
+  --viewport-bg:#0B1220;
+  --shadow:0 1px 2px rgba(16,32,54,.06), 0 6px 22px rgba(16,32,54,.07);
+  --radius:12px; --radius-s:8px; --maxw:1140px;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:'Arimo',Arial,Helvetica,sans-serif;
+  --display:'Arimo',Arial,Helvetica,sans-serif;
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --bg:#0C1420; --surface:#141F2E; --panel:#182434; --panel-2:#1E2C40;
+  --ink:#E8EEF7; --ink-2:#B7C4D6; --muted:#8496AE; --border:#26364C; --border-2:#33475F;
+  --navy:#2C3E60; --accent:#3E92DA; --accent-ink:#9CC8EE;
+  --sat:#F1B434; --alert:#F0575C; --good:#38C177; --match:#F5B942;
+  --axX:#F0575C; --axY:#F0A93A; --axZ:#43C877;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+}}
+:root[data-theme="dark"]{
+  --bg:#0C1420; --surface:#141F2E; --panel:#182434; --panel-2:#1E2C40;
+  --ink:#E8EEF7; --ink-2:#B7C4D6; --muted:#8496AE; --border:#26364C; --border-2:#33475F;
+  --navy:#2C3E60; --accent:#3E92DA; --accent-ink:#9CC8EE;
+  --sat:#F1B434; --alert:#F0575C; --good:#38C177; --match:#F5B942;
+  --axX:#F0575C; --axY:#F0A93A; --axZ:#43C877;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} *{animation-duration:.001ms!important;transition-duration:.001ms!important} }
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--display);font-weight:700;line-height:1.1;text-wrap:balance;margin:0;letter-spacing:-.01em}
+a{color:var(--accent-ink);text-decoration:none} a:hover{text-decoration:underline}
+:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px;border-radius:4px}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+.mono{font-family:var(--mono)} .tnum{font-variant-numeric:tabular-nums}
+
+/* nav */
+.nav{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+.nav-in{max-width:var(--maxw);margin:0 auto;padding:11px 22px;display:flex;align-items:center;gap:18px}
+.brand{display:flex;align-items:center;gap:10px;color:var(--ink)}
+.vmc-tile{width:36px;height:36px;border-radius:7px;background:var(--accent);color:#fff;font-family:var(--display);font-weight:700;font-size:13px;display:grid;place-items:center;letter-spacing:.01em;flex:none}
+.brand .bt{display:flex;flex-direction:column;line-height:1.08}
+.brand .bt b{font-family:var(--display);font-weight:700;font-size:14.5px;letter-spacing:-.01em}
+.brand .bt span{font-size:10.5px;color:var(--muted);font-family:var(--mono);letter-spacing:.02em}
+.aalto-lock{display:flex;flex-direction:column;line-height:1.06;padding-left:14px;margin-left:2px;border-left:1px solid var(--border-2)}
+.aalto-lock b{font-family:var(--display);font-weight:700;font-size:13px;color:var(--accent-ink)}
+.aalto-lock span{font-size:9px;color:var(--muted);font-family:var(--mono)}
+.aalto-lock img{height:22px;width:auto;display:block}
+.nav-links{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap;align-items:center}
+.nav-links a{font-size:13.5px;color:var(--muted);padding:6px 10px;border-radius:8px;font-weight:500}
+.nav-links a:hover{color:var(--ink);background:var(--panel);text-decoration:none}
+.nav-links a.home{color:var(--accent-ink);border:1px solid var(--border-2)}
+.tgl{width:38px;height:38px;border:1px solid var(--border-2);background:var(--surface);border-radius:10px;cursor:pointer;color:var(--ink);font-size:16px;display:grid;place-items:center}
+.tgl:hover{border-color:var(--accent)}
+@media(max-width:860px){ .nav-links a:not(.home){display:none} }
+
+/* hero — Aalto blue title block (like the deck's title slides) */
+.hero{position:relative;overflow:hidden;background:var(--accent);color:#fff}
+.hero-grid{position:absolute;inset:0;opacity:1;background-image:linear-gradient(rgba(255,255,255,.10) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.10) 1px,transparent 1px);background-size:34px 34px;mask-image:radial-gradient(120% 90% at 78% 6%,#000 30%,transparent 78%)}
+.hero-in{position:relative;max-width:var(--maxw);margin:0 auto;padding:60px 22px 46px}
+.eyebrow{font-family:var(--mono);font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.82);font-weight:600}
+.hero h1{font-size:clamp(2.2rem,5vw,3.5rem);font-weight:700;letter-spacing:-.015em;margin:14px 0 0;color:#fff}
+.hero h1 .hl{color:#BFE0FF}
+.lede{font-size:clamp(1.02rem,1.7vw,1.18rem);color:rgba(255,255,255,.92);max-width:54ch;margin:16px 0 0}
+.chips-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:26px}
+.pill-link{font-family:var(--display);font-weight:700;font-size:13.5px;padding:10px 16px;border-radius:8px;border:1.5px solid rgba(255,255,255,.6);background:transparent;color:#fff;cursor:pointer}
+.pill-link:hover{border-color:#fff;background:rgba(255,255,255,.12);text-decoration:none}
+.pill-link.p{background:#fff;color:var(--accent-ink);border-color:#fff}
+
+/* sections */
+section{padding:56px 0}
+.alt{background:var(--panel);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.sec-head{max-width:none;margin-bottom:26px;background:var(--accent);color:#fff;border-radius:10px;padding:22px 26px}
+.sec-kicker{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.85);font-weight:600;display:flex;align-items:center;gap:9px}
+.sec-kicker::before{content:"";width:22px;height:2px;background:rgba(255,255,255,.7);display:inline-block}
+.sec-head h2{font-size:clamp(1.6rem,3.1vw,2.2rem);margin:11px 0 0;color:#fff}
+.sec-head p{color:rgba(255,255,255,.9);margin:11px 0 0;font-size:1.01rem;max-width:78ch}
+
+.sec-head p b{color:#fff}
+.sec-head p [style*="color"]{color:#EAF3FB !important}
+.aalto-foot b{font-family:var(--display);font-weight:700;font-size:15px;color:var(--ink);display:block}
+.aalto-foot span{font-size:10.5px;color:var(--muted);font-family:var(--mono)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+.pad{padding:24px}
+.card h3{font-size:1.16rem;margin-bottom:4px}
+.card .sub{color:var(--muted);font-size:13px;margin-bottom:16px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px} @media(max-width:900px){.grid-2{grid-template-columns:1fr}}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px} @media(max-width:820px){.grid-3{grid-template-columns:1fr}}
+.viewport{background:var(--viewport-bg);border-radius:10px;border:1px solid #1d2a3d;overflow:hidden}
+.viewport canvas{display:block;width:100%;height:auto}
+
+/* buttons + controls */
+.btnrow{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-top:14px}
+.mini-btn{font-family:var(--display);font-weight:600;font-size:13px;border-radius:9px;padding:9px 14px;cursor:pointer;border:1px solid var(--border-2);background:var(--surface);color:var(--ink)}
+.mini-btn:hover{border-color:var(--accent)} .mini-btn:disabled{opacity:.45;cursor:not-allowed}
+.mini-btn.primary{background:var(--accent);color:#fff;border-color:transparent}
+:root[data-theme="dark"] .mini-btn.primary,:root:not([data-theme="light"]) .mini-btn.primary{color:#fff}
+.seg{display:inline-flex;border:1px solid var(--border-2);border-radius:9px;overflow:hidden}
+.seg button{font-family:var(--mono);font-size:12.5px;padding:8px 13px;border:none;background:var(--surface);color:var(--muted);cursor:pointer;border-right:1px solid var(--border)}
+.seg button:last-child{border-right:none}
+.seg button.active{background:var(--accent);color:#fff;font-weight:600}
+:root[data-theme="dark"] .seg button.active,:root:not([data-theme="light"]) .seg button.active{color:#fff}
+.rng{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink-2);font-family:var(--mono)}
+.rng input[type=range]{accent-color:var(--accent);flex:1} .rng .v{color:var(--accent-ink);min-width:64px;text-align:right}
+.toggle-chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-family:var(--mono);color:var(--ink-2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer;user-select:none;background:var(--surface)}
+.toggle-chip input{accent-color:var(--alert)}
+
+/* readouts */
+.readout{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ro{background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:10px 12px}
+.ro .k{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.ro .val{font-family:var(--mono);font-size:1.35rem;font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px}
+.ro.x .val{color:var(--axX)} .ro.y .val{color:var(--axY)} .ro.z .val{color:var(--axZ)}
+.stat-line{font-family:var(--mono);font-size:13px;color:var(--ink-2);background:var(--panel);border-radius:8px;padding:10px 12px;margin-top:12px}
+.stat-line b{color:var(--accent-ink)}
+.fixbadge{font-family:var(--mono);font-weight:600;font-size:12px;padding:3px 10px;border-radius:20px}
+.fix-none{background:color-mix(in srgb,var(--alert) 18%,transparent);color:var(--alert)}
+.fix-ok{background:color-mix(in srgb,var(--sat) 20%,transparent);color:var(--sat)}
+.fix-good{background:color-mix(in srgb,var(--good) 18%,transparent);color:var(--good)}
+
+/* constellations */
+.const-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px}
+@media(max-width:560px){.const-grid{grid-template-columns:repeat(2,1fr)}}
+.const{border:1px solid var(--border);border-radius:9px;padding:11px 12px;background:var(--panel)}
+.const .n{font-family:var(--display);font-weight:600;font-size:14px}
+.const .c{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:2px}
+.const .b{font-family:var(--mono);font-size:11px;color:var(--accent-ink);margin-top:4px}
+
+/* IMU cube */
+.cube-scene{height:300px;display:grid;place-items:center;perspective:760px}
+.cube{position:relative;width:130px;height:130px;transform-style:preserve-3d;transition:transform .05s linear}
+.face{position:absolute;width:130px;height:130px;display:grid;place-items:center;font-family:var(--mono);font-size:12px;color:#cbd6e6;
+  border:1.5px solid #3a4c66;background:rgba(41,58,86,.55);backdrop-filter:blur(1px)}
+.face.top{background:rgba(55,120,140,.5)} .face.front{background:rgba(41,58,86,.62)}
+.axkey{display:flex;gap:16px;margin-top:12px;font-family:var(--mono);font-size:12px;flex-wrap:wrap}
+.axkey span{display:inline-flex;align-items:center;gap:6px} .axkey i{width:16px;height:3px;border-radius:2px}
+
+/* math note */
+.mathbox{font-family:var(--mono);font-size:13px;background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:0 9px 9px 0;padding:14px 16px;overflow-x:auto;white-space:nowrap;color:var(--ink-2)}
+.mathbox b{color:var(--ink)}
+.steps{counter-reset:st;display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.step{display:flex;gap:12px;font-size:13.5px;color:var(--ink-2)}
+.step::before{counter-increment:st;content:counter(st);flex:none;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--display);font-weight:700;font-size:13px;display:grid;place-items:center}
+:root[data-theme="dark"] .step::before,:root:not([data-theme="light"]) .step::before{color:#fff}
+.step.done::before{background:var(--good);content:"✓"}
+.step b{color:var(--ink)}
+
+/* vslam */
+.frames{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.badge{display:inline-block;font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:6px}
+.techlist{display:flex;flex-direction:column;gap:12px;margin-top:4px}
+.tech{display:flex;gap:12px;align-items:flex-start;font-size:13.5px;color:var(--ink-2)}
+.tech .t{font-family:var(--mono);font-weight:600;color:var(--ink);min-width:118px}
+.pipeline{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px}
+.pstep{font-family:var(--mono);font-size:12px;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:8px 11px;color:var(--ink-2)}
+.pstep b{color:var(--accent-ink)}
+.parrow{color:var(--muted);font-size:14px}
+
+footer{background:var(--surface);border-top:1px solid var(--border);padding:44px 0 40px;font-size:14px}
+.foot-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:28px} @media(max-width:820px){.foot-grid{grid-template-columns:1fr}}
+footer h4{font-family:var(--display);font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+footer ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+.note{font-size:12.5px;color:var(--muted);margin-top:26px;border-top:1px solid var(--border);padding-top:18px}
+.kbd{font-family:var(--mono);font-size:12px;background:var(--panel-2);border:1px solid var(--border);border-radius:5px;padding:1px 6px;color:var(--ink-2)}
+</style>
+
+<!-- NAV -->
+<nav class="nav"><div class="nav-in">
+  <span class="brand">
+    <span class="vmc-tile">VMC</span>
+    <span class="bt"><b>Vehicle Mechatronics</b><span>Localisation</span></span>
+  </span>
+  <!-- Aalto lockup. To use the official logo on your site, drop assets/aalto-logo.svg
+       into the repo and replace the two <b>/<span> lines below with:
+       <img src="assets/aalto-logo.svg" alt="Aalto University"> -->
+  <span class="aalto-lock">
+    <b>Aalto University</b><span>School of Engineering</span>
+  </span>
+  <div class="nav-links">
+    <a href="#gnss">GNSS</a>
+    <a href="#imu">IMU</a>
+    <a href="#slam">SLAM · ICP</a>
+    <a href="#fusion">Fusion</a>
+    <a href="#vslam">VSLAM</a>
+    <a class="home" href="index.html">← ROS Explorer</a>
+    <button class="tgl" id="themeBtn" aria-label="Toggle theme" title="Toggle theme">◐</button>
+  </div>
+</div></nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-grid" aria-hidden="true"></div>
+  <div class="hero-in">
+    <span class="eyebrow">Vehicle Mechatronics · Localisation</span>
+    <h1>Where <span class="hl">am I</span>, exactly?</h1>
+    <p class="lede">An automated vehicle fuses many answers to that question: satellites overhead, an inertial sensor that feels every motion, the wheels, and the shape of the world around it. Play with each one — then watch a real <b>ICP</b> solver localise a LiDAR scan against a map.</p>
+    <div class="chips-row">
+      <a class="pill-link p" href="#slam">Run the ICP solver</a>
+      <a class="pill-link" href="#gnss">Start with GNSS</a>
+    </div>
+  </div>
+</header>
+
+<!-- GNSS -->
+<section id="gnss">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">Global Navigation Satellite Systems</div>
+      <h2>Positioning from space</h2>
+      <p>A receiver measures its <b>distance</b> to several satellites and finds the one point consistent with all of them — trilateration. You need at least <b>4</b> visible satellites to solve for x, y, z and the clock error; reliable positioning wants <b>10+</b>. Drag the sliders and watch the fix form.</p>
+    </div>
+    <div class="grid-2">
+      <div class="card pad">
+        <h3>Trilateration, live</h3>
+        <div class="sub">Each ring = "I am this far from that satellite." Where they cross is you.</div>
+        <div class="viewport"><canvas id="gnssCv" width="620" height="380" role="img" aria-label="GNSS trilateration: satellites and range circles intersecting at the receiver"></canvas></div>
+        <div class="btnrow" style="justify-content:space-between">
+          <span class="fixbadge fix-good" id="fixBadge">3D FIX</span>
+          <span class="mono" style="font-size:12px;color:var(--muted)">estimated accuracy: <b id="accVal" style="color:var(--accent-ink)">—</b></span>
+        </div>
+      </div>
+      <div class="card pad">
+        <h3>Tune the fix</h3>
+        <div class="sub">Visible satellites, correction mode, and real-world problems.</div>
+        <div class="rng" style="margin-bottom:14px"><span style="min-width:96px">Visible sats</span><input type="range" id="gSats" min="2" max="14" value="9"><span class="v" id="gSatsV">9</span></div>
+        <div style="font-size:12.5px;color:var(--muted);font-family:var(--mono);margin-bottom:6px">Correction mode</div>
+        <div class="seg" id="gMode" style="margin-bottom:16px">
+          <button data-m="standalone" class="active">Standalone</button>
+          <button data-m="dgnss">DGNSS</button>
+          <button data-m="rtk">RTK</button>
+        </div>
+        <div style="font-size:12.5px;color:var(--muted);font-family:var(--mono);margin-bottom:8px">Environmental problems (from the slides)</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <label class="toggle-chip"><input type="checkbox" id="pMulti"> Multipath</label>
+          <label class="toggle-chip"><input type="checkbox" id="pUrban"> Urban canyon</label>
+          <label class="toggle-chip"><input type="checkbox" id="pJam"> Jamming / interference</label>
+        </div>
+        <div class="stat-line" id="gExplain"></div>
+      </div>
+    </div>
+
+    <div class="card pad" style="margin-top:20px">
+      <h3>The satellite systems</h3>
+      <div class="sub">"GNSS" is an umbrella — modern receivers listen to several constellations at once for more visible satellites.</div>
+      <div class="const-grid" id="constGrid"></div>
+    </div>
+  </div>
+</section>
+
+<!-- IMU -->
+<section id="imu" class="alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">Inertial Measurement Unit</div>
+      <h2>Feeling every motion — 6 degrees of freedom</h2>
+      <p>An IMU measures <b>acceleration</b> along 3 axes and <b>angular velocity</b> about 3 axes. From a flat rest it feels only gravity pointing "up" through its z-axis; tilt it and gravity spreads into x and y. Tumble the chip and watch all six numbers, then see why the errors drift.</p>
+    </div>
+    <div class="grid-2">
+      <div class="card pad">
+        <h3>The IMU, in your hands</h3>
+        <div class="sub">Drag to rotate, or auto-tumble. Axes match the slide: roll·x, pitch·y, yaw·z.</div>
+        <div class="viewport" id="cubeVp" style="background:radial-gradient(120% 120% at 50% 20%, #16233a, var(--viewport-bg));cursor:grab">
+          <div class="cube-scene">
+            <div class="cube" id="cube">
+              <div class="face front">+x front</div><div class="face back">−x back</div>
+              <div class="face right">+y right</div><div class="face left">−y left</div>
+              <div class="face top">+z top</div><div class="face bottom">−z bottom</div>
+            </div>
+          </div>
+        </div>
+        <div class="btnrow">
+          <button class="mini-btn primary" id="tumbleBtn">Auto-tumble</button>
+          <button class="mini-btn" id="imuReset">Reset to flat</button>
+          <div class="axkey" style="margin-left:auto">
+            <span><i style="background:var(--axX)"></i>roll·x</span><span><i style="background:var(--axY)"></i>pitch·y</span><span><i style="background:var(--axZ)"></i>yaw·z</span>
+          </div>
+        </div>
+      </div>
+      <div class="card pad">
+        <h3>What the chip reports</h3>
+        <div class="sub">Accelerometer (specific force, m/s²) and gyroscope (angular rate, °/s).</div>
+        <div class="readout">
+          <div class="ro x"><div class="k">accel x</div><div class="val" id="ax">0.00</div></div>
+          <div class="ro x"><div class="k">gyro x (roll)</div><div class="val" id="gx">0.0</div></div>
+          <div class="ro y"><div class="k">accel y</div><div class="val" id="ay">0.00</div></div>
+          <div class="ro y"><div class="k">gyro y (pitch)</div><div class="val" id="gy">0.0</div></div>
+          <div class="ro z"><div class="k">accel z</div><div class="val" id="az">9.81</div></div>
+          <div class="ro z"><div class="k">gyro z (yaw)</div><div class="val" id="gz">0.0</div></div>
+        </div>
+        <div class="stat-line" style="margin-top:14px">Orientation — roll <b id="oRoll">0°</b> · pitch <b id="oPitch">0°</b> · yaw <b id="oYaw">0°</b>. At rest the accelerometer reads <b>≈9.81</b> on whichever axis points up — that's how it senses tilt.</div>
+        <h3 style="margin-top:22px">Why fuse with GNSS?</h3>
+        <div class="sub">Integrating noisy inertial data lets small errors compound — position drift grows ≈ t<sup>3/2</sup>.</div>
+        <div class="viewport" style="background:var(--surface);border-color:var(--border)"><svg id="driftSvg" viewBox="0 0 520 180" role="img" aria-label="Position error growth over time for cheap versus expensive MEMS IMUs"></svg></div>
+      </div>
+    </div>
+    <div class="card pad" style="margin-top:20px">
+      <h3>Wheel odometry — the other dead-reckoning sensor</h3>
+      <div class="sub">From wheel rotation: speed v = r·ω. Cheap and always available, but wheel <b>slip</b> and accumulating error make it a fusion input, not a standalone truth.</div>
+      <div class="stat-line">Like the IMU, odometry <b>drifts</b> — it's great over seconds, unreliable over minutes. That's the recurring theme of localisation: every sensor is wrong in its own way, so vehicles <b>fuse</b> them (e.g. an Extended Kalman Filter blending GNSS + IMU + odometry).</div>
+    </div>
+  </div>
+</section>
+
+
+<!-- SLAM / ICP -->
+<section id="slam">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">Simultaneous Localisation &amp; Mapping</div>
+      <h2>Matching a LiDAR scan to the map</h2>
+      <p>GNSS is often unreliable (tunnels, cities), so vehicles localise against the world itself. Each LiDAR scan is a <b>point cloud</b>; SLAM finds the pose (X, Y, θ) that best aligns the scan to the known map — <b>point-cloud registration</b>. The classic method is <b>Iterative Closest Point (ICP)</b>. This one is real — it runs the actual algorithm.</p>
+    </div>
+    <div class="grid-2">
+      <div class="card pad">
+        <h3>ICP solver</h3>
+        <div class="sub"><span style="color:var(--ink)">■</span> map &nbsp; <span style="color:var(--alert)">■</span> scan &nbsp; <span style="color:var(--accent-ink)">╱</span> correspondences</div>
+        <div class="viewport"><canvas id="icpCv" width="620" height="420" role="img" aria-label="ICP aligning a red LiDAR scan onto the black map point cloud"></canvas></div>
+        <div class="btnrow">
+          <button class="mini-btn" id="icpMatch">1 · Find correspondences</button>
+          <button class="mini-btn primary" id="icpStep">2 · Solve R,t &amp; apply</button>
+          <button class="mini-btn" id="icpAuto">▶ Auto-run</button>
+          <button class="mini-btn" id="icpReset">Reset</button>
+        </div>
+        <div class="rng" style="margin-top:14px"><span style="min-width:118px">Initial guess (θ)</span><input type="range" id="icpInit" min="-60" max="60" value="38"><span class="v" id="icpInitV">38°</span></div>
+        <div class="rng" style="margin-top:12px"><span style="min-width:118px">Error threshold</span><input type="range" id="icpThresh" min="0.02" max="0.30" step="0.01" value="0.06"><span class="v" id="icpThreshV">0.06</span></div>
+        <div class="rng" style="margin-top:12px"><span style="min-width:118px">Max iterations</span><input type="range" id="icpMax" min="1" max="50" step="1" value="20"><span class="v" id="icpMaxV">20</span></div>
+        <div class="stat-line" id="icpStatus" style="margin-top:12px;display:none"></div>
+      </div>
+      <div class="card pad">
+        <h3>How each iteration works</h3>
+        <div class="sub">"Limited math" version — the same steps the slides derive with SVD (Kabsch algorithm).</div>
+        <div class="steps" id="icpSteps">
+          <div class="step" data-s="0"><div><b>Match:</b> for every scan point, find the <b>closest</b> map point. (Correspondences are unknown, so we guess them each round.)</div></div>
+          <div class="step" data-s="1"><div><b>Centre:</b> subtract each cloud's centroid, so only rotation remains: s̃ = s − s̄, m̃ = m − m̄.</div></div>
+          <div class="step" data-s="2"><div><b>Solve rotation R</b> and <b>translation t</b> that minimise Σ‖m − R·s − t‖² (closed-form via SVD of the cross-covariance).</div></div>
+          <div class="step" data-s="3"><div><b>Apply &amp; repeat:</b> move the scan by (R, t). Re-match and iterate until it stops improving.</div></div>
+        </div>
+        <div class="mathbox" style="margin-top:16px">minimise &nbsp;<b>Σ ‖ mᵢ − R·sᵢ − t ‖²</b><br>&nbsp;&nbsp;H = Σ s̃ᵢ m̃ᵢᵀ&nbsp; → &nbsp;U Σ Vᵀ = svd(H)<br>&nbsp;&nbsp;<b>R</b> = V·diag(1, det(VUᵀ))·Uᵀ &nbsp;&nbsp; <b>t</b> = m̄ − R·s̄</div>
+        <div class="readout" style="grid-template-columns:1fr 1fr 1fr;margin-top:16px">
+          <div class="ro"><div class="k">iteration</div><div class="val" id="icpIter">0</div></div>
+          <div class="ro"><div class="k">mean error</div><div class="val" id="icpErr">—</div></div>
+          <div class="ro"><div class="k">solved θ</div><div class="val" id="icpTheta">0°</div></div>
+        </div>
+        <div class="stat-line" style="margin-top:12px">⚠ ICP needs a <b>good initial guess</b> — push the slider far and it can converge to the wrong alignment (a local minimum). That's why odometry/IMU seed the scan first.</div>
+      </div>
+    </div>
+    <div class="card pad" style="margin-top:20px">
+      <h3>Beyond plain ICP</h3>
+      <div class="sub">What real systems use once ICP isn't enough.</div>
+      <div class="grid-3">
+        <div class="tech"><span class="t">NDT</span><span>Model the map as piecewise normal distributions — faster, smoother registration.</span></div>
+        <div class="tech"><span class="t">Feature-based</span><span>Match geometric features (edges, planes) instead of raw points — e.g. LOAM, point-to-plane ICP.</span></div>
+        <div class="tech"><span class="t">Particle filters</span><span>Probabilistic pose estimation over many hypotheses — e.g. FastSLAM.</span></div>
+        <div class="tech"><span class="t">Graph SLAM</span><span>Optimise a graph of poses; loop closure corrects accumulated drift — e.g. Cartographer.</span></div>
+        <div class="tech"><span class="t">Learned SLAM</span><span>Deep networks estimate odometry directly from scans — e.g. LO-Net.</span></div>
+        <div class="tech"><span class="t">Why LiDAR</span><span>Direct, accurate range → generally more robust than camera-only SLAM.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SENSOR FUSION / KALMAN -->
+<section id="fusion">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">Sensor fusion · Kalman filter</div>
+      <h2>Better than any one sensor</h2>
+      <p>Here's the payoff, and where the ICP you just built comes back. A <b>Kalman filter</b> fuses three flawed sources: <b style="color:var(--axY)">dead-reckoning</b> (IMU + odometry) — smooth but <b>drifting</b>; <b style="color:var(--accent-ink)">GNSS</b> — unbiased but <b>noisy</b> and lost in tunnels; and <b style="color:#a98bef">LiDAR + ICP</b> scan-matching — accurate wherever there's structure to match. Each step it <b>predicts</b> with the motion, then <b>corrects</b> with whatever measurements are available. Drive into the tunnel: GNSS drops, but ICP keeps the fix locked.</p>
+    </div>
+    <div class="grid-2">
+      <div class="card pad">
+        <h3>2D localisation map</h3>
+        <div class="sub">The vehicle drives a figure-8. Watch the three estimates diverge.</div>
+        <div class="viewport"><canvas id="kfCv" width="620" height="430" role="img" aria-label="Top-down map showing true path, drifting dead-reckoning, noisy GNSS fixes, and the fused Kalman estimate"></canvas></div>
+        <div class="btnrow">
+          <button class="mini-btn primary" id="kfPlay">▶ Play</button>
+          <button class="mini-btn" id="kfReset">Reset</button>
+        </div>
+        <div class="btnrow" style="margin-top:8px">
+          <label class="toggle-chip"><input type="checkbox" id="kfTunnel"> Tunnel (GNSS dropout)</label>
+          <label class="toggle-chip" style="border-color:#a98bef"><input type="checkbox" id="kfLidar" checked style="accent-color:#a98bef"> LiDAR + ICP</label>
+        </div>
+        <div class="rng" style="margin-top:12px"><span style="min-width:118px">GNSS noise</span><input type="range" id="kfGnss" min="4" max="34" step="1" value="16"><span class="v" id="kfGnssV">16</span></div>
+        <div class="rng" style="margin-top:10px"><span style="min-width:118px">Odometry drift</span><input type="range" id="kfDrift" min="0" max="10" step="1" value="4"><span class="v" id="kfDriftV">4</span></div>
+      </div>
+      <div class="card pad">
+        <h3>What you're seeing</h3>
+        <div class="sub">Live position error vs. the true path (lower is better).</div>
+        <div class="readout" style="grid-template-columns:1fr 1fr">
+          <div class="ro y"><div class="k">dead-reckoning error</div><div class="val" id="kfErrDr">0.0 m</div></div>
+          <div class="ro"><div class="k" style="color:var(--good)">fused (KF) error</div><div class="val" id="kfErrKf" style="color:var(--good)">0.0 m</div></div>
+        </div>
+        <div class="axkey" style="margin-top:16px;gap:16px">
+          <span><i style="background:var(--good)"></i>true path</span>
+          <span><i style="background:var(--axY)"></i>dead-reckoning</span>
+          <span><i style="background:var(--accent)"></i>GNSS fixes</span>
+          <span><i style="background:#a98bef"></i>LiDAR / ICP</span>
+          <span><i style="background:var(--alert)"></i>fused (KF)</span>
+        </div>
+        <div class="steps" style="margin-top:18px">
+          <div class="step"><div><b>Predict:</b> move the estimate by the odometry step; grow the uncertainty. &nbsp;<span class="mono" style="color:var(--muted)">x⁻ = x + u,&nbsp; P⁻ = P + Q</span></div></div>
+          <div class="step"><div><b>Correct:</b> nudge toward each available measurement — GNSS <i>and</i> the LiDAR/ICP pose — weighted by the Kalman gain K (trust the more certain source). &nbsp;<span class="mono" style="color:var(--muted)">K = P⁻(P⁻+R)⁻¹</span></div></div>
+          <div class="step"><div><b>Update:</b> &nbsp;<span class="mono" style="color:var(--muted)">x = x⁻ + K(z − x⁻),&nbsp; P = (I − K)P⁻</span> — the shaded ellipse is that uncertainty P.</div></div>
+        </div>
+        <div class="stat-line" id="kfStatus" style="margin-top:16px">Press <b>Play</b>, then flip <b>Tunnel</b> on. With <b>LiDAR + ICP</b> enabled the fix barely moves in the tunnel — scan-matching covers for the lost GNSS. Turn <b>LiDAR + ICP</b> off and the same tunnel makes the estimate drift. That's why AVs run SLAM alongside GNSS.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VSLAM -->
+<section id="vslam" class="alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">Visual SLAM</div>
+      <h2>Localising from a plain camera</h2>
+      <p>Cameras are cheap and don't need depth — a stream of 2D images is enough. VSLAM detects <b>features</b> in each frame, <b>matches</b> them to the next frame, and recovers how the camera moved. The catch: a single camera can't recover <b>scale</b> — how far, only which direction — so IMU or stereo is fused back in.</p>
+    </div>
+
+    <div class="grid-2">
+      <div class="card pad">
+        <h3>Step 1 — Feature detection</h3>
+        <div class="sub">A detector slides a small kernel over the image and fires where the texture is distinctive — corners, blobs. This is the intuition behind <b>SIFT / SURF / ORB</b> (and learned CNN detectors).</div>
+        <div class="viewport"><canvas id="convCv" width="620" height="300" role="img" aria-label="A convolution kernel sliding over an image, responding strongly at corner features"></canvas></div>
+        <div class="btnrow">
+          <button class="mini-btn primary" id="convRun">▶ Slide the detector</button>
+          <button class="mini-btn" id="convReset">Reset</button>
+          <span class="mono" style="font-size:12px;color:var(--muted);margin-left:auto">corners found: <b id="convN" style="color:var(--accent-ink)">0</b></span>
+        </div>
+      </div>
+      <div class="card pad">
+        <h3>Step 2 — Match &amp; estimate motion</h3>
+        <div class="sub">The same features are found in the next frame; matching them reveals the camera's rotation and translation (up to scale) — the <b>8-point algorithm</b>.</div>
+        <div class="viewport" style="background:var(--surface);border-color:var(--border)"><canvas id="matchCv" width="620" height="300" role="img" aria-label="Feature matches between two consecutive camera frames"></canvas></div>
+        <div class="btnrow">
+          <button class="mini-btn primary" id="matchRun">Match features</button>
+          <button class="mini-btn" id="matchReset">New frame pair</button>
+          <span class="mono" style="font-size:12px;color:var(--muted);margin-left:auto" id="matchInfo">—</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card pad" style="margin-top:20px">
+      <h3>The VSLAM pipeline</h3>
+      <div class="sub">From a stream of images to a 3D map and a trajectory.</div>
+      <div class="pipeline">
+        <span class="pstep"><b>Detect</b> features</span><span class="parrow">→</span>
+        <span class="pstep"><b>Match</b> across frames</span><span class="parrow">→</span>
+        <span class="pstep">Estimate <b>R, t</b> (up to scale)</span><span class="parrow">→</span>
+        <span class="pstep"><b>Triangulate</b> to 3D points</span><span class="parrow">→</span>
+        <span class="pstep"><b>Bundle adjustment</b></span><span class="parrow">→</span>
+        <span class="pstep"><b>Loop closure</b> (graph SLAM)</span>
+      </div>
+      <div class="techlist" style="margin-top:20px">
+        <div class="tech"><span class="t">ORB-SLAM</span><span>The widely-used classical VSLAM system — real-time features, tracking, mapping and loop closure.</span></div>
+        <div class="tech"><span class="t">Scale problem</span><span>Monocular VSLAM gets direction but not metric distance; fuse IMU or use a stereo pair to recover real-world scale.</span></div>
+        <div class="tech"><span class="t">Deep VSLAM</span><span>Learned systems like DROID-SLAM now reach excellent accuracy — though LiDAR SLAM is still generally more robust.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <span class="brand" style="color:var(--ink)"><span class="vmc-tile">VMC</span><span class="bt"><b>Vehicle Mechatronics</b><span>Localisation · Control</span></span></span>
+      <p style="color:var(--muted);font-size:13.5px;margin-top:14px;max-width:44ch">A companion to the Vehicle Mechatronics localisation lecture — GNSS, inertial sensing, LiDAR SLAM and Visual SLAM, made interactive.</p>
+      <!-- Aalto logo slot: place assets/aalto-logo.svg in the repo and swap the text lockup below for
+           <img src="assets/aalto-logo.svg" alt="Aalto University" style="height:44px"> -->
+      <div class="aalto-foot" style="margin-top:18px">
+        <b>Aalto University</b>
+        <span>Aalto-yliopisto · Aalto-universitetet · Aalto University</span>
+      </div>
+      <p style="margin-top:16px"><a href="index.html">← Back to the ROS Ecosystem Explorer</a></p>
+    </div>
+    <div>
+      <h4>In this page</h4>
+      <ul>
+        <li><a href="#gnss">GNSS &amp; trilateration</a></li>
+        <li><a href="#imu">IMU · 6-DOF</a></li>
+        <li><a href="#slam">LiDAR SLAM · ICP</a></li>
+        <li><a href="#vslam">Visual SLAM</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Go deeper</h4>
+      <ul>
+        <li><a href="https://cs.gmu.edu/~kosecka/cs685/cs685-icp.pdf" target="_blank" rel="noopener">ICP / Kabsch (GMU notes)</a></li>
+        <li><a href="https://site.aaltoroboticsclub.fi/" target="_blank" rel="noopener">Aalto Robotics Club</a></li>
+        <li><a href="https://github.com/UZ-SLAMLab/ORB_SLAM3" target="_blank" rel="noopener">ORB-SLAM3</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="note">Press <span class="kbd">T</span> to toggle light / dark. The ICP solver runs the real algorithm in your browser; sensor readouts are illustrative. Educational resource for Vehicle Mechatronics.</p>
+</div></footer>
+
+<script>
+"use strict";
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const reduceMotion=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+const cssvar=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+/* THEME */
+(function(){
+  const btn=$('#themeBtn');
+  const cur=()=>document.documentElement.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
+  const set=t=>{document.documentElement.setAttribute('data-theme',t);try{localStorage.setItem('ros-theme',t)}catch(e){}};
+  try{const s=localStorage.getItem('ros-theme');if(s)document.documentElement.setAttribute('data-theme',s);}catch(e){}
+  btn.addEventListener('click',()=>set(cur()==='dark'?'light':'dark'));
+  document.addEventListener('keydown',e=>{if((e.key==='t'||e.key==='T')&&!/input|textarea|select/i.test(e.target.tagName))set(cur()==='dark'?'light':'dark');});
+})();
+
+/* ============ GNSS ============ */
+const gnssCv=$('#gnssCv'), gctx=gnssCv.getContext('2d');
+const CONSTS=[
+  {n:'GPS',c:'United States',b:'~31 sats · L1/L2/L5'},
+  {n:'GLONASS',c:'Russia',b:'~24 sats'},
+  {n:'Galileo',c:'European Union',b:'~28 sats'},
+  {n:'BeiDou',c:'China',b:'~45 sats'},
+  {n:'QZSS',c:'Japan',b:'~4 sats · regional'},
+  {n:'NavIC',c:'India',b:'~7 sats · regional'},
+];
+$('#constGrid').innerHTML=CONSTS.map(c=>`<div class="const"><div class="n">${c.n}</div><div class="c">${c.c}</div><div class="b">${c.b}</div></div>`).join('');
+const GN={sats:9, mode:'standalone', multi:false, urban:false, jam:false, t:0, satPos:[]};
+function seedSats(){ GN.satPos=[]; for(let i=0;i<14;i++){ const a=Math.PI*(0.12+0.76*(i/13)); GN.satPos.push({a, r:0.9+0.1*Math.sin(i*2.3), ph:i*1.7}); } }
+seedSats();
+const MODEACC={standalone:[3,8],dgnss:[0.4,1.2],rtk:[0.01,0.03]};
+function gnssAccuracy(){
+  let [lo,hi]=MODEACC[GN.mode];
+  let base=lo+(hi-lo)*clamp((11-GN.sats)/9,0,1); // fewer sats → worse
+  let mult=1;
+  if(GN.multi) mult*=2.2; if(GN.urban) mult*=2.8; if(GN.jam) mult*=3.5;
+  return base*mult;
+}
+function effectiveSats(){ let s=GN.sats; if(GN.urban) s=Math.max(2,s-4); if(GN.jam) s=Math.max(0,s-3); return s; }
+function drawGnss(){
+  const w=gnssCv.width,h=gnssCv.height; gctx.clearRect(0,0,w,h);
+  gctx.fillStyle=cssvar('--viewport-bg'); gctx.fillRect(0,0,w,h);
+  // ground
+  gctx.fillStyle='rgba(60,90,130,.18)'; gctx.fillRect(0,h-46,w,46);
+  const rx=w*0.5, ry=h-70; // receiver
+  const eff=effectiveSats();
+  GN.t+=reduceMotion?0:0.006;
+  // draw sats + rays + a few range rings
+  const ring=[cssvar('--good'),cssvar('--alert'),'#4a9de8'];
+  let shown=0;
+  GN.satPos.forEach((s,i)=>{
+    const active = i<eff;
+    const drift=reduceMotion?0:Math.sin(GN.t*1.3+s.ph)*10;
+    const sx=w*0.5 + Math.cos(s.a)*(w*0.42)*s.r + drift;
+    const sy=h*0.10 + (1-Math.sin(s.a))*(h*0.16) + Math.sin(GN.t+s.ph)*4;
+    // ray
+    gctx.strokeStyle= active? 'rgba(120,190,220,.30)':'rgba(120,140,170,.10)';
+    gctx.setLineDash(active?[]:[3,4]); gctx.lineWidth=1.2;
+    gctx.beginPath(); gctx.moveTo(sx,sy); gctx.lineTo(rx,ry); gctx.stroke(); gctx.setLineDash([]);
+    // range ring for first 3 active
+    if(active && shown<3){
+      const d=Math.hypot(sx-rx,sy-ry);
+      gctx.strokeStyle=ring[shown]; gctx.globalAlpha=.55; gctx.lineWidth=1.6;
+      gctx.beginPath(); gctx.arc(sx,sy,d,0,7); gctx.stroke(); gctx.globalAlpha=1; shown++;
+    }
+    // sat icon
+    gctx.fillStyle= active? cssvar('--sat') : 'rgba(130,150,175,.5)';
+    gctx.beginPath(); gctx.arc(sx,sy,6,0,7); gctx.fill();
+    gctx.fillStyle= active? 'rgba(228,161,27,.35)':'rgba(130,150,175,.18)';
+    gctx.fillRect(sx-13,sy-2.5,8,5); gctx.fillRect(sx+5,sy-2.5,8,5);
+  });
+  // uncertainty circle around receiver
+  const acc=gnssAccuracy();
+  const px=clamp(6+acc*7,7,150); // meters→pixels (log-ish clamp)
+  const fixState = eff<4? 'none' : eff<7? 'ok' : 'good';
+  const col = fixState==='none'? cssvar('--alert') : fixState==='ok'? cssvar('--sat') : cssvar('--good');
+  if(eff>=4){
+    gctx.fillStyle=col; gctx.globalAlpha=.14; gctx.beginPath(); gctx.arc(rx,ry,px,0,7); gctx.fill(); gctx.globalAlpha=1;
+    gctx.strokeStyle=col; gctx.lineWidth=1.5; gctx.setLineDash([4,4]); gctx.beginPath(); gctx.arc(rx,ry,px,0,7); gctx.stroke(); gctx.setLineDash([]);
+  }
+  // base / reference station for DGNSS & RTK
+  if(GN.mode!=='standalone' && eff>=4){ drawBaseStation(rx,ry); }
+  // receiver marker (pin)
+  gctx.fillStyle= eff>=4? cssvar('--accent') : cssvar('--alert');
+  gctx.beginPath(); gctx.arc(rx,ry,7,0,7); gctx.fill();
+  gctx.strokeStyle=cssvar('--viewport-bg'); gctx.lineWidth=2; gctx.stroke();
+  // labels
+  gctx.fillStyle='#8fa3bd'; gctx.font='11px IBM Plex Mono, monospace';
+  gctx.fillText('rover', rx+12, ry+4);
+  gctx.fillText(eff+' sats in view', 14, 22);
+  // update UI
+  const badge=$('#fixBadge');
+  badge.className='fixbadge '+(fixState==='none'?'fix-none':fixState==='ok'?'fix-ok':'fix-good');
+  badge.textContent= fixState==='none'? 'NO FIX (<4 sats)' : fixState==='ok'? '3D FIX' : '3D FIX · strong';
+  $('#accVal').textContent = acc<0.1? (acc*100).toFixed(1)+' cm' : acc<1? (acc*100).toFixed(0)+' cm' : acc.toFixed(1)+' m';
+  if(!reduceMotion) requestAnimationFrame(drawGnss);
+}
+function drawBaseStation(rx,ry){
+  const w=gnssCv.width,h=gnssCv.height;
+  const bx=w*0.82, by=ry; // base station on the ground, known position
+  const isRtk=GN.mode==='rtk';
+  const col=isRtk?cssvar('--accent'):cssvar('--sat');
+  // little station hut + antenna
+  gctx.fillStyle='rgba(120,150,190,.30)'; gctx.fillRect(bx-16,by-16,32,16);
+  gctx.strokeStyle='rgba(160,190,220,.6)'; gctx.lineWidth=1.4; gctx.strokeRect(bx-16,by-16,32,16);
+  gctx.strokeStyle=col; gctx.lineWidth=2; gctx.beginPath(); gctx.moveTo(bx,by-16); gctx.lineTo(bx,by-40); gctx.stroke();
+  gctx.beginPath(); gctx.arc(bx,by-40,3,0,7); gctx.fillStyle=col; gctx.fill();
+  // "surveyed marker" under the base
+  gctx.strokeStyle=col; gctx.lineWidth=1.4; gctx.beginPath(); gctx.moveTo(bx-6,by+4); gctx.lineTo(bx+6,by+4); gctx.stroke();
+  // radio waves (RTK) from base antenna
+  if(isRtk && !reduceMotion){
+    for(let k=0;k<3;k++){ const rr=8+((GN.t*40+k*14)%42); gctx.strokeStyle=col; gctx.globalAlpha=Math.max(0,.5-rr/90);
+      gctx.lineWidth=1.4; gctx.beginPath(); gctx.arc(bx,by-40,rr,-Math.PI*0.9,-Math.PI*0.1); gctx.stroke(); }
+    gctx.globalAlpha=1;
+  }
+  // correction data link base -> rover (animated dashes)
+  gctx.strokeStyle=col; gctx.lineWidth=2; gctx.setLineDash([7,6]); gctx.lineDashOffset=reduceMotion?0:-(GN.t*60)%13;
+  gctx.beginPath(); gctx.moveTo(bx,by-24); gctx.lineTo(rx+9,ry-6); gctx.stroke(); gctx.setLineDash([]); gctx.lineDashOffset=0;
+  // labels
+  gctx.fillStyle=col; gctx.font='600 11px IBM Plex Mono, monospace';
+  gctx.fillText(isRtk?'RTK base':'reference station', bx-24, by+20);
+  gctx.fillStyle='#8fa3bd'; gctx.font='10px IBM Plex Mono, monospace';
+  const mid=[(bx+rx)/2, (by-24+ry-6)/2 - 8];
+  gctx.fillText(isRtk?'carrier-phase corrections (radio)':'pseudorange corrections', mid[0]-70, mid[1]);
+  gctx.fillText('known position', bx-24, by+32);
+}
+function gnssExplain(){
+  const m={standalone:'Raw single-receiver positioning — metre-level.',dgnss:'A nearby reference station at a surveyed position compares its measured range to the true range and broadcasts the error as a correction — sub-metre.',rtk:'A base station sends carrier-phase corrections over a radio link; the rover resolves the signal wavelength — centimetre-level.'}[GN.mode];
+  let probs=[]; if(GN.multi)probs.push('multipath (signals bounce off buildings)'); if(GN.urban)probs.push('urban canyon (satellites blocked)'); if(GN.jam)probs.push('jamming/interference');
+  $('#gExplain').innerHTML = `<b>${GN.mode.toUpperCase()}:</b> ${m}` + (probs.length? ` &nbsp;·&nbsp; degraded by ${probs.join(', ')}.` : '');
+}
+$('#gSats').addEventListener('input',function(){ GN.sats=+this.value; $('#gSatsV').textContent=this.value; gnssExplain(); });
+$$('#gMode button').forEach(b=>b.addEventListener('click',function(){ GN.mode=this.dataset.m; $$('#gMode button').forEach(x=>x.classList.toggle('active',x===this)); gnssExplain(); }));
+$('#pMulti').addEventListener('change',e=>{GN.multi=e.target.checked;gnssExplain();});
+$('#pUrban').addEventListener('change',e=>{GN.urban=e.target.checked;gnssExplain();});
+$('#pJam').addEventListener('change',e=>{GN.jam=e.target.checked;gnssExplain();});
+
+/* ============ IMU ============ */
+const cube=$('#cube');
+const IMU={roll:0,pitch:0,yaw:0,auto:false, prev:{r:0,p:0,y:0}, tprev:0, drag:false, lx:0,ly:0};
+function eulerMatrix(roll,pitch,yaw){ // ZYX-ish; return 3x3 (world->? ) used for both display and gravity
+  const cr=Math.cos(roll),sr=Math.sin(roll),cp=Math.cos(pitch),sp=Math.sin(pitch),cy=Math.cos(yaw),sy=Math.sin(yaw);
+  // R = Rz(yaw) Ry(pitch) Rx(roll)
+  return [
+    [cy*cp, cy*sp*sr - sy*cr, cy*sp*cr + sy*sr],
+    [sy*cp, sy*sp*sr + cy*cr, sy*sp*cr - cy*sr],
+    [-sp,   cp*sr,            cp*cr]
+  ];
+}
+function setCube(){
+  const R=eulerMatrix(IMU.roll,IMU.pitch,IMU.yaw);
+  // matrix3d is column-major: [m11,m21,m31,m41, m12,...]. Build rotation only.
+  const m=`matrix3d(${R[0][0]},${R[1][0]},${R[2][0]},0, ${R[0][1]},${R[1][1]},${R[2][1]},0, ${R[0][2]},${R[1][2]},${R[2][2]},0, 0,0,0,1)`;
+  cube.style.transform=m;
+  // accel = R^T * [0,0,g]  (gravity felt in body frame)
+  const g=9.81; const ax=R[2][0]*g, ay=R[2][1]*g, az=R[2][2]*g;
+  $('#ax').textContent=ax.toFixed(2); $('#ay').textContent=ay.toFixed(2); $('#az').textContent=az.toFixed(2);
+  const deg=r=>Math.round(r*180/Math.PI);
+  $('#oRoll').textContent=deg(IMU.roll)+'°'; $('#oPitch').textContent=deg(IMU.pitch)+'°'; $('#oYaw').textContent=deg(IMU.yaw)+'°';
+}
+function setGyro(dt){
+  const d=r=>r*180/Math.PI;
+  const wx=(IMU.roll-IMU.prev.r)/dt, wy=(IMU.pitch-IMU.prev.p)/dt, wz=(IMU.yaw-IMU.prev.y)/dt;
+  $('#gx').textContent=d(wx).toFixed(1); $('#gy').textContent=d(wy).toFixed(1); $('#gz').textContent=d(wz).toFixed(1);
+  IMU.prev={r:IMU.roll,p:IMU.pitch,y:IMU.yaw};
+}
+// build cube faces transforms
+(function(){
+  const T=65;
+  const set=(sel,tf)=>{const el=$('.face.'+sel);el.style.transform=tf;};
+  set('front',`translateZ(${T}px)`); set('back',`rotateY(180deg) translateZ(${T}px)`);
+  set('right',`rotateY(90deg) translateZ(${T}px)`); set('left',`rotateY(-90deg) translateZ(${T}px)`);
+  set('top',`rotateX(90deg) translateZ(${T}px)`); set('bottom',`rotateX(-90deg) translateZ(${T}px)`);
+})();
+let imuRAF=null, imuT=0;
+function imuLoop(now){
+  if(!IMU.auto){ return; }
+  if(!imuT) imuT=now; const dt=Math.max(.016,(now-imuT)/1000); imuT=now;
+  imuT2 = (imuT2||0)+dt;
+  IMU.roll=0.6*Math.sin(imuT2*0.9); IMU.pitch=0.5*Math.sin(imuT2*0.7+1); IMU.yaw=0.8*Math.sin(imuT2*0.5+2);
+  setCube(); setGyro(dt);
+  imuRAF=requestAnimationFrame(imuLoop);
+}
+let imuT2=0;
+$('#tumbleBtn').addEventListener('click',function(){
+  IMU.auto=!IMU.auto; this.classList.toggle('primary',IMU.auto); this.textContent=IMU.auto?'⏸ Stop tumble':'Auto-tumble';
+  if(IMU.auto && !reduceMotion){ imuT=0; imuRAF=requestAnimationFrame(imuLoop); }
+  else cancelAnimationFrame(imuRAF);
+});
+$('#imuReset').addEventListener('click',()=>{ IMU.auto=false; $('#tumbleBtn').classList.remove('primary'); $('#tumbleBtn').textContent='Auto-tumble'; cancelAnimationFrame(imuRAF);
+  IMU.roll=IMU.pitch=IMU.yaw=0; IMU.prev={r:0,p:0,y:0}; setCube(); $('#gx').textContent='0.0';$('#gy').textContent='0.0';$('#gz').textContent='0.0'; });
+// drag to rotate
+const vp=$('#cubeVp');
+vp.addEventListener('pointerdown',e=>{ IMU.drag=true; IMU.lx=e.clientX; IMU.ly=e.clientY; vp.setPointerCapture(e.pointerId); vp.style.cursor='grabbing';
+  IMU.auto=false; $('#tumbleBtn').classList.remove('primary'); $('#tumbleBtn').textContent='Auto-tumble'; cancelAnimationFrame(imuRAF); });
+vp.addEventListener('pointermove',e=>{ if(!IMU.drag)return; const dx=e.clientX-IMU.lx, dy=e.clientY-IMU.ly; IMU.lx=e.clientX; IMU.ly=e.clientY;
+  IMU.yaw=clamp(IMU.yaw+dx*0.012,-Math.PI,Math.PI); IMU.pitch=clamp(IMU.pitch+dy*0.012,-Math.PI/2,Math.PI/2); setCube(); setGyro(0.05); });
+const endDrag=()=>{IMU.drag=false; vp.style.cursor='grab';};
+vp.addEventListener('pointerup',endDrag); vp.addEventListener('pointercancel',endDrag);
+// drift chart
+(function(){
+  const svg=$('#driftSvg'),W=520,H=180,pad=30;
+  const xs=t=>pad+ (t/120)*(W-pad-10), ys=v=>H-24-(v/100)*(H-40);
+  const cheap=t=>Math.min(100, 0.16*Math.pow(t,1.5)); const exp=t=>Math.min(100,0.012*Math.pow(t,1.5));
+  const path=f=>{let d='';for(let t=0;t<=120;t+=4){d+=(t?'L':'M')+xs(t).toFixed(1)+' '+ys(f(t)).toFixed(1)+' ';}return d;};
+  svg.innerHTML=`<line x1="${pad}" y1="${H-24}" x2="${W-10}" y2="${H-24}" style="stroke:var(--border-2)" stroke-width="1"/>
+    <line x1="${pad}" y1="16" x2="${pad}" y2="${H-24}" style="stroke:var(--border-2)" stroke-width="1"/>
+    <path d="${path(cheap)}" style="stroke:var(--alert);fill:none" stroke-width="2.5"/>
+    <path d="${path(exp)}" style="stroke:var(--good);fill:none" stroke-width="2.5"/>
+    <text x="${W-14}" y="${ys(cheap(120))-6}" text-anchor="end" style="fill:var(--alert);font-family:var(--mono);font-size:11px">cheap MEMS</text>
+    <text x="${W-14}" y="${ys(exp(120))-6}" text-anchor="end" style="fill:var(--good);font-family:var(--mono);font-size:11px">expensive MEMS</text>
+    <text x="${W/2}" y="${H-6}" text-anchor="middle" style="fill:var(--muted);font-family:var(--mono);font-size:11px">time (s) →</text>
+    <text x="14" y="20" style="fill:var(--muted);font-family:var(--mono);font-size:11px">error</text>`;
+})();
+
+/* ============ ICP ============ */
+const icpCv=$('#icpCv'), ictx=icpCv.getContext('2d');
+let MAP=[], SCAN0=[], SCAN=[], icpState={iter:0,theta:0,err:null,corr:null,init:38*Math.PI/180,thresh:0.06,maxIter:20};
+function buildClouds(){
+  // L-shape map (like slides): horizontal + vertical arm
+  MAP=[]; for(let i=0;i<6;i++) MAP.push({x:-1.0+i*0.45, y:1.0}); // top row
+  for(let i=1;i<5;i++) MAP.push({x:-1.0, y:1.0-i*0.42});          // left column
+  // scan = map transformed by an unknown ground-truth pose + noise
+  const gt=0.55, tx=0.9, ty=-0.7;
+  SCAN0=MAP.map(m=>{ const c=Math.cos(-gt),s=Math.sin(-gt);
+    let x=c*(m.x)-s*(m.y)+tx + (Math.random()-.5)*0.05;
+    let y=s*(m.x)+c*(m.y)+ty + (Math.random()-.5)*0.05; return {x,y}; });
+}
+function applyInit(){
+  const th=icpState.init, c=Math.cos(th), s=Math.sin(th);
+  // rotate SCAN0 around its centroid by init guess to create current SCAN
+  const cx=avg(SCAN0,'x'),cy=avg(SCAN0,'y');
+  SCAN=SCAN0.map(p=>{ const x=p.x-cx,y=p.y-cy; return {x:c*x-s*y+cx, y:s*x+c*y+cy}; });
+  icpState.iter=0; icpState.theta=0; icpState.err=meanError(); icpState.corr=null;
+  updateIcpUI(); markSteps(-1); drawIcp(); if(typeof setIcpStatus==='function') setIcpStatus('');
+}
+const avg=(a,k)=>a.reduce((s,p)=>s+p[k],0)/a.length;
+function nearest(p){ let bi=0,bd=1e9; for(let i=0;i<MAP.length;i++){const d=(MAP[i].x-p.x)**2+(MAP[i].y-p.y)**2; if(d<bd){bd=d;bi=i;}} return bi; }
+function meanError(){ let e=0; SCAN.forEach(p=>{const m=MAP[nearest(p)]; e+=Math.hypot(m.x-p.x,m.y-p.y);}); return e/SCAN.length; }
+function findCorr(){ icpState.corr=SCAN.map((p,i)=>({i, j:nearest(p)})); markSteps(0); drawIcp(); }
+function icpSolveStep(){
+  // ensure correspondences
+  const corr = icpState.corr || SCAN.map((p,i)=>({i,j:nearest(p)}));
+  const sx=avg(SCAN,'x'), sy=avg(SCAN,'y');
+  let mx=0,my=0; corr.forEach(c=>{mx+=MAP[c.j].x;my+=MAP[c.j].y;}); mx/=corr.length; my/=corr.length;
+  // 2D Kabsch closed form: theta = atan2( Σ(m̃y s̃x - m̃x s̃y), Σ(m̃x s̃x + m̃y s̃y) )
+  let a=0,b=0;
+  corr.forEach(c=>{ const S=SCAN[c.i],M=MAP[c.j]; const sxx=S.x-sx, syy=S.y-sy, mxx=M.x-mx, myy=M.y-my;
+    a += mxx*sxx + myy*syy; b += myy*sxx - mxx*syy; });
+  const th=Math.atan2(b,a), c=Math.cos(th), s=Math.sin(th);
+  const tx=mx-(c*sx-s*sy), ty=my-(s*sx+c*sy);
+  SCAN=SCAN.map(p=>({x:c*p.x-s*p.y+tx, y:s*p.x+c*p.y+ty}));
+  icpState.iter++; icpState.theta+=th; icpState.err=meanError(); icpState.corr=null;
+  markSteps(3); updateIcpUI(); drawIcp();
+  return Math.abs(th);
+}
+function updateIcpUI(){
+  $('#icpIter').textContent=icpState.iter;
+  $('#icpErr').textContent= icpState.err==null?'—':icpState.err.toFixed(3);
+  $('#icpTheta').textContent=Math.round(icpState.theta*180/Math.PI)+'°';
+}
+function markSteps(active){ $$('#icpSteps .step').forEach(el=>{ const s=+el.dataset.s; el.classList.toggle('done', active>=0 && s<=active); }); }
+function setIcpStatus(msg,kind){ const el=$('#icpStatus'); if(!msg){el.style.display='none';return;} el.style.display='block';
+  el.innerHTML=msg; el.style.borderLeft='3px solid '+(kind==='ok'?cssvar('--good'):cssvar('--sat')); el.style.paddingLeft='12px'; }
+function icpCheckStop(){
+  if(icpState.err!=null && icpState.err < icpState.thresh){ setIcpStatus(`✓ <b>Converged</b> — error ${icpState.err.toFixed(3)} &lt; threshold ${icpState.thresh.toFixed(2)} after ${icpState.iter} iterations.`,'ok'); return true; }
+  if(icpState.iter >= icpState.maxIter){ setIcpStatus(`■ <b>Stopped</b> — reached max ${icpState.maxIter} iterations (error ${icpState.err.toFixed(3)}, still &gt; threshold ${icpState.thresh.toFixed(2)}).`,'warn'); return true; }
+  return false;
+}
+function W2S(p,w,h){ return [w*0.5 + p.x*(w*0.28), h*0.55 - p.y*(h*0.28)]; }
+function drawIcp(){
+  const w=icpCv.width,h=icpCv.height; ictx.clearRect(0,0,w,h);
+  ictx.fillStyle=cssvar('--viewport-bg'); ictx.fillRect(0,0,w,h);
+  // grid
+  ictx.strokeStyle='rgba(120,150,190,.12)'; ictx.lineWidth=1;
+  for(let gx=w*0.5%40;gx<w;gx+=40){ictx.beginPath();ictx.moveTo(gx,0);ictx.lineTo(gx,h);ictx.stroke();}
+  for(let gy=(h*0.55)%40;gy<h;gy+=40){ictx.beginPath();ictx.moveTo(0,gy);ictx.lineTo(w,gy);ictx.stroke();}
+  // correspondences
+  if(icpState.corr){ ictx.strokeStyle=cssvar('--accent'); ictx.lineWidth=1.2; ictx.globalAlpha=.7;
+    icpState.corr.forEach(c=>{ const [ax,ay]=W2S(SCAN[c.i],w,h), [bx,by]=W2S(MAP[c.j],w,h);
+      ictx.beginPath();ictx.moveTo(ax,ay);ictx.lineTo(bx,by);ictx.stroke(); }); ictx.globalAlpha=1; }
+  // map points
+  const mapc = document.documentElement.getAttribute('data-theme')==='dark'||(!document.documentElement.getAttribute('data-theme')&&matchMedia('(prefers-color-scheme:dark)').matches)? '#dfe7f2':'#e8eef7';
+  MAP.forEach(p=>{ const [x,y]=W2S(p,w,h); ictx.fillStyle='#c9d4e3'; ictx.beginPath();ictx.arc(x,y,5.5,0,7);ictx.fill();
+    ictx.strokeStyle='#54627a';ictx.lineWidth=1;ictx.stroke(); });
+  // scan points
+  SCAN.forEach(p=>{ const [x,y]=W2S(p,w,h); ictx.fillStyle=cssvar('--alert'); ictx.beginPath();ictx.arc(x,y,5,0,7);ictx.fill(); });
+  // legend text
+  ictx.fillStyle='#8fa3bd'; ictx.font='11px IBM Plex Mono, monospace';
+  ictx.fillText('mean error: '+(icpState.err==null?'—':icpState.err.toFixed(3)), 12, 20);
+}
+$('#icpInit').addEventListener('input',function(){ icpState.init=(+this.value)*Math.PI/180; $('#icpInitV').textContent=this.value+'°'; applyInit(); });
+$('#icpThresh').addEventListener('input',function(){ icpState.thresh=+this.value; $('#icpThreshV').textContent=(+this.value).toFixed(2); });
+$('#icpMax').addEventListener('input',function(){ icpState.maxIter=+this.value; $('#icpMaxV').textContent=this.value; });
+$('#icpMatch').addEventListener('click',findCorr);
+$('#icpStep').addEventListener('click',()=>{ icpSolveStep(); icpCheckStop(); });
+$('#icpReset').addEventListener('click',()=>{ buildClouds(); applyInit(); });
+let icpAutoTimer=null;
+function stopIcpAuto(){ if(icpAutoTimer){clearInterval(icpAutoTimer);icpAutoTimer=null;} $('#icpAuto').textContent='▶ Auto-run'; $('#icpAuto').classList.remove('primary'); }
+$('#icpAuto').addEventListener('click',function(){
+  if(icpAutoTimer){ stopIcpAuto(); return; }
+  setIcpStatus(''); this.textContent='⏸ Stop'; this.classList.add('primary');
+  icpAutoTimer=setInterval(()=>{ findCorr(); setTimeout(()=>{ icpSolveStep(); if(icpCheckStop()){ stopIcpAuto(); } }, reduceMotion?0:180); }, reduceMotion?60:520);
+});
+
+/* ============ VSLAM: convolution/feature detection ============ */
+const convCv=$('#convCv'), cctx=convCv.getContext('2d');
+let convFeatures=[], convRAF=null;
+// A rendered "photo": street with buildings + windows. Window/edge corners are the features.
+let BUILDINGS=[];
+function buildScene(){
+  BUILDINGS=[
+    {x:40, y:96,  w:150, h:184, col:'#8a6f52', rows:5, cols:3},
+    {x:210,y:60,  w:120, h:220, col:'#6d7f92', rows:7, cols:2},
+    {x:350,y:120, w:170, h:160, col:'#9c8a6a', rows:4, cols:4},
+    {x:540,y:150, w:60,  h:130, col:'#5f6f80', rows:3, cols:1},
+  ];
+}
+// Paints the cityscape in WORLD coords (nominal 0..620 × 0..300). Drawn over
+// generous bounds so it fills clipped/transformed camera views too.
+function paintCityscape(ctx){
+  const sky=ctx.createLinearGradient(0,-200,0,320); sky.addColorStop(0,'#bcd3ea'); sky.addColorStop(1,'#e7eef6');
+  ctx.fillStyle=sky; ctx.fillRect(-400,-300,1420,700);
+  ctx.fillStyle='rgba(255,240,200,.9)'; ctx.beginPath(); ctx.arc(550,44,20,0,7); ctx.fill();
+  ctx.fillStyle='#5a5f66'; ctx.fillRect(-400,260,1420,140);
+  ctx.strokeStyle='#e8d24a'; ctx.lineWidth=3; ctx.setLineDash([16,14]);
+  ctx.beginPath(); ctx.moveTo(-400,280); ctx.lineTo(1020,280); ctx.stroke(); ctx.setLineDash([]);
+  BUILDINGS.forEach(b=>{
+    ctx.fillStyle=b.col; ctx.fillRect(b.x,b.y,b.w,b.h);
+    ctx.strokeStyle='rgba(0,0,0,.35)'; ctx.lineWidth=1.5; ctx.strokeRect(b.x,b.y,b.w,b.h);
+    ctx.fillStyle='rgba(0,0,0,.18)'; ctx.fillRect(b.x,b.y,b.w,6);
+    const mx=14, my=14, gw=(b.w-mx*2)/b.cols, gh=(b.h-my*2)/b.rows, ww=gw*0.62, wh=gh*0.6;
+    for(let r=0;r<b.rows;r++) for(let c=0;c<b.cols;c++){
+      const wx=b.x+mx+c*gw+(gw-ww)/2, wy=b.y+my+r*gh+(gh-wh)/2;
+      ctx.fillStyle='#2b3a4d'; ctx.fillRect(wx,wy,ww,wh);
+      ctx.fillStyle='rgba(180,210,235,.55)'; ctx.fillRect(wx+1.5,wy+1.5,ww*0.44,wh*0.5);
+      ctx.strokeStyle='rgba(20,28,38,.7)'; ctx.lineWidth=1; ctx.strokeRect(wx,wy,ww,wh);
+    }
+  });
+}
+function drawSceneBase(){ cctx.clearRect(0,0,convCv.width,convCv.height); paintCityscape(cctx); }
+function sceneCorners(){
+  const pts=[];
+  BUILDINGS.forEach(b=>{
+    pts.push([b.x,b.y],[b.x+b.w,b.y]); // top building corners (strong)
+    const mx=14,my=14,gw=(b.w-mx*2)/b.cols,gh=(b.h-my*2)/b.rows,ww=gw*0.62,wh=gh*0.6;
+    for(let r=0;r<b.rows;r++) for(let c=0;c<b.cols;c++){
+      const wx=b.x+mx+c*gw+(gw-ww)/2, wy=b.y+my+r*gh+(gh-wh)/2;
+      pts.push([wx,wy],[wx+ww,wy],[wx,wy+wh],[wx+ww,wy+wh]); // window corners
+    }
+  });
+  return pts;
+}
+function drawConv(kx,ky,found){
+  drawSceneBase();
+  // kernel window
+  if(kx!=null){ cctx.strokeStyle=cssvar('--accent'); cctx.lineWidth=2; cctx.strokeRect(kx-18,ky-18,36,36);
+    cctx.fillStyle='rgba(55,198,218,.12)'; cctx.fillRect(kx-18,ky-18,36,36); }
+  // found corners
+  found.forEach(p=>{ cctx.strokeStyle='#ff4d4f'; cctx.lineWidth=1.6; cctx.beginPath(); cctx.arc(p[0],p[1],5,0,7); cctx.stroke();
+    cctx.fillStyle='rgba(255,77,79,.85)'; cctx.beginPath();cctx.arc(p[0],p[1],1.6,0,7);cctx.fill(); });
+  // caption strip for contrast on the light photo
+  cctx.fillStyle='rgba(11,18,32,.72)'; cctx.fillRect(0,0,convCv.width,22);
+  cctx.fillStyle='#cdd8e6'; cctx.font='11px IBM Plex Mono, monospace';
+  cctx.fillText('image → feature detector · corners (keypoints) marked in red', 12, 15);
+}
+function runConv(){
+  buildScene(); convFeatures=[]; const corners=sceneCorners();
+  if(reduceMotion){ convFeatures=corners.slice(); $('#convN').textContent=convFeatures.length; drawConv(null,null,convFeatures); return; }
+  cancelAnimationFrame(convRAF);
+  let x=30,y=30; const step=26;
+  function fr(){
+    drawConv(x,y,convFeatures);
+    // check if near a corner
+    corners.forEach(c=>{ if(Math.hypot(c[0]-x,c[1]-y)<16 && !convFeatures.some(f=>f[0]===c[0]&&f[1]===c[1])){ convFeatures.push(c); $('#convN').textContent=convFeatures.length; } });
+    x+=step; if(x>convCv.width-30){ x=30; y+=step; }
+    if(y<convCv.height-30){ convRAF=requestAnimationFrame(fr); } else { drawConv(null,null,convFeatures); }
+  }
+  fr();
+}
+$('#convRun').addEventListener('click',runConv);
+$('#convReset').addEventListener('click',()=>{ cancelAnimationFrame(convRAF); buildScene(); convFeatures=[]; $('#convN').textContent='0'; drawConv(null,null,[]); });
+
+/* ============ VSLAM: feature matching (same photo, two camera poses) ============ */
+const matchCv=$('#matchCv'), mctx=matchCv.getContext('2d');
+const FBL={x:18,y:26,w:282,h:252}, FBR={x:320,y:26,w:282,h:252};
+let cam1={ox:0,oy:0,rot:0}, cam2={ox:0,oy:0,rot:0}, KP=[], MATCHES=[], showMatches=false, motion={dx:0,dy:0,rot:0};
+function newFramePair(){
+  buildScene();
+  // camera 1 looks at the buildings; camera 2 has moved slightly (ego-motion)
+  cam1={ox:110,oy:30,rot:0};
+  motion={dx:20+Math.random()*16, dy:(Math.random()-.5)*14, rot:(Math.random()-.5)*0.22};
+  cam2={ox:cam1.ox+motion.dx, oy:cam1.oy+motion.dy, rot:motion.rot};
+  // keypoints = a readable subset of window/building corners in view
+  const all=sceneCorners();
+  KP=[]; for(let i=0;i<all.length;i+=5){ const p=all[i]; if(p[0]>cam1.ox-6 && p[0]<cam1.ox+FBL.w+6 && p[1]>cam1.oy && p[1]<cam1.oy+FBL.h){ KP.push({x:p[0],y:p[1],id:KP.length}); } if(KP.length>=16) break; }
+  showMatches=false; MATCHES=[]; drawMatch();
+}
+function project(P,cam,FB){
+  const cx=cam.ox+FB.w/2, cy=cam.oy+FB.h/2, vx=P.x-cx, vy=P.y-cy, c=Math.cos(cam.rot), s=Math.sin(cam.rot);
+  return { x:FB.x+FB.w/2 + (vx*c - vy*s), y:FB.y+FB.h/2 + (vx*s + vy*c) };
+}
+function inBox(p,FB){ return p.x>=FB.x && p.x<=FB.x+FB.w && p.y>=FB.y && p.y<=FB.y+FB.h; }
+function drawFrameScene(FB,cam){
+  mctx.save(); mctx.beginPath(); mctx.rect(FB.x,FB.y,FB.w,FB.h); mctx.clip();
+  mctx.translate(FB.x+FB.w/2, FB.y+FB.h/2); mctx.rotate(cam.rot); mctx.translate(-(cam.ox+FB.w/2), -(cam.oy+FB.h/2));
+  paintCityscape(mctx); mctx.restore();
+}
+function drawMatch(){
+  const w=matchCv.width,h=matchCv.height; mctx.clearRect(0,0,w,h);
+  const dark=document.documentElement.getAttribute('data-theme')==='dark'||(!document.documentElement.getAttribute('data-theme')&&matchMedia('(prefers-color-scheme:dark)').matches);
+  mctx.fillStyle=dark?'#0f1a2b':'#eef2f8'; mctx.fillRect(0,0,w,h);
+  drawFrameScene(FBL,cam1); drawFrameScene(FBR,cam2);
+  mctx.strokeStyle=cssvar('--border-2'); mctx.lineWidth=1.5; mctx.strokeRect(FBL.x,FBL.y,FBL.w,FBL.h); mctx.strokeRect(FBR.x,FBR.y,FBR.w,FBR.h);
+  // captions
+  mctx.fillStyle=dark?'#cdd8e6':'#39485c'; mctx.font='600 11px IBM Plex Mono, monospace';
+  mctx.fillText('frame k−1', FBL.x+4, FBL.y-8); mctx.fillText('frame k', FBR.x+4, FBR.y-8);
+  // project keypoints into each frame
+  const p1=KP.map(k=>({k,p:project(k,cam1,FBL)})), p2=KP.map(k=>({k,p:project(k,cam2,FBR)}));
+  // match lines
+  if(showMatches){
+    MATCHES.forEach(id=>{ const a=p1[id].p, b=p2[id].p; if(inBox(a,FBL)&&inBox(b,FBR)){
+      mctx.strokeStyle=cssvar('--match'); mctx.lineWidth=1.6; mctx.globalAlpha=.9;
+      mctx.beginPath(); mctx.moveTo(a.x,a.y); mctx.lineTo(b.x,b.y); mctx.stroke(); mctx.globalAlpha=1; } });
+  }
+  // keypoint dots (red keypoints on the photo, matched ones ringed)
+  const dot=(pt,FB,matched)=>{ if(!inBox(pt,FB))return; mctx.fillStyle='#ff4d4f'; mctx.beginPath();mctx.arc(pt.x,pt.y,3,0,7);mctx.fill();
+    if(matched){ mctx.strokeStyle=cssvar('--match'); mctx.lineWidth=1.6; mctx.beginPath();mctx.arc(pt.x,pt.y,5.5,0,7);mctx.stroke(); } };
+  p1.forEach(o=>dot(o.p,FBL, showMatches&&MATCHES.includes(o.k.id)));
+  p2.forEach(o=>dot(o.p,FBR, showMatches&&MATCHES.includes(o.k.id)));
+}
+function runMatch(){
+  // a keypoint matches when it is visible in BOTH frames
+  MATCHES=[]; KP.forEach(k=>{ const a=project(k,cam1,FBL), b=project(k,cam2,FBR); if(inBox(a,FBL)&&inBox(b,FBR)) MATCHES.push(k.id); });
+  showMatches=true; drawMatch();
+  const dir=Math.abs(motion.dx)>Math.abs(motion.dy)? (motion.dx>0?'right':'left'):(motion.dy>0?'down':'up');
+  $('#matchInfo').innerHTML=`${MATCHES.length} matches · camera moved <b>${dir}</b>, yaw ${Math.round(motion.rot*180/Math.PI)}° <span style="color:var(--muted)">(scale unknown)</span>`;
+}
+$('#matchRun').addEventListener('click',runMatch);
+$('#matchReset').addEventListener('click',()=>{ newFramePair(); $('#matchInfo').textContent='—'; });
+
+/* ============ SENSOR FUSION · 2D KALMAN FILTER ============ */
+const kfCv=$('#kfCv'), kctx=kfCv.getContext('2d');
+const KF={ t:0, dt:0.06, playing:false, raf:null,
+  gnssNoise:16, driftRate:4, tunnel:false, lidarOn:true, lidarNoise:7,
+  dr:{x:0,y:0}, x:[0,0], P:[[4,0],[0,4]], drift:0,
+  trueTrail:[], drTrail:[], kfTrail:[], gnssDots:[], lidarDots:[], errDr:0, errKf:0, gnssOn:true };
+let kfSeed=1; function nrand(){ // deterministic-ish gaussian (Box-Muller w/ Math.random)
+  let u=0,v=0; while(!u)u=Math.random(); while(!v)v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+function truePos(t){ const w=kfCv.width,h=kfCv.height, A=w*0.30, B=h*0.24, cx=w*0.5, cy=h*0.5, om=0.6;
+  return {x:cx+A*Math.sin(om*t), y:cy+B*Math.sin(2*om*t)}; }
+function kfTunnelRect(){ const w=kfCv.width,h=kfCv.height, A=w*0.30, cx=w*0.5; return {x:cx+A*0.42, y:0, w:A*0.72, h:h}; }
+function insideTunnel(p){ if(!KF.tunnel) return false; const r=kfTunnelRect(); return p.x>=r.x && p.x<=r.x+r.w; }
+// 2x2 helpers
+const add2=(A,B)=>[[A[0][0]+B[0][0],A[0][1]+B[0][1]],[A[1][0]+B[1][0],A[1][1]+B[1][1]]];
+const inv2=A=>{ const d=A[0][0]*A[1][1]-A[0][1]*A[1][0]; return [[A[1][1]/d,-A[0][1]/d],[-A[1][0]/d,A[0][0]/d]]; };
+const mul2=(A,B)=>[[A[0][0]*B[0][0]+A[0][1]*B[1][0], A[0][0]*B[0][1]+A[0][1]*B[1][1]],[A[1][0]*B[0][0]+A[1][1]*B[1][0], A[1][0]*B[0][1]+A[1][1]*B[1][1]]];
+function kfInit(){
+  KF.t=0; const p0=truePos(0); KF.dr={x:p0.x,y:p0.y}; KF.x=[p0.x,p0.y]; KF.P=[[6,0],[0,6]]; KF.drift=0;
+  KF.trueTrail=[]; KF.drTrail=[]; KF.kfTrail=[]; KF.gnssDots=[]; KF.lidarDots=[]; KF.errDr=0; KF.errKf=0;
+  drawKf();
+}
+function kfStep(){
+  const dt=KF.dt; KF.t+=dt;
+  const pt=truePos(KF.t), pp=truePos(KF.t-dt);
+  const tdx=pt.x-pp.x, tdy=pt.y-pp.y;
+  // odometry delta: accumulating heading drift + noise (the classic dead-reckoning error)
+  KF.drift += (KF.driftRate*0.0016)*dt*60;
+  const c=Math.cos(KF.drift), s=Math.sin(KF.drift), on=KF.driftRate*0.10;
+  const od={ x:c*tdx - s*tdy + nrand()*on, y:s*tdx + c*tdy + nrand()*on };
+  KF.dr.x+=od.x; KF.dr.y+=od.y;
+  // KF predict
+  KF.x[0]+=od.x; KF.x[1]+=od.y;
+  const q=0.6+KF.driftRate*0.15; KF.P=add2(KF.P,[[q,0],[0,q]]);
+  // GNSS correct
+  KF.gnssOn = !insideTunnel(pt);
+  if(KF.gnssOn){
+    const z=[pt.x+nrand()*KF.gnssNoise, pt.y+nrand()*KF.gnssNoise];
+    const r=KF.gnssNoise*KF.gnssNoise;
+    const S=add2(KF.P,[[r,0],[0,r]]); const K=mul2(KF.P,inv2(S));
+    const yx=z[0]-KF.x[0], yy=z[1]-KF.x[1];
+    KF.x=[KF.x[0]+K[0][0]*yx+K[0][1]*yy, KF.x[1]+K[1][0]*yx+K[1][1]*yy];
+    const IK=[[1-K[0][0],-K[0][1]],[-K[1][0],1-K[1][1]]]; KF.P=mul2(IK,KF.P);
+    KF.gnssDots.push({x:z[0],y:z[1]}); if(KF.gnssDots.length>45) KF.gnssDots.shift();
+  }
+  // LiDAR + ICP scan-matching correction (accurate; works even in the tunnel)
+  if(KF.lidarOn){
+    const zl=[pt.x+nrand()*KF.lidarNoise, pt.y+nrand()*KF.lidarNoise];
+    const rl=KF.lidarNoise*KF.lidarNoise;
+    const S=add2(KF.P,[[rl,0],[0,rl]]); const K=mul2(KF.P,inv2(S));
+    const yx=zl[0]-KF.x[0], yy=zl[1]-KF.x[1];
+    KF.x=[KF.x[0]+K[0][0]*yx+K[0][1]*yy, KF.x[1]+K[1][0]*yx+K[1][1]*yy];
+    const IK=[[1-K[0][0],-K[0][1]],[-K[1][0],1-K[1][1]]]; KF.P=mul2(IK,KF.P);
+    KF.lidarDots.push({x:zl[0],y:zl[1]}); if(KF.lidarDots.length>45) KF.lidarDots.shift();
+  }
+  KF.trueTrail.push({x:pt.x,y:pt.y}); KF.drTrail.push({x:KF.dr.x,y:KF.dr.y}); KF.kfTrail.push({x:KF.x[0],y:KF.x[1]});
+  [KF.trueTrail,KF.drTrail,KF.kfTrail].forEach(a=>{ if(a.length>320)a.shift(); });
+  KF.errDr=Math.hypot(KF.dr.x-pt.x,KF.dr.y-pt.y); KF.errKf=Math.hypot(KF.x[0]-pt.x,KF.x[1]-pt.y);
+}
+function eigEllipse(P){ const a=P[0][0],b=P[0][1],d=P[1][1], tr=(a+d)/2, dd=Math.sqrt(Math.max(0,((a-d)/2)**2+b*b));
+  const l1=tr+dd, l2=tr-dd, ang=0.5*Math.atan2(2*b,a-d); return {ax:Math.sqrt(Math.max(l1,.1)),ay:Math.sqrt(Math.max(l2,.1)),ang}; }
+function poly(ctx,arr,col,wdt){ if(arr.length<2)return; ctx.strokeStyle=col; ctx.lineWidth=wdt; ctx.beginPath();
+  arr.forEach((p,i)=> i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y)); ctx.stroke(); }
+function drawKf(){
+  const w=kfCv.width,h=kfCv.height; kctx.clearRect(0,0,w,h);
+  kctx.fillStyle=cssvar('--viewport-bg'); kctx.fillRect(0,0,w,h);
+  kctx.strokeStyle='rgba(120,150,190,.12)'; kctx.lineWidth=1;
+  for(let x=0;x<w;x+=38){kctx.beginPath();kctx.moveTo(x,0);kctx.lineTo(x,h);kctx.stroke();}
+  for(let y=0;y<h;y+=38){kctx.beginPath();kctx.moveTo(0,y);kctx.lineTo(w,y);kctx.stroke();}
+  // tunnel band
+  if(KF.tunnel){ const r=kfTunnelRect(); kctx.fillStyle='rgba(207,59,65,.13)'; kctx.fillRect(r.x,r.y,r.w,r.h);
+    kctx.strokeStyle='rgba(207,59,65,.5)'; kctx.setLineDash([6,5]); kctx.lineWidth=1.4;
+    kctx.strokeRect(r.x,r.y,r.w,r.h); kctx.setLineDash([]);
+    kctx.fillStyle='#e88'; kctx.font='11px IBM Plex Mono, monospace'; kctx.fillText('TUNNEL · no GNSS', r.x+8, 18); }
+  // trails
+  poly(kctx,KF.trueTrail,cssvar('--good'),2.4);
+  poly(kctx,KF.drTrail,cssvar('--axY'),2);
+  poly(kctx,KF.kfTrail,cssvar('--alert'),2);
+  // gnss dots
+  KF.gnssDots.forEach((d,i)=>{ kctx.globalAlpha=0.25+0.6*(i/KF.gnssDots.length); kctx.fillStyle=cssvar('--accent');
+    kctx.beginPath();kctx.arc(d.x,d.y,2.6,0,7);kctx.fill(); }); kctx.globalAlpha=1;
+  // lidar/ICP dots
+  KF.lidarDots.forEach((d,i)=>{ kctx.globalAlpha=0.25+0.6*(i/KF.lidarDots.length); kctx.fillStyle='#a98bef';
+    kctx.beginPath();kctx.arc(d.x,d.y,2.6,0,7);kctx.fill(); }); kctx.globalAlpha=1;
+  // current markers
+  const pt=truePos(KF.t);
+  // KF uncertainty ellipse
+  const e=eigEllipse(KF.P), sc=1.6;
+  kctx.save(); kctx.translate(KF.x[0],KF.x[1]); kctx.rotate(e.ang);
+  kctx.fillStyle='rgba(207,59,65,.16)'; kctx.strokeStyle='rgba(207,59,65,.55)'; kctx.lineWidth=1.3;
+  kctx.beginPath(); kctx.ellipse(0,0,Math.min(150,e.ax*sc),Math.min(150,e.ay*sc),0,0,7); kctx.fill(); kctx.stroke(); kctx.restore();
+  const mk=(x,y,col,r)=>{ kctx.fillStyle=col; kctx.beginPath();kctx.arc(x,y,r,0,7);kctx.fill(); kctx.strokeStyle=cssvar('--viewport-bg');kctx.lineWidth=1.5;kctx.stroke(); };
+  mk(pt.x,pt.y,cssvar('--good'),5); mk(KF.dr.x,KF.dr.y,cssvar('--axY'),4.5); mk(KF.x[0],KF.x[1],cssvar('--alert'),5);
+  if(KF.gnssOn && KF.gnssDots.length){ const g=KF.gnssDots[KF.gnssDots.length-1]; mk(g.x,g.y,cssvar('--accent'),4); }
+  if(KF.lidarOn && KF.lidarDots.length){ const l=KF.lidarDots[KF.lidarDots.length-1]; mk(l.x,l.y,'#a98bef',4); }
+  // readouts (px → metres, 1px ≈ 0.08 m)
+  const M=0.08; $('#kfErrDr').textContent=(KF.errDr*M).toFixed(1)+' m'; $('#kfErrKf').textContent=(KF.errKf*M).toFixed(1)+' m';
+}
+function kfLoop(){ if(!KF.playing)return; kfStep(); drawKf();
+  KF.raf=setTimeout(()=>requestAnimationFrame(kfLoop), reduceMotion?120:26); }
+$('#kfPlay').addEventListener('click',function(){
+  KF.playing=!KF.playing; this.classList.toggle('primary',KF.playing); this.textContent=KF.playing?'⏸ Pause':'▶ Play';
+  if(KF.playing) kfLoop();
+});
+$('#kfReset').addEventListener('click',()=>{ kfInit(); });
+$('#kfTunnel').addEventListener('change',e=>{ KF.tunnel=e.target.checked; drawKf(); });
+$('#kfLidar').addEventListener('change',e=>{ KF.lidarOn=e.target.checked; });
+$('#kfGnss').addEventListener('input',function(){ KF.gnssNoise=+this.value; $('#kfGnssV').textContent=this.value; });
+$('#kfDrift').addEventListener('input',function(){ KF.driftRate=+this.value; $('#kfDriftV').textContent=this.value; });
+
+/* ============ INIT ============ */
+function init(){
+  gnssExplain(); if(reduceMotion){ drawGnss(); } else requestAnimationFrame(drawGnss);
+  setCube();
+  buildClouds(); applyInit();
+  kfInit();
+  buildScene(); drawConv(null,null,[]);
+  newFramePair();
+}
+document.addEventListener('DOMContentLoaded',init);
+if(document.readyState!=='loading') init();
+</script>
