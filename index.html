@@ -1,0 +1,1252 @@
+<title>ROS Ecosystem Explorer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="An interactive companion for learning ROS 2 — ecosystem data, sensor drivers, and live demos of publish/subscribe, RViz, ROSbags and rqt_graph.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+/* ============ TOKENS ============ */
+:root{
+  --bg:#EEF1F6; --surface:#FFFFFF; --panel:#F6F8FC; --panel-2:#EDF1F8;
+  --ink:#131C29; --ink-2:#39485C; --muted:#5E6E86; --border:#D7DFEC; --border-2:#C4D0E0;
+  --navy:#22314E;
+  --accent:#0E8DA1;        /* signal cyan on light */
+  --accent-ink:#0A6D7D;
+  --node:#128C86;          /* teal node */
+  --topic:#9E3FB6;         /* magenta topic */
+  --record:#C96A05;        /* amber record */
+  --alert:#CF3B41;
+  --axX:#D63C43; --axY:#2FA457; --axZ:#2F6FE0;
+  --good:#1E8E56;
+  --viewport-bg:#0B1220;   /* RViz stays dark in both themes */
+  --shadow:0 1px 2px rgba(20,32,54,.06), 0 6px 24px rgba(20,32,54,.07);
+  --radius:14px; --radius-s:9px;
+  --maxw:1140px;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  --display:'Chakra Petch','IBM Plex Sans',system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --bg:#0C1420; --surface:#141F2E; --panel:#182434; --panel-2:#1E2C40;
+  --ink:#E8EEF7; --ink-2:#B7C4D6; --muted:#8496AE; --border:#26364C; --border-2:#33475F;
+  --navy:#2C3E60;
+  --accent:#37C6DA; --accent-ink:#8FE3EF; --node:#2FC1B9; --topic:#C972DD;
+  --record:#F0982C; --alert:#F0575C; --good:#38C177;
+  --axX:#F0575C; --axY:#43C877; --axZ:#5A8CF0;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+}}
+:root[data-theme="dark"]{
+  --bg:#0C1420; --surface:#141F2E; --panel:#182434; --panel-2:#1E2C40;
+  --ink:#E8EEF7; --ink-2:#B7C4D6; --muted:#8496AE; --border:#26364C; --border-2:#33475F;
+  --navy:#2C3E60;
+  --accent:#37C6DA; --accent-ink:#8FE3EF; --node:#2FC1B9; --topic:#C972DD;
+  --record:#F0982C; --alert:#F0575C; --good:#38C177;
+  --axX:#F0575C; --axY:#43C877; --axZ:#5A8CF0;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} *{animation-duration:.001ms!important;transition-duration:.001ms!important} }
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:var(--sans);font-size:16px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{font-family:var(--display);font-weight:600;line-height:1.12;text-wrap:balance;margin:0}
+a{color:var(--accent-ink);text-decoration:none}
+a:hover{text-decoration:underline}
+:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px;border-radius:4px}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+.mono{font-family:var(--mono)}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* ============ NAV ============ */
+.nav{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 86%,transparent);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+.nav-in{max-width:var(--maxw);margin:0 auto;padding:11px 22px;display:flex;align-items:center;gap:18px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:700;letter-spacing:.02em;color:var(--ink)}
+.dots{display:inline-grid;grid-template-columns:repeat(3,4px);gap:2px}
+.dots i{width:4px;height:4px;border-radius:1px;background:var(--accent);display:block}
+.nav-links{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+.nav-links a{font-size:13.5px;color:var(--muted);padding:6px 10px;border-radius:8px;font-weight:500}
+.nav-links a:hover{color:var(--ink);background:var(--panel);text-decoration:none}
+.tgl{margin-left:6px;width:38px;height:38px;border:1px solid var(--border-2);background:var(--surface);
+  border-radius:10px;cursor:pointer;color:var(--ink);font-size:16px;display:grid;place-items:center}
+.tgl:hover{border-color:var(--accent)}
+@media(max-width:820px){ .nav-links{display:none} }
+
+/* ============ HERO ============ */
+.hero{position:relative;overflow:hidden;border-bottom:1px solid var(--border)}
+.hero-grid{position:absolute;inset:0;opacity:.5;
+  background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:34px 34px;mask-image:radial-gradient(120% 90% at 70% 10%,#000 30%,transparent 75%)}
+.hero-in{position:relative;max-width:var(--maxw);margin:0 auto;padding:64px 22px 40px;
+  display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center}
+@media(max-width:900px){ .hero-in{grid-template-columns:1fr;gap:26px;padding-top:44px} }
+.eyebrow{font-family:var(--mono);font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-ink);font-weight:600}
+.hero h1{font-size:clamp(2.3rem,5.2vw,3.7rem);font-weight:700;letter-spacing:-.01em;margin:14px 0 0}
+.hero h1 .hl{color:var(--accent)}
+.lede{font-size:clamp(1.02rem,1.7vw,1.2rem);color:var(--ink-2);max-width:36ch;margin:16px 0 0}
+.cta-row{display:flex;gap:12px;margin-top:26px;flex-wrap:wrap}
+.btn{font-family:var(--display);font-weight:600;font-size:14.5px;border-radius:10px;padding:11px 18px;cursor:pointer;border:1px solid transparent;transition:.15s}
+.btn-p{background:var(--accent);color:#04222a}
+:root[data-theme="dark"] .btn-p, :root:not([data-theme="light"]) .btn-p{color:#05222a}
+.btn-p:hover{filter:brightness(1.07);text-decoration:none}
+.btn-s{background:var(--surface);border-color:var(--border-2);color:var(--ink)}
+.btn-s:hover{border-color:var(--accent);text-decoration:none}
+.disclaimer{margin-top:22px;font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:baseline}
+.disclaimer .tag{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--accent-ink);border:1px solid var(--border-2);border-radius:5px;padding:1px 6px;white-space:nowrap}
+
+/* hero live graph */
+.hero-art{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:8px}
+.hero-art svg{width:100%;height:auto;display:block}
+
+/* ============ SECTIONS ============ */
+section{padding:62px 0}
+.sec-head{max-width:60ch;margin-bottom:30px}
+.sec-kicker{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-ink);font-weight:600;display:flex;align-items:center;gap:9px}
+.sec-kicker::before{content:"";width:22px;height:2px;background:var(--accent);display:inline-block}
+.sec-head h2{font-size:clamp(1.7rem,3.3vw,2.35rem);margin:12px 0 0}
+.sec-head p{color:var(--ink-2);margin:12px 0 0;font-size:1.03rem}
+.alt{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+
+/* ============ STAT TILES ============ */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:900px){ .stats{grid-template-columns:repeat(2,1fr)} }
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 18px;position:relative;overflow:hidden}
+.stat::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+.stat .n{font-family:var(--display);font-weight:700;font-size:2rem;letter-spacing:-.01em;color:var(--ink);line-height:1}
+.stat .l{font-size:13px;color:var(--muted);margin-top:8px}
+.stat .s{font-size:12px;color:var(--good);margin-top:6px;font-weight:600;font-family:var(--mono)}
+.stat .s.flat{color:var(--muted)}
+
+/* ============ CARDS / GRID ============ */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:900px){ .grid-2{grid-template-columns:1fr} }
+.pad{padding:24px}
+.card h3{font-size:1.18rem;margin-bottom:4px}
+.card .sub{color:var(--muted);font-size:13px;margin-bottom:18px}
+
+/* ============ BAR CHART ============ */
+.bars{display:flex;flex-direction:column;gap:11px}
+.bar-row{display:grid;grid-template-columns:120px 1fr;gap:12px;align-items:center}
+.bar-row .k{font-size:13.5px;color:var(--ink-2);display:flex;align-items:center;gap:7px;font-weight:500}
+.bar-row .k .swatch{width:9px;height:9px;border-radius:2px;flex:none}
+.bar-track{position:relative;background:var(--panel-2);border-radius:6px;height:26px;overflow:hidden}
+.bar-fill{position:absolute;left:0;top:0;bottom:0;border-radius:6px;min-width:2px;width:0;
+  transition:width 1s cubic-bezier(.22,1,.36,1)}
+.bar-val{position:absolute;right:9px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--ink)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:16px;font-size:12.5px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+
+/* ============ TIMELINE ============ */
+.tl{overflow-x:auto}
+.tl-inner{min-width:640px;padding-top:6px}
+.tl-axis{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--muted);border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:12px}
+.tl-row{display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:center;margin-bottom:9px}
+.tl-row .name{font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
+.tl-track{position:relative;height:20px}
+.tl-bar{position:absolute;height:100%;border-radius:5px;display:flex;align-items:center;padding:0 8px;font-size:10.5px;font-family:var(--mono);color:#fff;white-space:nowrap;overflow:hidden}
+.tl-bar.lts{box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.35)}
+.pill{font-size:10px;font-family:var(--mono);font-weight:600;padding:1px 6px;border-radius:20px;border:1px solid currentColor}
+
+/* ============ SENSORS ============ */
+.sensor-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+@media(max-width:820px){ .sensor-grid{grid-template-columns:1fr} }
+.sensor{padding:22px}
+.sensor .head{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+.sensor .ic{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;flex:none;background:var(--panel-2)}
+.sensor .ic svg{width:22px;height:22px}
+.sensor .msg{font-family:var(--mono);font-size:11.5px;color:var(--accent-ink);font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+.chip{font-size:12px;font-family:var(--mono);background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:4px 9px;color:var(--ink-2)}
+.chip b{color:var(--ink);font-weight:600}
+.sensor-note{margin-top:20px;padding:16px 18px;border-left:3px solid var(--accent);background:var(--panel);border-radius:0 10px 10px 0;font-size:14px;color:var(--ink-2)}
+
+/* ============ INTERACTIVE STAGE ============ */
+.stage-wrap{padding:0;overflow:hidden}
+.stage-controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:18px 22px;border-bottom:1px solid var(--border);background:var(--panel)}
+.stage{position:relative;height:360px;background:
+  radial-gradient(120% 120% at 50% 0%, color-mix(in srgb,var(--accent) 7%,var(--surface)) 0%, var(--surface) 60%);
+  overflow:hidden}
+.node-el{position:absolute;transform:translate(-50%,-50%);text-align:center;z-index:3}
+.node-circ{width:96px;height:96px;border-radius:50%;display:grid;place-items:center;color:#fff;
+  font-family:var(--display);font-weight:600;font-size:13px;box-shadow:var(--shadow);border:2px solid rgba(255,255,255,.25)}
+.node-circ.talk{background:var(--node)}
+.node-circ.sub{background:var(--navy)}
+.node-lbl{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:7px}
+.topic-el{position:absolute;transform:translate(-50%,-50%);z-index:3;background:var(--topic);color:#fff;
+  font-family:var(--mono);font-weight:600;font-size:13px;padding:9px 14px;border-radius:8px;box-shadow:var(--shadow);white-space:nowrap}
+.topic-el .t{font-size:10px;opacity:.85;font-weight:400}
+.wire{position:absolute;inset:0;z-index:1;pointer-events:none}
+.wire path{fill:none;stroke:var(--border-2);stroke-width:2;stroke-dasharray:5 6}
+.packet{position:absolute;width:14px;height:14px;border-radius:50%;background:var(--accent);z-index:2;
+  transform:translate(-50%,-50%);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 30%,transparent);pointer-events:none}
+.counter{position:absolute;left:16px;top:14px;z-index:4;font-family:var(--mono);font-size:12px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 10px}
+.counter b{color:var(--accent-ink)}
+.logbox{background:var(--viewport-bg);color:#cdd8e6;font-family:var(--mono);font-size:12.5px;padding:14px 16px;height:150px;overflow-y:auto;border-top:1px solid var(--border)}
+.logbox .ln{white-space:pre-wrap;opacity:0;animation:fadein .3s forwards}
+.logbox .ln .i{color:#5fd0e0}
+.logbox .ln .h{color:#7fe0a0}
+@keyframes fadein{to{opacity:1}}
+.field{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2)}
+.field label{font-weight:500}
+input[type=range]{accent-color:var(--accent)}
+.mini-btn{font-family:var(--display);font-weight:600;font-size:13px;border-radius:9px;padding:9px 15px;cursor:pointer;border:1px solid var(--border-2);background:var(--surface);color:var(--ink)}
+.mini-btn:hover{border-color:var(--accent)}
+.mini-btn.primary{background:var(--accent);color:#04222a;border-color:transparent}
+:root[data-theme="dark"] .mini-btn.primary,:root:not([data-theme="light"]) .mini-btn.primary{color:#05222a}
+.mini-btn:disabled{opacity:.45;cursor:not-allowed}
+.mini-btn.rec{background:var(--record);color:#2a1400;border-color:transparent}
+.mini-btn.rec.on{background:var(--alert);color:#fff;animation:pulse 1.1s infinite}
+@keyframes pulse{50%{filter:brightness(1.25)}}
+
+/* ============ TOOLS ============ */
+.tool{padding:0;overflow:hidden}
+.tool-head{display:flex;align-items:center;gap:12px;padding:18px 22px;border-bottom:1px solid var(--border)}
+.tool-head .cmd{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--accent-ink);background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:5px 10px}
+.tool-head h3{font-size:1.15rem}
+.tool-body{padding:22px}
+.rviz{background:var(--viewport-bg);border-radius:10px;overflow:hidden;border:1px solid #1d2a3d}
+.rviz-top{display:flex;flex-wrap:wrap;gap:14px;padding:10px 14px;background:#0e1826;border-bottom:1px solid #1d2a3d}
+.rviz canvas{display:block;width:100%;height:auto}
+.disp{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:12px;color:#aebbcd;cursor:pointer;user-select:none}
+.disp input{accent-color:#37C6DA;cursor:pointer}
+.axkey{display:flex;gap:14px;margin-top:12px;font-family:var(--mono);font-size:11.5px;color:var(--muted);flex-wrap:wrap}
+.axkey span{display:inline-flex;align-items:center;gap:5px}
+.axkey i{width:16px;height:3px;border-radius:2px;display:inline-block}
+
+.bag-time{margin-top:8px}
+.bag-track{height:12px;background:var(--panel-2);border-radius:6px;position:relative;overflow:hidden;margin:12px 0}
+.bag-prog{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--record);border-radius:6px}
+.bag-file{display:flex;gap:14px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:var(--ink-2);background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:12px 14px;margin-top:6px}
+.bag-file b{color:var(--ink)}
+.bag-file .dot{color:var(--record)}
+
+.rqt{background:var(--surface)}
+.rqt svg{width:100%;height:auto;display:block}
+.rqt .ell{fill:var(--surface);stroke:var(--node);stroke-width:2}
+.rqt .ell-t{fill:var(--node)}
+.rqt .box{fill:color-mix(in srgb,var(--topic) 14%,var(--surface));stroke:var(--topic);stroke-width:2}
+.rqt .box-t{fill:var(--topic)}
+.rqt .edge{stroke:var(--muted);stroke-width:1.8;fill:none;marker-end:url(#arrow)}
+.rqt .lbl{fill:var(--ink);font-family:var(--mono);font-size:12px;font-weight:600}
+
+/* ============ MODE SWITCH ============ */
+.mode-switch{display:inline-flex;gap:4px;padding:14px 22px 0}
+.mode-switch button{font-family:var(--display);font-weight:600;font-size:13px;padding:8px 14px;border-radius:9px 9px 0 0;
+  border:1px solid var(--border);border-bottom:none;background:var(--panel-2);color:var(--muted);cursor:pointer;transition:.15s}
+.mode-switch button.active{background:var(--surface);color:var(--ink);box-shadow:inset 0 3px 0 var(--accent)}
+.mode-switch button:hover{color:var(--ink)}
+
+/* ============ COMM TRIO ============ */
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media(max-width:900px){ .grid-3{grid-template-columns:1fr} }
+.comm{padding:0;display:flex;flex-direction:column;overflow:hidden}
+.comm-head{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.comm-head .tag{font-family:var(--mono);font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:.05em}
+.comm-head h3{font-size:1.08rem}
+.tag.svc{background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent-ink)}
+.tag.act{background:color-mix(in srgb,var(--topic) 16%,transparent);color:var(--topic)}
+.tag.par{background:color-mix(in srgb,var(--record) 18%,transparent);color:var(--record)}
+.comm-body{padding:18px;display:flex;flex-direction:column;gap:14px;flex:1}
+.comm-body p{margin:0;font-size:13.5px;color:var(--ink-2)}
+.comm-diagram{background:var(--panel);border:1px solid var(--border);border-radius:9px;height:118px;position:relative;overflow:hidden}
+.comm-diagram svg{width:100%;height:100%;display:block}
+.comm-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.comm-row input[type=number]{width:56px;font-family:var(--mono);font-size:13px;padding:6px 8px;border:1px solid var(--border-2);
+  border-radius:7px;background:var(--surface);color:var(--ink)}
+.comm-out{font-family:var(--mono);font-size:12.5px;background:var(--viewport-bg);color:#cdd8e6;border-radius:8px;padding:10px 12px;min-height:38px}
+.comm-out .ok{color:#7fe0a0}.comm-out .fb{color:#5fd0e0}.comm-out .warn{color:#f4b860}
+.fbbar{height:9px;background:var(--panel-2);border-radius:5px;overflow:hidden;margin-top:2px}
+.fbbar>i{display:block;height:100%;width:0;background:var(--topic);border-radius:5px;transition:width .2s linear}
+.param-slider{display:flex;align-items:center;gap:10px}
+.param-slider input[type=range]{flex:1}
+.param-val{font-family:var(--mono);font-size:13px;color:var(--record);font-weight:600;min-width:42px;text-align:right}
+
+/* ============ CLI TERMINAL ============ */
+.term{background:var(--viewport-bg);border-radius:12px;overflow:hidden;border:1px solid #1d2a3d;box-shadow:var(--shadow)}
+.term-bar{display:flex;align-items:center;gap:7px;padding:10px 14px;background:#0e1826;border-bottom:1px solid #1d2a3d}
+.term-bar .tb{width:11px;height:11px;border-radius:50%}
+.term-bar .t1{background:#ff5f57}.term-bar .t2{background:#febc2e}.term-bar .t3{background:#28c840}
+.term-bar .title{font-family:var(--mono);font-size:12px;color:#7d8ea3;margin-left:8px}
+.term-cmds{display:flex;flex-wrap:wrap;gap:8px;padding:14px 16px 4px}
+.term-cmds button{font-family:var(--mono);font-size:12px;padding:7px 11px;border-radius:8px;border:1px solid #29394f;
+  background:#132030;color:#9fd8e2;cursor:pointer;transition:.15s}
+.term-cmds button:hover{border-color:#37C6DA;color:#cdeff5}
+.term-cmds button.active{background:#37C6DA;color:#04222a;border-color:transparent;font-weight:600}
+.term-screen{font-family:var(--mono);font-size:13px;line-height:1.55;color:#cdd8e6;padding:8px 18px 20px;
+  min-height:240px;max-height:340px;overflow-y:auto;white-space:pre-wrap}
+.term-screen .prompt{color:#7fe0a0}.term-screen .path{color:#5fd0e0}
+.term-screen .c{color:#e8eef7}.term-screen .k{color:#f4b860}.term-screen .g{color:#8fa3bd}
+.cursor{display:inline-block;width:8px;height:15px;background:#37C6DA;vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* ============ TF2 ============ */
+.tf-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+@media(max-width:900px){ .tf-grid{grid-template-columns:1fr} }
+.tf-tree svg{width:100%;height:auto;display:block;margin-top:6px}
+.tf-tree .fr{fill:var(--panel-2);stroke:var(--border-2);stroke-width:1.8}
+.tf-tree .fr-root{stroke:var(--accent);stroke-width:2.5}
+.tf-tree .flbl{fill:var(--ink);font-family:var(--mono);font-size:15px;font-weight:600}
+.tf-tree .edge{stroke:var(--muted);stroke-width:1.9;fill:none;marker-end:url(#tfa)}
+.tf-tree .etag{font-family:var(--mono);font-size:11px;fill:var(--muted)}
+.tf-tree .dyn{stroke:var(--topic);stroke-dasharray:4 3}
+.tf-canvas{background:var(--viewport-bg);border-radius:10px;border:1px solid #1d2a3d}
+.tf-canvas canvas{display:block;width:100%;height:auto}
+.tf-ctrl{display:flex;flex-direction:column;gap:11px;margin-top:14px}
+.tf-ctrl .row{display:grid;grid-template-columns:70px 1fr 58px;gap:10px;align-items:center;font-family:var(--mono);font-size:12.5px;color:var(--ink-2)}
+.tf-ctrl .row .v{color:var(--accent-ink);text-align:right}
+.tf-cmd{font-family:var(--mono);font-size:11.5px;color:#9fd8e2;background:var(--viewport-bg);border-radius:8px;padding:11px 13px;margin-top:14px;overflow-x:auto;white-space:nowrap}
+.tf-cmd .fl{color:#f4b860}
+
+/* ============ FOOTER ============ */
+footer{background:var(--surface);border-top:1px solid var(--border);padding:44px 0 40px;font-size:14px}
+.foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:28px}
+@media(max-width:820px){ .foot-grid{grid-template-columns:1fr} }
+footer h4{font-family:var(--display);font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+footer ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+footer .src{font-size:12.5px;color:var(--muted)}
+.note{font-size:12.5px;color:var(--muted);margin-top:26px;border-top:1px solid var(--border);padding-top:18px}
+.kbd{font-family:var(--mono);font-size:12px;background:var(--panel-2);border:1px solid var(--border);border-radius:5px;padding:1px 6px;color:var(--ink-2)}
+</style>
+
+<!-- ================= NAV ================= -->
+<nav class="nav">
+  <div class="nav-in">
+    <span class="brand"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>ROS&nbsp;Explorer</span>
+    <div class="nav-links">
+      <a href="#ecosystem">Ecosystem</a>
+      <a href="#sensors">Sensors</a>
+      <a href="#pubsub">Pub / Sub</a>
+      <a href="#comm">Services</a>
+      <a href="#cli">CLI</a>
+      <a href="#tf">tf2</a>
+      <a href="#tools">Tools</a>
+    </div>
+    <button class="tgl" id="themeBtn" aria-label="Toggle colour theme" title="Toggle theme">◐</button>
+  </div>
+</nav>
+
+<!-- ================= HERO ================= -->
+<header class="hero">
+  <div class="hero-grid" aria-hidden="true"></div>
+  <div class="hero-in">
+    <div>
+      <span class="eyebrow">Robot Operating System · ROS 2</span>
+      <h1>The middleware that <span class="hl">robotics runs on</span>.</h1>
+      <p class="lede">ROS isn't one program — it's an ecosystem of nodes passing messages. Explore who uses it, how big it has grown, and play with the ideas behind <b>pub/sub</b>, <b>RViz</b>, <b>ROSbags</b> and <b>rqt_graph</b>.</p>
+      <div class="cta-row">
+        <a class="btn btn-p" href="#pubsub">Try the live demo</a>
+        <a class="btn btn-s" href="#ecosystem">See the data</a>
+      </div>
+      <p class="disclaimer"><span class="tag">note</span> Throughout, “ROS” means <b>ROS&nbsp;2</b>. ROS&nbsp;1 (last release Noetic) reached end-of-life in May&nbsp;2025 and lives on only in legacy systems.</p>
+    </div>
+    <div class="hero-art">
+      <!-- animated pub/sub motif -->
+      <svg viewBox="0 0 460 300" id="heroSvg" role="img" aria-label="Animated diagram of a publisher node sending messages through a topic to subscriber nodes">
+        <defs>
+          <marker id="ha" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" style="fill:var(--muted)"/></marker>
+        </defs>
+        <path d="M120 150 C 180 150 180 150 218 150" style="stroke:var(--border-2);fill:none" stroke-width="2" stroke-dasharray="5 6"/>
+        <path d="M300 150 C 340 150 340 80 372 80" style="stroke:var(--border-2);fill:none" stroke-width="2" stroke-dasharray="5 6" marker-end="url(#ha)"/>
+        <path d="M300 150 C 340 150 340 220 372 220" style="stroke:var(--border-2);fill:none" stroke-width="2" stroke-dasharray="5 6" marker-end="url(#ha)"/>
+        <!-- topic -->
+        <rect x="218" y="132" width="82" height="36" rx="7" style="fill:var(--topic)"/>
+        <text x="259" y="149" text-anchor="middle" style="fill:#fff;font-family:var(--mono)" font-size="12" font-weight="600">/chatter</text>
+        <text x="259" y="161" text-anchor="middle" style="fill:#fff;font-family:var(--mono)" font-size="8" opacity=".8">topic</text>
+        <!-- talker -->
+        <circle cx="80" cy="150" r="40" style="fill:var(--node)"/>
+        <text x="80" y="147" text-anchor="middle" style="fill:#fff;font-family:var(--display)" font-size="12" font-weight="600">talker</text>
+        <text x="80" y="161" text-anchor="middle" style="fill:#fff;font-family:var(--mono)" font-size="8" opacity=".85">publisher</text>
+        <!-- subs -->
+        <circle cx="404" cy="80" r="30" style="fill:var(--navy)"/>
+        <text x="404" y="83" text-anchor="middle" style="fill:#fff;font-family:var(--mono)" font-size="9">listener</text>
+        <circle cx="404" cy="220" r="30" style="fill:var(--navy)"/>
+        <text x="404" y="223" text-anchor="middle" style="fill:#fff;font-family:var(--mono)" font-size="9">listener</text>
+        <circle id="hp" r="7" style="fill:var(--accent)" cx="120" cy="150"/>
+      </svg>
+    </div>
+  </div>
+</header>
+
+<!-- ================= AT A GLANCE ================= -->
+<section id="glance">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">By the numbers · 2025</div>
+      <h2>ROS at a glance</h2>
+      <p>A snapshot of the ecosystem from the community's own telemetry. These are relative-growth estimates — ROS is open-source and deliberately does not track its users.</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="n tnum">984M</div><div class="l">Package downloads in 2025</div><div class="s">▲ 85% year-over-year</div></div>
+      <div class="stat"><div class="n tnum">91.2%</div><div class="l">Of downloads are ROS 2 (Oct 2025)</div><div class="s">▲ from 72% a year earlier</div></div>
+      <div class="stat"><div class="n tnum">8,866</div><div class="l">Packages indexed on index.ros.org</div><div class="s flat">across 3,089 repositories</div></div>
+      <div class="stat"><div class="n tnum">14,551</div><div class="l">Academic citations of the ROS paper</div><div class="s">▲ 9% year-over-year</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ECOSYSTEM ================= -->
+<section id="ecosystem" class="alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">Demographics</div>
+      <h2>An ecosystem, not an app</h2>
+      <p>ROS ships as versioned “distros,” each tied to an Ubuntu release. The community has decisively moved to ROS 2, and consolidated around two long-term-support releases: <b>Humble</b> and <b>Jazzy</b>.</p>
+    </div>
+
+    <!-- timeline -->
+    <div class="card pad" style="margin-bottom:20px">
+      <h3>Distro timeline &amp; support</h3>
+      <div class="sub">Bars span initial release → end-of-life. LTS releases (thicker outline) get 5 years of support.</div>
+      <div class="tl">
+        <div class="tl-inner" id="timeline"></div>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--muted)"></i> ROS 1 (legacy)</span>
+        <span><i style="background:var(--accent)"></i> ROS 2</span>
+        <span><i style="background:var(--topic)"></i> Rolling (continuous)</span>
+        <span style="color:var(--ink-2)">▢ outlined = LTS (5-yr support)</span>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- distro share -->
+      <div class="card pad">
+        <h3>Who's running what</h3>
+        <div class="sub">Share of all package downloads, October 2025. Grey = ROS 1.</div>
+        <div class="bars" id="distroBars"></div>
+      </div>
+      <!-- ros1 vs ros2 + growth -->
+      <div class="card pad">
+        <h3>The great migration</h3>
+        <div class="sub">ROS 2 as a share of all downloads — the tipping point is behind us.</div>
+        <div style="display:flex;align-items:flex-end;gap:8px;margin:8px 0 4px">
+          <div class="mono" style="font-size:3.2rem;font-weight:700;color:var(--accent);line-height:.9">91<span style="font-size:1.6rem">.2%</span></div>
+          <div style="color:var(--muted);font-size:13px;padding-bottom:8px">ROS 2 · Oct 2025</div>
+        </div>
+        <div class="bar-track" style="height:30px;margin:14px 0">
+          <div class="bar-fill" style="background:var(--accent);width:91.2%"></div>
+          <div class="bar-val" style="left:12px;right:auto;color:#fff">ROS 2 · 120.1M dl</div>
+        </div>
+        <div class="bar-track" style="height:22px">
+          <div class="bar-fill" style="background:var(--muted);width:8.8%;min-width:74px"></div>
+          <div class="bar-val" style="left:12px;right:auto;color:#fff">ROS 1 · 11.6M</div>
+        </div>
+        <p style="font-size:13px;color:var(--ink-2);margin:18px 0 0">In Oct 2024 ROS 2 was <b>72%</b> of downloads. A year later ROS 1 dropped ~5% while ROS 2 grew <b>+284%</b> — the crossover is complete.</p>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-top:20px">
+      <!-- reach -->
+      <div class="card pad">
+        <h3>Global reach</h3>
+        <div class="sub">Share of docs.ros.org traffic by country (2025) — 1.1M annual readers.</div>
+        <div class="bars" id="countryBars"></div>
+      </div>
+      <!-- community -->
+      <div class="card pad">
+        <h3>A living community</h3>
+        <div class="sub">Beyond code — where roboticists gather.</div>
+        <div class="stats" style="grid-template-columns:1fr 1fr;gap:12px">
+          <div class="stat"><div class="n tnum">198K</div><div class="l">LinkedIn followers (Open Robotics)</div><div class="s">▲ 24%</div></div>
+          <div class="stat"><div class="n tnum">13,544</div><div class="l">Discourse forum members</div><div class="s">▲ 14%</div></div>
+          <div class="stat"><div class="n tnum">288</div><div class="l">Contributors to the ros2 GitHub org</div><div class="s">▲ 11%</div></div>
+          <div class="stat"><div class="n tnum">94%</div><div class="l">Of new Q&amp;A is about ROS 2, not ROS 1</div><div class="s flat">Robotics Stack Exchange</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SENSORS ================= -->
+<section id="sensors">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">Hardware</div>
+      <h2>If it senses, there's probably a driver</h2>
+      <p>A ROS <b>driver</b> (or “wrapper”) turns a sensor's proprietary output into a <b>standard message</b> any node can read. Because the message types are shared, swapping one LiDAR for another rarely changes the code downstream. Below is a representative sample of actively-maintained ROS 2 drivers — the full index lists thousands more.</p>
+    </div>
+    <div class="sensor-grid" id="sensorGrid"></div>
+    <div class="sensor-note">
+      <b>Why this matters for your code:</b> a Velodyne, an Ouster and a Hokuyo all publish <span class="mono" style="color:var(--accent-ink)">sensor_msgs/LaserScan</span> or <span class="mono" style="color:var(--accent-ink)">PointCloud2</span>. Your navigation node subscribes to the <i>message</i>, not the <i>hardware</i> — so the same node runs on any of them. That interchangeability is the whole point of the ecosystem.
+    </div>
+  </div>
+</section>
+
+<!-- ================= PUB / SUB ================= -->
+<section id="pubsub" class="alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">Interactive · the core idea</div>
+      <h2>Publish &amp; subscribe, live</h2>
+      <p>This is ROS in one picture. The <b style="color:var(--node)">talker</b> node <b>publishes</b> messages to a <b style="color:var(--topic)">topic</b> (<span class="mono">/chatter</span>). Any <b style="color:var(--navy)">listener</b> that has <b>subscribed</b> receives every message. Press publish, change the rate, add listeners — then watch the same activity feed the tools below.</p>
+    </div>
+
+    <div class="card stage-wrap">
+      <div class="mode-switch" id="modeSwitch">
+        <button class="active" data-mode="hello">Hello World</button>
+        <button data-mode="car">Self-driving car</button>
+      </div>
+      <div class="stage-controls">
+        <button class="mini-btn primary" id="pubBtn">▶ Publish once</button>
+        <button class="mini-btn" id="autoBtn">Auto-publish: off</button>
+        <span class="field"><label for="rate">Rate</label><input type="range" id="rate" min="1" max="10" value="2" step="1"><span class="mono" id="rateVal" style="color:var(--accent-ink)">2 Hz</span></span>
+        <button class="mini-btn" id="addSub">+ Add listener</button>
+        <button class="mini-btn" id="delSub">– Remove</button>
+        <button class="mini-btn rec" id="recBtn" style="margin-left:auto">● Record bag</button>
+      </div>
+      <div class="stage" id="stage">
+        <div class="counter">messages published: <b class="tnum" id="msgCount">0</b></div>
+        <svg class="wire" id="wire" aria-hidden="true"></svg>
+      </div>
+      <div class="logbox" id="log" aria-live="polite"><div class="ln" style="opacity:1;color:#6b7d92">// listener callbacks appear here — press “Publish”…</div></div>
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin-top:14px;text-align:center">Topics are one-to-many: one publisher can feed many subscribers, and the talker neither knows nor cares how many are listening.</p>
+  </div>
+</section>
+
+<!-- ================= COMM TRIO ================= -->
+<section id="comm">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">Beyond topics</div>
+      <h2>Three more ways nodes talk</h2>
+      <p>Topics are a fire-and-forget stream. But sometimes a node needs an <b>answer</b>, a <b>long job with progress</b>, or a <b>shared setting</b>. ROS builds three more patterns on top of topics — try each one.</p>
+    </div>
+    <div class="grid-3">
+
+      <!-- SERVICE -->
+      <div class="card comm">
+        <div class="comm-head"><span class="tag svc">Service</span><h3>Ask &amp; wait</h3></div>
+        <div class="comm-body">
+          <p>A <b>request → response</b> call. The client waits, so services are for <i>short</i> jobs — “add these two numbers”, “test the headlights”.</p>
+          <div class="comm-diagram"><svg viewBox="0 0 260 118" id="svcSvg"></svg></div>
+          <div class="comm-row">
+            <span class="mono" style="font-size:12.5px;color:var(--muted)">add_two_ints</span>
+            <input type="number" id="svcA" value="2"> <span class="mono">+</span>
+            <input type="number" id="svcB" value="3">
+            <button class="mini-btn primary" id="svcBtn" style="margin-left:auto">Call</button>
+          </div>
+          <div class="comm-out" id="svcOut">// press “Call” to send a request…</div>
+        </div>
+      </div>
+
+      <!-- ACTION -->
+      <div class="card comm">
+        <div class="comm-head"><span class="tag act">Action</span><h3>Long job, with feedback</h3></div>
+        <div class="comm-body">
+          <p>For tasks that <i>take time</i> — “follow the path to the goal”. The client gets continuous <b>feedback</b> and can <b>cancel</b>. Result comes at the end.</p>
+          <div class="comm-diagram"><svg viewBox="0 0 260 118" id="actSvg"></svg></div>
+          <div class="comm-row">
+            <button class="mini-btn primary" id="actBtn">Send goal: navigate_to_pose</button>
+            <button class="mini-btn" id="actCancel" disabled>Cancel</button>
+          </div>
+          <div class="fbbar"><i id="actBar"></i></div>
+          <div class="comm-out" id="actOut">// send a goal to start…</div>
+        </div>
+      </div>
+
+      <!-- PARAMETER -->
+      <div class="card comm">
+        <div class="comm-head"><span class="tag par">Parameter</span><h3>Shared settings</h3></div>
+        <div class="comm-body">
+          <p>Named values a node reads at runtime — like tuning gains. Set a <b>PID gain</b> here; the controller node picks it up when it reads the parameter.</p>
+          <div class="comm-diagram"><svg viewBox="0 0 260 118" id="parSvg"></svg></div>
+          <div class="param-slider">
+            <span class="mono" style="font-size:12px;color:var(--muted)">controller.Kp</span>
+            <input type="range" id="parK" min="0" max="5" step="0.05" value="1.20">
+            <span class="param-val" id="parVal">1.20</span>
+          </div>
+          <div class="comm-row">
+            <button class="mini-btn primary" id="parSet">Set parameter</button>
+            <button class="mini-btn" id="parGet">Node reads it</button>
+          </div>
+          <div class="comm-out" id="parOut">// set a value, then let the node read it…</div>
+        </div>
+      </div>
+
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin-top:18px;text-align:center">Rule of thumb — continuous data? <b style="color:var(--accent-ink)">topic</b>. Quick answer? <b style="color:var(--accent-ink)">service</b>. Long task you monitor? <b style="color:var(--topic)">action</b>. A setting? <b style="color:var(--record)">parameter</b>.</p>
+  </div>
+</section>
+
+<!-- ================= CLI ================= -->
+<section id="cli" class="alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">Command line</div>
+      <h2>Talk to a running system</h2>
+      <p>You rarely need a GUI to inspect ROS — the <span class="mono">ros2</span> CLI shows you every node, topic and message live. Click a command to run it against a simulated robot.</p>
+    </div>
+    <div class="term">
+      <div class="term-bar"><span class="tb t1"></span><span class="tb t2"></span><span class="tb t3"></span><span class="title">robotics@VMC: ~/ros2_ws</span></div>
+      <div class="term-cmds" id="termCmds">
+        <button data-cmd="list" class="active">ros2 topic list</button>
+        <button data-cmd="info">ros2 topic info /scan</button>
+        <button data-cmd="hz">ros2 topic hz /scan</button>
+        <button data-cmd="echo">ros2 topic echo /odom</button>
+        <button data-cmd="iface">ros2 interface show …/LaserScan</button>
+        <button data-cmd="node">ros2 node list</button>
+      </div>
+      <div class="term-screen" id="termScreen"></div>
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin-top:14px;text-align:center">These are the commands you'll reach for constantly — <span class="mono">list</span> to discover, <span class="mono">echo</span> to see data, <span class="mono">hz</span> to check rates, <span class="mono">interface show</span> to learn a message's fields.</p>
+  </div>
+</section>
+
+<!-- ================= TF2 ================= -->
+<section id="tf">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">Coordinate frames · tf2</div>
+      <h2>Where is everything, relative to everything?</h2>
+      <p>A robot is a stack of coordinate frames — the map, the robot base, each sensor. <b>tf2</b> tracks the transform (translation + rotation) between them so any node can convert a point from one frame to another. Drag the sliders to move the camera on the robot and watch its transform update.</p>
+    </div>
+    <!-- tree (full width, horizontal) -->
+    <div class="card pad" style="margin-bottom:20px">
+      <h3>The transform tree</h3>
+      <div class="sub">The whole robot as a chain of frames. Solid = static (bolted on). Dashed = dynamic (changes as the robot moves).</div>
+      <div class="tf-tree">
+        <svg viewBox="0 0 940 280" role="img" aria-label="tf2 transform tree from map to odom to base_link to laser and camera sensor frames">
+          <defs><marker id="tfa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" style="fill:var(--muted)"/></marker></defs>
+          <!-- edges -->
+          <path class="edge dyn" d="M178 140 L206 140"/><text class="etag" x="192" y="102" text-anchor="middle">dynamic</text>
+          <path class="edge dyn" d="M372 140 L400 140"/><text class="etag" x="386" y="102" text-anchor="middle">dynamic</text>
+          <path class="edge" d="M594 128 C 650 100, 650 82, 700 72"/><text class="etag" x="648" y="86" text-anchor="middle">static</text>
+          <path class="edge" d="M594 152 C 650 180, 650 198, 700 208"/><text class="etag" x="648" y="200" text-anchor="middle">static</text>
+          <!-- frames -->
+          <g class="tf-tree">
+            <rect class="fr fr-root" x="24" y="112" width="154" height="56" rx="9"/><text class="flbl" x="101" y="145" text-anchor="middle">map</text>
+            <rect class="fr" x="218" y="112" width="154" height="56" rx="9"/><text class="flbl" x="295" y="145" text-anchor="middle">odom</text>
+            <rect class="fr" x="424" y="112" width="170" height="56" rx="9"/><text class="flbl" x="509" y="145" text-anchor="middle">base_link</text>
+            <rect class="fr" x="700" y="42" width="200" height="56" rx="9"/><text class="flbl" x="800" y="75" text-anchor="middle">laser_link</text>
+            <rect class="fr" x="700" y="182" width="216" height="56" rx="9" style="stroke:var(--accent);stroke-width:3"/><text class="flbl" x="808" y="215" text-anchor="middle">camera_link</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+    <!-- interactive static transform (full width) -->
+    <div class="card pad">
+      <h3>Static transform: base_link → camera_link</h3>
+      <div class="sub">Top-down view. <span style="color:var(--accent-ink)">Cyan</span> = the camera frame you're placing on the robot. Drag the sliders and watch the transform (and its command) update.</div>
+      <div class="tf-canvas" style="max-width:760px;margin:0 auto"><canvas id="tfCanvas" width="760" height="360" role="img" aria-label="Top-down view of base_link and camera_link coordinate frames"></canvas></div>
+      <div class="tf-ctrl" style="max-width:760px;margin:14px auto 0">
+        <div class="row"><label for="tfx">x (m)</label><input type="range" id="tfx" min="-1.5" max="1.5" step="0.05" value="1.0"><span class="v" id="tfxv">1.00</span></div>
+        <div class="row"><label for="tfy">y (m)</label><input type="range" id="tfy" min="-1.5" max="1.5" step="0.05" value="0.0"><span class="v" id="tfyv">0.00</span></div>
+        <div class="row"><label for="tfyaw">yaw (°)</label><input type="range" id="tfyaw" min="-180" max="180" step="5" value="0"><span class="v" id="tfyawv">0</span></div>
+      </div>
+      <div class="tf-cmd" id="tfCmd" style="max-width:760px;margin-left:auto;margin-right:auto"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= TOOLS ================= -->
+<section id="tools">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">Developer tools</div>
+      <h2>The three tools you'll live in</h2>
+      <p>ROS gives you X-ray vision into a running system. These three are wired to the demo above — interact with it, then watch them respond.</p>
+    </div>
+
+    <!-- RQT GRAPH -->
+    <div class="card tool" style="margin-bottom:22px">
+      <div class="tool-head">
+        <span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+        <h3>rqt_graph — see the wiring</h3>
+        <span class="cmd">$ ros2 run rqt_graph rqt_graph</span>
+      </div>
+      <div class="tool-body">
+        <p style="margin:0 0 16px;color:var(--ink-2);font-size:14.5px">Nodes are <b style="color:var(--node)">ellipses</b>, topics are <b style="color:var(--topic)">boxes</b>, and arrows show the direction data flows. This graph mirrors the live demo — <a href="#pubsub">add a listener above</a> and it redraws.</p>
+        <div class="rqt"><svg id="rqtSvg" viewBox="0 0 720 260" role="img" aria-label="Live node graph of the publish subscribe demo"></svg></div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- RVIZ -->
+      <div class="card tool">
+        <div class="tool-head">
+          <span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+          <h3>RViz — see the world</h3>
+          <span class="cmd">$ rviz2</span>
+        </div>
+        <div class="tool-body">
+          <p style="margin:0 0 14px;color:var(--ink-2);font-size:14px">The 3D lens on your robot: sensor data, coordinate frames, maps and paths. Toggle <b>displays</b> to add or remove layers — exactly like the real panel.</p>
+          <div class="rviz">
+            <div class="rviz-top" id="rvizTop">
+              <label class="disp"><input type="checkbox" data-d="grid" checked> Grid</label>
+              <label class="disp"><input type="checkbox" data-d="scan" checked> LaserScan</label>
+              <label class="disp"><input type="checkbox" data-d="robot" checked> RobotModel</label>
+              <label class="disp"><input type="checkbox" data-d="path" checked> Path</label>
+              <label class="disp"><input type="checkbox" data-d="tf" checked> TF</label>
+            </div>
+            <canvas id="rviz" width="620" height="380" role="img" aria-label="Simulated RViz top-down view: a robot driving through a room with a live laser scan, path and coordinate frames"></canvas>
+          </div>
+          <div class="axkey">
+            <span><i style="background:var(--axX)"></i> X (roll)</span>
+            <span><i style="background:var(--axY)"></i> Y (pitch)</span>
+            <span><i style="background:var(--axZ)"></i> Z (yaw)</span>
+            <span style="color:var(--accent-ink)">● simulated /scan points</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROSBAG -->
+      <div class="card tool">
+        <div class="tool-head">
+          <span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+          <h3>ros2 bag — record &amp; replay</h3>
+          <span class="cmd">$ ros2 bag record -a</span>
+        </div>
+        <div class="tool-body">
+          <p style="margin:0 0 14px;color:var(--ink-2);font-size:14px">A bag records messages with their timestamps, so you can replay a run later — the system can't tell live data from a replay. Hit <b>● Record bag</b> in the demo while publishing, then play it back here.</p>
+          <div class="bag-file">
+            <span><span class="dot">●</span> <b id="bagName">rosbag2_—</b></span>
+            <span>topics: <b id="bagTopics">/chatter</b></span>
+            <span>messages: <b class="tnum" id="bagMsgs">0</b></span>
+            <span>duration: <b class="tnum" id="bagDur">0.0</b>s</span>
+          </div>
+          <div class="bag-track"><div class="bag-prog" id="bagProg"></div></div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <button class="mini-btn primary" id="playBtn" disabled>▶ Play bag</button>
+            <span class="mono" id="bagStatus" style="font-size:12px;color:var(--muted)">no recording yet</span>
+          </div>
+          <div class="logbox" id="bagLog" style="height:110px;margin-top:14px;border-radius:8px;border:1px solid var(--border)"><div class="ln" style="opacity:1;color:#6b7d92">// replayed messages appear here…</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <span class="brand" style="color:var(--ink)"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>ROS&nbsp;Ecosystem&nbsp;Explorer</span>
+        <p style="color:var(--muted);font-size:13.5px;margin-top:12px;max-width:40ch">A teaching companion for Vehicle Mechatronics. Built to make the ROS graph — nodes, topics, messages — something you can poke at, not just read about.</p>
+      </div>
+      <div>
+        <h4>Data sources</h4>
+        <ul class="src">
+          <li><a href="https://discourse.openrobotics.org/t/2025-ros-metrics-report/52575" target="_blank" rel="noopener">2025 ROS Metrics Report</a></li>
+          <li><a href="https://index.ros.org/stats/" target="_blank" rel="noopener">ROS Index — package stats</a></li>
+          <li><a href="https://metrics.ros.org/" target="_blank" rel="noopener">metrics.ros.org</a></li>
+          <li class="note" style="border:0;padding:0;margin-top:6px">Figures: Oct 2025 / Jan 2026 snapshots.</li>
+        </ul>
+      </div>
+      <div>
+        <h4>Learn more</h4>
+        <ul class="src">
+          <li><a href="https://docs.ros.org/en/humble/" target="_blank" rel="noopener">ROS 2 Humble docs</a></li>
+          <li><a href="https://site.aaltoroboticsclub.fi/" target="_blank" rel="noopener">Aalto Robotics Club</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="note">Tip: press <span class="kbd">T</span> to toggle light / dark. All figures are drawn from public ROS community reports; this page is an educational, non-official resource.</p>
+  </div>
+</footer>
+
+<script>
+"use strict";
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const reduceMotion=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+/* ---------- THEME ---------- */
+(function(){
+  const btn=$('#themeBtn');
+  function cur(){ return document.documentElement.getAttribute('data-theme') ||
+    (window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'); }
+  function set(t){ document.documentElement.setAttribute('data-theme',t); try{localStorage.setItem('ros-theme',t)}catch(e){}; redrawAll(); }
+  try{ const s=localStorage.getItem('ros-theme'); if(s) document.documentElement.setAttribute('data-theme',s);}catch(e){}
+  btn.addEventListener('click',()=>set(cur()==='dark'?'light':'dark'));
+  document.addEventListener('keydown',e=>{ if((e.key==='t'||e.key==='T')&&!/input|textarea/i.test(e.target.tagName)) set(cur()==='dark'?'light':'dark'); });
+})();
+function cssvar(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+
+/* ---------- HERO packet loop ---------- */
+(function(){
+  const p=$('#hp'); if(!p||reduceMotion) return;
+  const legs=[[[120,150],[218,150]],[[300,150],[404,80]],[[300,150],[404,220]]];
+  let leg=0,t=0;
+  function step(){
+    const [a,b]=legs[leg]; t+=0.02;
+    if(t>=1){t=0; leg=(leg+1)%legs.length; if(leg===1||leg===2){/*fan*/} }
+    const seg = leg===0?legs[0]:(leg%2? legs[1]:legs[2]);
+    const A=seg[0],B=seg[1];
+    p.setAttribute('cx',A[0]+(B[0]-A[0])*t);
+    p.setAttribute('cy',A[1]+(B[1]-A[1])*t);
+    p.setAttribute('opacity', leg===0?1:(1-t*0.3));
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+})();
+
+/* ---------- DATA ---------- */
+const DISTROS=[  // name, gen, start(year+frac), end, lts, rolling
+  {n:'Noetic', g:1, s:2020.4, e:2025.4, lts:true},
+  {n:'Foxy',   g:2, s:2020.5, e:2023.4},
+  {n:'Humble', g:2, s:2022.4, e:2027.4, lts:true},
+  {n:'Iron',   g:2, s:2023.4, e:2024.9},
+  {n:'Jazzy',  g:2, s:2024.4, e:2029.4, lts:true},
+  {n:'Kilted', g:2, s:2025.4, e:2026.9},
+  {n:'Rolling',g:2, s:2020.5, e:2026.6, rolling:true},
+];
+const DISTRO_SHARE=[ // Oct 2025 download share %
+  {k:'Humble', v:48.53, ros1:false, lts:true},
+  {k:'Jazzy',  v:24.45, ros1:false, lts:true},
+  {k:'Noetic', v:6.72,  ros1:true},
+  {k:'Rolling',v:3.46,  ros1:false},
+  {k:'Kilted', v:2.71,  ros1:false},
+  {k:'Foxy',   v:1.73,  ros1:false},
+  {k:'Galactic',v:0.94, ros1:false},
+  {k:'Iron',   v:0.70,  ros1:false},
+];
+const COUNTRIES=[
+  {k:'United States',v:16.75},{k:'China',v:12.58},{k:'India',v:10.06},
+  {k:'Germany',v:6.37},{k:'South Korea',v:6.25},{k:'Japan',v:6.10},{k:'Singapore',v:3.55},
+];
+const SENSORS=[
+  {t:'LiDAR &amp; range finders', ic:'lidar', msg:'sensor_msgs/LaserScan · PointCloud2',
+   items:[['Velodyne','velodyne'],['Ouster','ouster-ros'],['Livox','livox_ros_driver2'],['SICK','sick_scan_xd'],['Hokuyo','urg_node'],['RPLIDAR','rplidar_ros'],['RoboSense','rslidar_sdk']]},
+  {t:'Depth &amp; RGB cameras', ic:'cam', msg:'sensor_msgs/Image · PointCloud2',
+   items:[['Intel RealSense','realsense-ros'],['Stereolabs ZED','zed-ros2-wrapper'],['Luxonis OAK','depthai-ros'],['Orbbec Astra','orbbec_camera'],['Azure Kinect','azure_kinect'],['FLIR','spinnaker_driver'],['Any USB cam','usb_cam']]},
+  {t:'IMU &amp; AHRS', ic:'imu', msg:'sensor_msgs/Imu',
+   items:[['Xsens MTi','xsens_mti_driver'],['MicroStrain','microstrain_inertial'],['Bosch BNO055','bno055'],['Phidgets','phidgets_imu'],['Generic','imu_tools']]},
+  {t:'GNSS / GPS', ic:'gps', msg:'sensor_msgs/NavSatFix',
+   items:[['u-blox','ublox'],['NMEA devices','nmea_navsat_driver'],['NovAtel','novatel_oem7_driver'],['SwiftNav','swiftnav_ros2']]},
+];
+const SVGIC={
+  lidar:'<circle cx="12" cy="12" r="3" style="fill:var(--accent)"/><g style="stroke:var(--accent);fill:none" stroke-width="1.6" opacity=".8"><path d="M12 12 L21 7"/><path d="M12 12 L22 12"/><path d="M12 12 L21 17"/><path d="M12 12 L18 21"/><path d="M12 12 L12 22"/><path d="M12 12 L6 21"/></g>',
+  cam:'<g style="fill:none;stroke:var(--accent)" stroke-width="1.7"><rect x="3" y="7" width="18" height="12" rx="2"/><circle cx="12" cy="13" r="3.3"/><path d="M8 7 l1.5-2 h5 L16 7"/></g>',
+  imu:'<g style="fill:none;stroke:var(--accent)" stroke-width="1.7"><rect x="5" y="5" width="14" height="14" rx="2"/></g><path d="M12 5 v14 M5 12 h14" style="stroke:var(--accent)" stroke-width="1.2" opacity=".6"/><circle cx="12" cy="12" r="2.4" style="fill:var(--accent)"/>',
+  gps:'<path d="M12 22 C 5 15 5 9 12 3 C 19 9 19 15 12 22 Z" style="fill:none;stroke:var(--accent)" stroke-width="1.7"/><circle cx="12" cy="10" r="2.6" style="fill:var(--accent)"/>'
+};
+
+/* ---------- RENDER: timeline ---------- */
+function renderTimeline(){
+  const T0=2019.5, T1=2029.7, W=t=>((t-T0)/(T1-T0))*100;
+  const el=$('#timeline'); const rows=DISTROS.map(d=>{
+    const color = d.rolling? cssvar('--topic') : d.g===1? cssvar('--muted') : cssvar('--accent');
+    const left=W(d.s), w=W(d.e)-W(d.s);
+    const now=W(2026.15);
+    return `<div class="tl-row"><div class="name">${d.n}${d.lts?' <span class="pill" style="color:var(--accent-ink)">LTS</span>':''}</div>
+      <div class="tl-track"><div class="tl-bar ${d.lts?'lts':''}" style="left:${left}%;width:${w}%;background:${color}">${d.rolling?'always current':(d.g===1?'ROS 1':'')}</div></div></div>`;
+  }).join('');
+  const years=[2020,2022,2024,2026,2028].map(y=>`<span>${y}</span>`).join('');
+  el.innerHTML=`<div class="tl-axis"><span style="width:96px"></span><span style="flex:1;display:flex;justify-content:space-between">${years}</span></div>${rows}`;
+}
+
+/* ---------- RENDER: bars ---------- */
+function renderBars(el, data, opts={}){
+  const max=Math.max(...data.map(d=>d.v));
+  el.innerHTML=data.map(d=>{
+    const color = opts.colorFn? opts.colorFn(d) : cssvar('--accent');
+    const sw = opts.swatch? `<span class="swatch" style="background:${color}"></span>`:'';
+    return `<div class="bar-row"><div class="k">${sw}${d.k}</div>
+      <div class="bar-track"><div class="bar-fill" data-w="${(d.v/max*100).toFixed(1)}" style="background:${color}"></div>
+      <div class="bar-val">${d.v}%</div></div></div>`;
+  }).join('');
+}
+function animateBars(el){ // fill after in view
+  $$('.bar-fill[data-w]',el).forEach(f=>{ requestAnimationFrame(()=>{ f.style.width=f.dataset.w+'%'; }); });
+}
+function renderDistro(){
+  renderBars($('#distroBars'),DISTRO_SHARE,{swatch:true,colorFn:d=> d.ros1?cssvar('--muted'): d.lts?cssvar('--accent'):cssvar('--accent-ink')});
+}
+function renderCountries(){ renderBars($('#countryBars'),COUNTRIES,{colorFn:()=>cssvar('--accent')}); }
+
+/* ---------- RENDER: sensors ---------- */
+function renderSensors(){
+  $('#sensorGrid').innerHTML=SENSORS.map(s=>`
+    <div class="card sensor">
+      <div class="head">
+        <div class="ic"><svg viewBox="0 0 24 24">${SVGIC[s.ic]}</svg></div>
+        <div><h3 style="font-size:1.05rem">${s.t}</h3><div class="msg">${s.msg}</div></div>
+      </div>
+      <div class="chips">${s.items.map(i=>`<span class="chip"><b>${i[0]}</b> · ${i[1]}</span>`).join('')}</div>
+    </div>`).join('');
+}
+
+/* ============================================================
+   INTERACTIVE PUB/SUB  (drives rqt graph + rosbag)
+   ============================================================ */
+const State={ count:0, subs:2, rateHz:2, auto:false, autoTimer:null,
+  recording:false, recStart:0, bag:[], mode:'hello' };
+const stage=$('#stage'), wire=$('#wire'), logEl=$('#log');
+
+/* two scenarios share one mechanic */
+const MODES={
+  hello:{ pub:'talker', topic:'/chatter', type:'std_msgs/String',
+    subLabels:['listener_1','listener_2','listener_3','listener_4'],
+    msg:n=>`Hello World: ${n}`, verb:'I heard' },
+  car:{ pub:'lidar', topic:'/scan', type:'sensor_msgs/LaserScan',
+    subLabels:['navigation','slam','obstacle_det','rviz'],
+    msg:n=>`ranges:[${(1.8+Math.random()*3).toFixed(2)}, ${(1.8+Math.random()*3).toFixed(2)}, …] #${n}`, verb:'got scan' }
+};
+const M=()=>MODES[State.mode];
+
+function nodePositions(){
+  const W=stage.clientWidth, H=stage.clientHeight;
+  const talk={x:W*0.14,y:H*0.5};
+  const topic={x:W*0.44,y:H*0.5};
+  const n=State.subs, subs=[];
+  for(let i=0;i<n;i++){
+    const frac=n===1?0.5:(i/(n-1));
+    subs.push({x:W*0.82, y:H*(0.2+0.6*frac)});
+  }
+  return {talk,topic,subs,W,H};
+}
+function layoutStage(){
+  // remove old nodes
+  $$('.node-el,.topic-el',stage).forEach(e=>e.remove());
+  const {talk,topic,subs}=nodePositions();
+  const mk=(cls,x,y,html)=>{ const d=document.createElement('div'); d.className=cls; d.style.left=x+'px'; d.style.top=y+'px'; d.innerHTML=html; stage.appendChild(d); return d; };
+  mk('node-el',talk.x,talk.y,`<div class="node-circ talk">${M().pub}</div><div class="node-lbl">publisher</div>`);
+  mk('topic-el',topic.x,topic.y,`${M().topic}<div class="t">${M().type}</div>`);
+  subs.forEach((s,i)=>mk('node-el',s.x,s.y,`<div class="node-circ sub">${M().subLabels[i]}</div><div class="node-lbl">subscriber</div>`));
+  // wires
+  const paths=[`M${talk.x} ${talk.y} L${topic.x-46} ${topic.y}`];
+  subs.forEach(s=>paths.push(`M${topic.x+46} ${topic.y} C ${topic.x+120} ${topic.y}, ${s.x-120} ${s.y}, ${s.x-42} ${s.y}`));
+  wire.innerHTML=paths.map(p=>`<path d="${p}"/>`).join('');
+  drawRqt();
+}
+function fireMessage(){
+  State.count++; $('#msgCount').textContent=State.count;
+  const n=State.count-1;
+  const {talk,topic,subs}=nodePositions();
+  const txt=M().msg(n);
+  if(State.recording) State.bag.push({t:(performance.now()-State.recStart)/1000, n, txt});
+  // packet talker->topic then topic->each sub
+  spawnPacket(talk,topic,()=>{
+    subs.forEach((s,i)=>{
+      spawnPacket({x:topic.x+40,y:topic.y},s,()=>{
+        pushLog(logEl,`<span class="i">[${M().subLabels[i]}]</span> ${M().verb}: "<span class="h">${txt}</span>"`);
+      });
+    });
+  });
+}
+function spawnPacket(a,b,done){
+  if(reduceMotion){ done&&done(); return; }
+  const p=document.createElement('div'); p.className='packet'; stage.appendChild(p);
+  const dur=260; const t0=performance.now();
+  function fr(now){
+    let k=(now-t0)/dur; if(k>1)k=1;
+    const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+    p.style.left=(a.x+(b.x-a.x)*e)+'px'; p.style.top=(a.y+(b.y-a.y)*e)+'px';
+    if(k<1) requestAnimationFrame(fr); else{ p.remove(); done&&done(); }
+  }
+  requestAnimationFrame(fr);
+}
+function pushLog(box,html){
+  const d=document.createElement('div'); d.className='ln'; d.innerHTML=html;
+  box.appendChild(d); box.scrollTop=box.scrollHeight;
+  const lines=$$('.ln',box); if(lines.length>60) lines[0].remove();
+}
+/* controls */
+$('#pubBtn').addEventListener('click',fireMessage);
+$('#autoBtn').addEventListener('click',function(){
+  State.auto=!State.auto; this.textContent='Auto-publish: '+(State.auto?'on':'off');
+  this.classList.toggle('primary',State.auto);
+  if(State.auto){ const tick=()=>{ if(!State.auto)return; fireMessage(); State.autoTimer=setTimeout(tick,1000/State.rateHz); }; tick(); }
+  else clearTimeout(State.autoTimer);
+});
+$('#rate').addEventListener('input',function(){ State.rateHz=+this.value; $('#rateVal').textContent=this.value+' Hz'; });
+$('#addSub').addEventListener('click',()=>{ if(State.subs<4){State.subs++; layoutStage();} });
+$('#delSub').addEventListener('click',()=>{ if(State.subs>1){State.subs--; layoutStage();} });
+
+/* ---------- ROSBAG ---------- */
+const recBtn=$('#recBtn'), playBtn=$('#playBtn');
+recBtn.addEventListener('click',function(){
+  State.recording=!State.recording;
+  this.classList.toggle('on',State.recording);
+  if(State.recording){
+    this.textContent='■ Stop recording'; State.bag=[]; State.recStart=performance.now();
+    $('#bagStatus').textContent='recording…'; $('#bagName').textContent='rosbag2_'+new Date().toISOString().slice(11,19).replace(/:/g,'-');
+    playBtn.disabled=true;
+  }else{
+    this.textContent='● Record bag';
+    const dur=(performance.now()-State.recStart)/1000;
+    $('#bagMsgs').textContent=State.bag.length; $('#bagDur').textContent=dur.toFixed(1);
+    $('#bagStatus').textContent=State.bag.length? 'ready to play — '+State.bag.length+' msgs':'nothing captured';
+    playBtn.disabled=State.bag.length===0;
+  }
+});
+playBtn.addEventListener('click',function(){
+  if(!State.bag.length) return; this.disabled=true;
+  const bagLog=$('#bagLog'); bagLog.innerHTML=''; const prog=$('#bagProg');
+  const total=Math.max(State.bag[State.bag.length-1].t,0.001);
+  $('#bagStatus').textContent='playing…';
+  const t0=performance.now();
+  let idx=0;
+  function loop(now){
+    const el=(now-t0)/1000;
+    prog.style.width=Math.min(100,el/total*100)+'%';
+    while(idx<State.bag.length && State.bag[idx].t<=el){
+      pushLog(bagLog,`<span class="i">[replay]</span> ${State.bag[idx].topic||M().topic} → "${State.bag[idx].txt||('Hello World: '+State.bag[idx].n)}"`); idx++;
+    }
+    if(idx<State.bag.length) requestAnimationFrame(loop);
+    else{ prog.style.width='100%'; $('#bagStatus').textContent='done · '+State.bag.length+' msgs replayed'; this && (playBtn.disabled=false); }
+  }
+  requestAnimationFrame(loop.bind(this));
+});
+
+/* ---------- RQT GRAPH ---------- */
+function drawRqt(){
+  const svg=$('#rqtSvg'); const W=720,H=Math.max(180,80+State.subs*44);
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const talk={x:120,y:H/2}, topic={x:360,y:H/2};
+  const subs=[]; for(let i=0;i<State.subs;i++){ const frac=State.subs===1?0.5:i/(State.subs-1); subs.push({x:600,y:40+(H-80)*frac}); }
+  let s=`<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="${cssvar('--muted')}"/></marker></defs>`;
+  s+=`<path class="edge" d="M${talk.x+58} ${talk.y} L${topic.x-58} ${topic.y}"/>`;
+  subs.forEach(su=> s+=`<path class="edge" d="M${topic.x+58} ${topic.y} C ${topic.x+130} ${topic.y}, ${su.x-120} ${su.y}, ${su.x-48} ${su.y}"/>`);
+  s+=`<ellipse class="ell" cx="${talk.x}" cy="${talk.y}" rx="58" ry="30"/><text class="lbl ell-t" x="${talk.x}" y="${talk.y+4}" text-anchor="middle">/${M().pub}</text>`;
+  s+=`<rect class="box" x="${topic.x-58}" y="${topic.y-20}" width="116" height="40" rx="6"/><text class="lbl box-t" x="${topic.x}" y="${topic.y+4}" text-anchor="middle">${M().topic}</text>`;
+  subs.forEach((su,i)=> s+=`<ellipse class="ell" cx="${su.x}" cy="${su.y}" rx="58" ry="27"/><text class="lbl ell-t" x="${su.x}" y="${su.y+4}" text-anchor="middle">/${M().subLabels[i]}</text>`);
+  svg.innerHTML=s;
+}
+
+/* ---------- RVIZ (canvas top-down) ---------- */
+const rviz=$('#rviz'), rctx=rviz.getContext('2d');
+const RVIZ_DISP={grid:true,scan:true,robot:true,path:true,tf:true};
+$$('#rvizTop input').forEach(inp=>inp.addEventListener('change',()=>{ RVIZ_DISP[inp.dataset.d]=inp.checked; }));
+let rvizT=0;
+// virtual room walls (in canvas coords, scaled)
+function rvizFrame(){
+  const w=rviz.width,h=rviz.height, cx=w*0.42, cy=h*0.55;
+  rctx.clearRect(0,0,w,h);
+  rctx.fillStyle=cssvar('--viewport-bg'); rctx.fillRect(0,0,w,h);
+  // grid
+  if(RVIZ_DISP.grid){
+    rctx.strokeStyle='rgba(120,150,190,.18)'; rctx.lineWidth=1;
+    for(let x=(cx%40);x<w;x+=40){ rctx.beginPath();rctx.moveTo(x,0);rctx.lineTo(x,h);rctx.stroke(); }
+    for(let y=(cy%40);y<h;y+=40){ rctx.beginPath();rctx.moveTo(0,y);rctx.lineTo(w,y);rctx.stroke(); }
+  }
+  // robot heading (drives slowly along a path)
+  rvizT+=reduceMotion?0:0.012;
+  const path=[]; for(let i=0;i<=60;i++){ const p=i/60; path.push([cx-160+p*320, cy+80*Math.sin(p*Math.PI*1.4)]); }
+  const rp=path[Math.floor((Math.sin(rvizT*0.6)*0.5+0.5)*(path.length-1))];
+  const rx=rp[0], ry=rp[1];
+  // path
+  if(RVIZ_DISP.path){
+    rctx.strokeStyle=cssvar('--good'); rctx.lineWidth=2.4; rctx.beginPath();
+    path.forEach((p,i)=> i?rctx.lineTo(p[0],p[1]):rctx.moveTo(p[0],p[1])); rctx.stroke();
+  }
+  // obstacles (room)
+  const walls=[[80,60,w-60,60],[w-60,60,w-60,h-50],[80,h-50,w-60,h-50],[80,60,80,h-50],[260,150,260,260]];
+  // laser scan from robot
+  if(RVIZ_DISP.scan){
+    const N=90;
+    for(let i=0;i<N;i++){
+      const ang=(i/N)*Math.PI*2 + rvizT;
+      const dx=Math.cos(ang),dy=Math.sin(ang);
+      let best=1e9;
+      walls.forEach(wl=>{ const d=rayseg(rx,ry,dx,dy,wl[0],wl[1],wl[2],wl[3]); if(d>0&&d<best)best=d; });
+      if(best<1e8){
+        const hx=rx+dx*best, hy=ry+dy*best;
+        rctx.strokeStyle='rgba(55,198,218,.13)'; rctx.lineWidth=1; rctx.beginPath();rctx.moveTo(rx,ry);rctx.lineTo(hx,hy);rctx.stroke();
+        rctx.fillStyle=cssvar('--accent'); rctx.beginPath();rctx.arc(hx,hy,2.4,0,7);rctx.fill();
+      }
+    }
+  }
+  // robot model
+  if(RVIZ_DISP.robot){
+    rctx.save(); rctx.translate(rx,ry);
+    rctx.fillStyle='rgba(120,150,190,.25)'; rctx.strokeStyle='#9fb2ca'; rctx.lineWidth=1.5;
+    rctx.beginPath();rctx.rect(-16,-12,32,24);rctx.fill();rctx.stroke();
+    rctx.fillStyle='#9fb2ca'; rctx.beginPath();rctx.moveTo(16,0);rctx.lineTo(6,-6);rctx.lineTo(6,6);rctx.fill();
+    rctx.restore();
+  }
+  // TF axes at base_link and camera_link
+  if(RVIZ_DISP.tf){
+    drawAxes(rx,ry,'base_link');
+    drawAxes(rx+26,ry-10,'camera_link',0.7);
+  }
+  requestAnimationFrame(rvizFrame);
+}
+function drawAxes(x,y,label,sc=1){
+  const L=26*sc;
+  rctx.lineWidth=2.4;
+  rctx.strokeStyle=cssvar('--axX'); rctx.beginPath();rctx.moveTo(x,y);rctx.lineTo(x+L,y);rctx.stroke();
+  rctx.strokeStyle=cssvar('--axY'); rctx.beginPath();rctx.moveTo(x,y);rctx.lineTo(x,y-L);rctx.stroke();
+  rctx.fillStyle='#8fa3bd'; rctx.font='10px IBM Plex Mono, monospace'; rctx.fillText(label,x+3,y+14);
+}
+function rayseg(ox,oy,dx,dy,x1,y1,x2,y2){ // ray-segment intersection distance
+  const r_dx=dx,r_dy=dy, s_dx=x2-x1,s_dy=y2-y1;
+  const denom=r_dx*s_dy - r_dy*s_dx; if(Math.abs(denom)<1e-6) return -1;
+  const t=((x1-ox)*s_dy-(y1-oy)*s_dx)/denom;
+  const u=((x1-ox)*r_dy-(y1-oy)*r_dx)/denom;
+  if(t>0 && u>=0 && u<=1) return t; return -1;
+}
+
+/* ---------- MODE SWITCH ---------- */
+$$('#modeSwitch button').forEach(b=>b.addEventListener('click',function(){
+  if(State.mode===this.dataset.mode) return;
+  State.mode=this.dataset.mode;
+  $$('#modeSwitch button').forEach(x=>x.classList.toggle('active',x===this));
+  layoutStage();
+  $('#bagTopics') && ($('#bagTopics').textContent=M().topic);
+}));
+
+/* ---------- SERVICE (request/response) ---------- */
+function twoNode(svgId, leftLbl, rightLbl){
+  const svg=$('#'+svgId); const mu=cssvar('--muted');
+  svg.innerHTML=`<defs><marker id="${svgId}m" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" style="fill:${mu}"/></marker></defs>
+    <line x1="66" y1="46" x2="194" y2="46" style="stroke:var(--border-2)" stroke-width="1.5" stroke-dasharray="4 4"/>
+    <line x1="66" y1="72" x2="194" y2="72" style="stroke:var(--border-2)" stroke-width="1.5" stroke-dasharray="4 4"/>
+    <circle cx="40" cy="59" r="24" style="fill:var(--node)"/><text x="40" y="62" text-anchor="middle" style="fill:#fff;font-family:var(--mono)" font-size="9">${leftLbl}</text>
+    <circle cx="220" cy="59" r="24" style="fill:var(--navy)"/><text x="220" y="62" text-anchor="middle" style="fill:#fff;font-family:var(--mono)" font-size="9">${rightLbl}</text>
+    <circle id="${svgId}p" r="6" style="fill:var(--accent)" cx="66" cy="46" opacity="0"/>`;
+}
+function commPacket(svgId,x1,y1,x2,y2,color,done){
+  const p=$('#'+svgId+'p'); if(!p){done&&done();return;}
+  if(reduceMotion){ done&&done(); return; }
+  p.style.fill=color; p.setAttribute('opacity','1');
+  const t0=performance.now(),dur=380;
+  (function fr(now){ let k=(now-t0)/dur; if(k>1)k=1;
+    p.setAttribute('cx',x1+(x2-x1)*k); p.setAttribute('cy',y1+(y2-y1)*k);
+    if(k<1)requestAnimationFrame(fr); else{ p.setAttribute('opacity','0'); done&&done(); }
+  })(performance.now());
+}
+$('#svcBtn').addEventListener('click',function(){
+  const a=+$('#svcA').value||0, b=+$('#svcB').value||0, out=$('#svcOut');
+  this.disabled=true; out.innerHTML='<span class="fb">→ request: {a: '+a+', b: '+b+'}</span>';
+  commPacket('svcSvg',66,46,194,46,cssvar('--accent'),()=>{
+    setTimeout(()=>{
+      commPacket('svcSvg',194,72,66,72,cssvar('--good'),()=>{
+        out.innerHTML+='\n<span class="ok">← response: {sum: '+(a+b)+'}</span>';
+        this.disabled=false;
+      });
+    },260);
+  });
+});
+
+/* ---------- ACTION (goal/feedback/result/cancel) ---------- */
+let actTimer=null;
+function actReset(){ clearInterval(actTimer); actTimer=null; $('#actBar').style.width='0%'; $('#actCancel').disabled=true; $('#actBtn').disabled=false; }
+$('#actBtn').addEventListener('click',function(){
+  const out=$('#actOut'), bar=$('#actBar'); this.disabled=true; $('#actCancel').disabled=false;
+  out.innerHTML='<span class="fb">→ goal accepted: navigate to (4.0, 2.0)</span>';
+  let dist=5.0, prog=0;
+  actTimer=setInterval(()=>{
+    prog+=100/30; dist=Math.max(0,5.0*(1-prog/100)); bar.style.width=Math.min(100,prog)+'%';
+    out.innerHTML='<span class="fb">→ goal accepted: navigate to (4.0, 2.0)</span>\n<span class="fb">⟳ feedback: '+dist.toFixed(2)+' m remaining</span>';
+    if(prog>=100){ clearInterval(actTimer); actTimer=null;
+      out.innerHTML+='\n<span class="ok">✓ result: goal reached (SUCCEEDED)</span>';
+      $('#actCancel').disabled=true; this.disabled=false;
+    }
+  },100);
+});
+$('#actCancel').addEventListener('click',function(){
+  if(!actTimer)return; clearInterval(actTimer); actTimer=null;
+  $('#actOut').innerHTML+='\n<span class="warn">✕ goal CANCELED by client</span>';
+  this.disabled=true; $('#actBtn').disabled=false;
+});
+
+/* ---------- PARAMETER (store/retrieve) ---------- */
+let PARAM_STORE=null;
+$('#parK').addEventListener('input',function(){ $('#parVal').textContent=(+this.value).toFixed(2); });
+$('#parSet').addEventListener('click',()=>{
+  PARAM_STORE=(+$('#parK').value).toFixed(2);
+  $('#parOut').innerHTML='<span class="fb">→ set controller.Kp = '+PARAM_STORE+' (stored on the node)</span>';
+});
+$('#parGet').addEventListener('click',()=>{
+  const out=$('#parOut');
+  if(PARAM_STORE===null){ out.innerHTML='<span class="warn">✕ parameter not set — using default 0.00</span>'; return; }
+  out.innerHTML='<span class="ok">← node read controller.Kp → '+PARAM_STORE+'</span>\n<span class="g">// PID loop now uses this gain</span>';
+});
+
+/* ---------- CLI TERMINAL ---------- */
+const CLI={
+  list:{cmd:'ros2 topic list', lines:['/clock','/cmd_vel','/imu','/joint_states','/odom','/parameter_events','/robot_description','/rosout','/scan','/tf','/tf_static']},
+  info:{cmd:'ros2 topic info /scan', lines:['Type: sensor_msgs/msg/LaserScan','Publisher count: 1','Subscription count: 1']},
+  hz:{cmd:'ros2 topic hz /scan', stream:true, lines:[
+    'average rate: 9.998','\tmin: 0.087s max: 0.113s std dev: 0.00674s window: 10',
+    'average rate: 10.001','\tmin: 0.091s max: 0.109s std dev: 0.00512s window: 20',
+    'average rate: 9.996','\tmin: 0.089s max: 0.111s std dev: 0.00498s window: 30']},
+  echo:{cmd:'ros2 topic echo /odom', stream:true, lines:[
+    'header:','  stamp: {sec: 1723, nanosec: 40000000}','  frame_id: odom','child_frame_id: base_footprint',
+    'pose:','  pose:','    position: {x: 2.013, y: -0.498, z: 0.008}','    orientation: {z: 0.02, w: 0.999}','twist:','  twist:','    linear: {x: 0.22, y: 0.0, z: 0.0}','    angular: {z: 0.05}','---']},
+  iface:{cmd:'ros2 interface show sensor_msgs/msg/LaserScan', lines:[
+    '# Single scan from a planar laser range-finder','std_msgs/Header header',
+    'float32 angle_min        # start angle of the scan [rad]','float32 angle_max        # end angle of the scan [rad]',
+    'float32 angle_increment  # angular distance between measurements [rad]','float32 range_min        # minimum range value [m]',
+    'float32 range_max        # maximum range value [m]','float32[] ranges         # range data [m]','float32[] intensities    # intensity data [device-specific]']},
+  node:{cmd:'ros2 node list', lines:['/lidar_driver','/navigation','/motion_controller','/robot_state_publisher','/rviz2']}
+};
+let cliBusy=false;
+function runCli(key){
+  if(cliBusy) return; const spec=CLI[key], scr=$('#termScreen');
+  const head=`<span class="prompt">robotics@VMC</span>:<span class="path">~/ros2_ws</span>$ <span class="c">${spec.cmd}</span>\n`;
+  scr.innerHTML=head; cliBusy=true;
+  const color=l=> l.startsWith('#')||l.startsWith('//')||l.startsWith('\t')? `<span class="g">${l}</span>`
+    : /^[A-Za-z_]+:/.test(l)? `<span class="k">${l}</span>` : l;
+  if(spec.stream && !reduceMotion){
+    let i=0; const iv=setInterval(()=>{
+      scr.innerHTML+= color(spec.lines[i])+'\n'; scr.scrollTop=scr.scrollHeight; i++;
+      if(i>=spec.lines.length){ clearInterval(iv); scr.innerHTML+='<span class="cursor"></span>'; cliBusy=false; }
+    },230);
+  } else {
+    scr.innerHTML+= spec.lines.map(color).join('\n')+'\n<span class="cursor"></span>'; cliBusy=false;
+  }
+}
+$$('#termCmds button').forEach(b=>b.addEventListener('click',function(){
+  $$('#termCmds button').forEach(x=>x.classList.toggle('active',x===this)); runCli(this.dataset.cmd);
+}));
+
+/* ---------- TF2 static transform ---------- */
+const tfCv=$('#tfCanvas'), tctx=tfCv.getContext('2d');
+function drawTf(){
+  const w=tfCv.width,h=tfCv.height, ox=w*0.32, oy=h*0.6, scale=70; // px per meter
+  const x=+$('#tfx').value, y=+$('#tfy').value, yaw=+$('#tfyaw').value*Math.PI/180;
+  $('#tfxv').textContent=x.toFixed(2); $('#tfyv').textContent=y.toFixed(2); $('#tfyawv').textContent=Math.round(+$('#tfyaw').value);
+  tctx.clearRect(0,0,w,h); tctx.fillStyle=cssvar('--viewport-bg'); tctx.fillRect(0,0,w,h);
+  // grid
+  tctx.strokeStyle='rgba(120,150,190,.14)'; tctx.lineWidth=1;
+  for(let gx=ox%35;gx<w;gx+=35){ tctx.beginPath();tctx.moveTo(gx,0);tctx.lineTo(gx,h);tctx.stroke(); }
+  for(let gy=oy%35;gy<h;gy+=35){ tctx.beginPath();tctx.moveTo(0,gy);tctx.lineTo(w,gy);tctx.stroke(); }
+  // base_link axes (fixed). screen: +x right, +y up
+  drawFrame(ox,oy,0,'base_link',1);
+  // camera pose (note screen-y is inverted)
+  const cx=ox + x*scale, cy=oy - y*scale;
+  // connector
+  tctx.strokeStyle=cssvar('--accent'); tctx.lineWidth=1.6; tctx.setLineDash([5,4]);
+  tctx.beginPath();tctx.moveTo(ox,oy);tctx.lineTo(cx,cy);tctx.stroke(); tctx.setLineDash([]);
+  drawFrame(cx,cy,yaw,'camera_link',0.85,true);
+  // command line
+  $('#tfCmd').innerHTML=`$ ros2 run tf2_ros static_transform_publisher <span class="fl">--x</span> ${x.toFixed(2)} <span class="fl">--y</span> ${y.toFixed(2)} <span class="fl">--yaw</span> ${(+$('#tfyaw').value*Math.PI/180).toFixed(2)} <span class="fl">--frame-id</span> base_link <span class="fl">--child-frame-id</span> camera_link`;
+}
+function drawFrame(px,py,rot,label,sc,cam){
+  const L=42*sc;
+  const ax=[Math.cos(rot),-Math.sin(rot)], ay=[Math.sin(rot),Math.cos(rot)]; // x-axis, y-axis (screen)
+  tctx.lineWidth=3;
+  tctx.strokeStyle=cssvar('--axX'); tctx.beginPath();tctx.moveTo(px,py);tctx.lineTo(px+ax[0]*L,py+ax[1]*L);tctx.stroke();
+  tctx.strokeStyle=cssvar('--axY'); tctx.beginPath();tctx.moveTo(px,py);tctx.lineTo(px+ay[0]*L,py+ay[1]*L);tctx.stroke();
+  tctx.fillStyle=cam?cssvar('--accent-ink'):'#aebbcd'; tctx.font='600 12px IBM Plex Mono, monospace';
+  tctx.fillText(label,px+6,py+18);
+}
+['tfx','tfy','tfyaw'].forEach(id=>$('#'+id).addEventListener('input',drawTf));
+
+/* ---------- INIT + observers ---------- */
+function redrawAll(){ renderTimeline(); renderDistro(); renderCountries(); layoutStage();
+  twoNode('svcSvg','client','server'); twoNode('actSvg','client','server'); twoNode('parSvg','node_1','node_2');
+  drawTf(); }
+function init(){
+  renderTimeline(); renderDistro(); renderCountries(); renderSensors();
+  layoutStage(); drawRqt();
+  twoNode('svcSvg','client','server'); twoNode('actSvg','client','server'); twoNode('parSvg','node_1','node_2');
+  runCli('list'); drawTf();
+  requestAnimationFrame(rvizFrame);
+  // animate bars when scrolled into view
+  const io=new IntersectionObserver((es)=>{ es.forEach(e=>{ if(e.isIntersecting){ animateBars(e.target); io.unobserve(e.target); } }); },{threshold:.3});
+  ['#distroBars','#countryBars'].forEach(s=>io.observe($(s)));
+}
+window.addEventListener('resize',()=>{ clearTimeout(window._rt); window._rt=setTimeout(layoutStage,150); });
+if(document.readyState!=='loading') init(); else document.addEventListener('DOMContentLoaded',init);
+</script>
