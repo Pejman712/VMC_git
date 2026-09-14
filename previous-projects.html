@@ -1,0 +1,523 @@
+<meta charset="utf-8">
+<title>Previous Projects</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A portfolio of Vehicle Mechatronics robotics projects — each in three slides: the challenge, the methods, and the results. Rescue robotics, path-planning benchmarks, cooperative LiDAR perception, and full-stack outdoor autonomy.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+:root{
+  --bg:#F1F4F8; --surface:#FFFFFF; --panel:#F3F6FA; --panel-2:#E7EEF6;
+  --ink:#0E1116; --ink-2:#33404E; --muted:#5B6572; --border:#D9DFE7; --border-2:#C3CCD8;
+  --navy:#00396B;
+  --accent:#0064AF; --accent-ink:#00548F;      /* Aalto blue */
+  --alert:#CF3B41; --good:#1E8E56; --record:#C96A05;
+  --shadow:0 1px 2px rgba(16,32,54,.06), 0 6px 22px rgba(16,32,54,.07);
+  --radius:12px; --radius-s:8px; --maxw:1140px;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:'Arimo',Arial,Helvetica,sans-serif;
+  --display:'Arimo',Arial,Helvetica,sans-serif;
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --bg:#0C1420; --surface:#141F2E; --panel:#182434; --panel-2:#1E2C40;
+  --ink:#E8EEF7; --ink-2:#B7C4D6; --muted:#8496AE; --border:#26364C; --border-2:#33475F;
+  --navy:#2C3E60; --accent:#3E92DA; --accent-ink:#9CC8EE;
+  --alert:#F0575C; --good:#38C177; --record:#F0982C;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+}}
+:root[data-theme="dark"]{
+  --bg:#0C1420; --surface:#141F2E; --panel:#182434; --panel-2:#1E2C40;
+  --ink:#E8EEF7; --ink-2:#B7C4D6; --muted:#8496AE; --border:#26364C; --border-2:#33475F;
+  --navy:#2C3E60; --accent:#3E92DA; --accent-ink:#9CC8EE;
+  --alert:#F0575C; --good:#38C177; --record:#F0982C;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} *{animation-duration:.001ms!important;transition-duration:.001ms!important} }
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--display);font-weight:700;line-height:1.1;text-wrap:balance;margin:0;letter-spacing:-.01em}
+a{color:var(--accent-ink);text-decoration:none} a:hover{text-decoration:underline}
+:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px;border-radius:4px}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+.mono{font-family:var(--mono)} .tnum{font-variant-numeric:tabular-nums}
+
+/* nav */
+.nav{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+.nav-in{max-width:var(--maxw);margin:0 auto;padding:11px 22px;display:flex;align-items:center;gap:18px}
+.brand{display:flex;align-items:center;gap:10px;color:var(--ink)}
+.vmc-tile{width:36px;height:36px;border-radius:7px;background:var(--accent);color:#fff;font-family:var(--display);font-weight:700;font-size:13px;display:grid;place-items:center;letter-spacing:.01em;flex:none}
+.brand .bt{display:flex;flex-direction:column;line-height:1.08}
+.brand .bt b{font-family:var(--display);font-weight:700;font-size:14.5px;letter-spacing:-.01em}
+.brand .bt span{font-size:10.5px;color:var(--muted);font-family:var(--mono);letter-spacing:.02em}
+.aalto-lock{display:flex;flex-direction:column;line-height:1.06;padding-left:14px;margin-left:2px;border-left:1px solid var(--border-2)}
+.aalto-lock b{font-family:var(--display);font-weight:700;font-size:13px;color:var(--accent-ink)}
+.aalto-lock span{font-size:9px;color:var(--muted);font-family:var(--mono)}
+.nav-links{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap;align-items:center}
+.nav-links a{font-size:13.5px;color:var(--muted);padding:6px 10px;border-radius:8px;font-weight:500}
+.nav-links a:hover{color:var(--ink);background:var(--panel);text-decoration:none}
+.nav-links a.home{color:var(--accent-ink);border:1px solid var(--border-2)}
+.tgl{width:38px;height:38px;border:1px solid var(--border-2);background:var(--surface);border-radius:10px;cursor:pointer;color:var(--ink);font-size:16px;display:grid;place-items:center}
+.tgl:hover{border-color:var(--accent)}
+@media(max-width:980px){ .nav-links a:not(.home){display:none} .aalto-lock{display:none} }
+
+/* hero — Aalto blue title block */
+.hero{position:relative;overflow:hidden;background:var(--accent);color:#fff}
+.hero-grid{position:absolute;inset:0;opacity:1;background-image:linear-gradient(rgba(255,255,255,.10) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.10) 1px,transparent 1px);background-size:34px 34px;mask-image:radial-gradient(120% 90% at 78% 6%,#000 30%,transparent 78%)}
+.hero-in{position:relative;max-width:var(--maxw);margin:0 auto;padding:60px 22px 46px}
+.eyebrow{font-family:var(--mono);font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.82);font-weight:600}
+.hero h1{font-size:clamp(2.2rem,5vw,3.5rem);font-weight:700;letter-spacing:-.015em;margin:14px 0 0;color:#fff}
+.hero h1 .hl{color:#BFE0FF}
+.lede{font-size:clamp(1.02rem,1.7vw,1.18rem);color:rgba(255,255,255,.92);max-width:60ch;margin:16px 0 0}
+.chips-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:26px}
+.pill-link{font-family:var(--display);font-weight:700;font-size:13.5px;padding:10px 16px;border-radius:8px;border:1.5px solid rgba(255,255,255,.6);background:transparent;color:#fff;cursor:pointer}
+.pill-link:hover{border-color:#fff;background:rgba(255,255,255,.12);text-decoration:none}
+.pill-link.p{background:#fff;color:var(--accent-ink);border-color:#fff}
+
+/* sections */
+section{padding:56px 0}
+.alt{background:var(--panel);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.sec-head{max-width:none;margin-bottom:24px;background:var(--accent);color:#fff;border-radius:10px;padding:22px 26px}
+.sec-kicker{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.85);font-weight:600;display:flex;align-items:center;gap:9px}
+.sec-kicker::before{content:"";width:22px;height:2px;background:rgba(255,255,255,.7);display:inline-block}
+.sec-head h2{font-size:clamp(1.5rem,3vw,2.1rem);margin:11px 0 0;color:#fff}
+.sec-head p{color:rgba(255,255,255,.92);margin:11px 0 0;font-size:1.01rem;max-width:82ch}
+.sec-head p b{color:#fff}
+
+/* project meta tag row */
+.proj-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.tag{font-family:var(--mono);font-size:11px;font-weight:600;color:#fff;border:1px solid rgba(255,255,255,.5);border-radius:6px;padding:3px 9px;white-space:nowrap}
+.tag b{color:#BFE0FF;font-weight:600}
+
+/* three-slide grid */
+.slides{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:900px){.slides{grid-template-columns:1fr}}
+.slide{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px 20px 22px;border-top:3px solid var(--accent);display:flex;flex-direction:column}
+.slide.challenge{border-top-color:var(--alert)}
+.slide.method{border-top-color:var(--accent)}
+.slide.result{border-top-color:var(--good)}
+.slide-tag{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:var(--muted)}
+.slide-tag .num{font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:0;width:26px;height:26px;border-radius:7px;display:grid;place-items:center;color:#fff;flex:none}
+.slide.challenge .num{background:var(--alert)}
+.slide.method .num{background:var(--accent)}
+.slide.result .num{background:var(--good)}
+.slide h3{font-size:1.12rem;margin:12px 0 2px}
+.blist{list-style:none;padding:0;margin:12px 0 0;display:flex;flex-direction:column;gap:11px}
+.blist li{position:relative;padding-left:20px;font-size:13.9px;color:var(--ink-2);line-height:1.5}
+.blist li::before{content:"";position:absolute;left:2px;top:8px;width:7px;height:7px;border-radius:2px;background:var(--accent)}
+.slide.challenge .blist li::before{background:var(--alert)}
+.slide.result .blist li::before{background:var(--good)}
+.blist li b{color:var(--ink)}
+.blist code,.mono-in{font-family:var(--mono);font-size:12.4px;background:var(--panel-2);border:1px solid var(--border);border-radius:4px;padding:0 4px;color:var(--ink-2)}
+
+/* mini results table (path-planning) */
+.rtable{width:100%;border-collapse:collapse;margin-top:14px;font-family:var(--mono);font-size:12px}
+.rtable th,.rtable td{text-align:right;padding:6px 8px;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums}
+.rtable th:first-child,.rtable td:first-child{text-align:left}
+.rtable thead th{color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-size:10.5px;border-bottom:1px solid var(--border-2)}
+.rtable tbody tr.best td:first-child{color:var(--good);font-weight:600}
+.rtable .win{color:var(--good)}
+.cap{font-size:11.5px;color:var(--muted);font-family:var(--mono);margin-top:8px}
+
+/* metric chips */
+.metrics{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.metric{background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:9px 12px;min-width:0}
+.metric .v{font-family:var(--mono);font-weight:600;font-size:1.15rem;color:var(--good);font-variant-numeric:tabular-nums}
+.metric .k{font-family:var(--mono);font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-top:1px}
+
+/* figures + video */
+.fig{margin:16px 0 0;border-radius:9px;overflow:hidden;border:1px solid var(--border);background:var(--surface)}
+.fig img,.fig video{display:block;width:100%;height:auto}
+.fig figcaption{font-family:var(--mono);font-size:11px;line-height:1.4;color:var(--muted);padding:7px 11px;background:var(--panel);border-top:1px solid var(--border)}
+.fig.pushdown{margin-top:auto}          /* pins media to the bottom of a flex card */
+.figrow{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
+@media(max-width:640px){.figrow{grid-template-columns:1fr}}
+.vidcap{display:flex;align-items:center;gap:8px}
+.dot{width:9px;height:9px;border-radius:50%;flex:none}
+.dot.bad{background:var(--alert)} .dot.good{background:var(--good)}
+.fig img{cursor:zoom-in;transition:filter .12s}
+.fig img:hover{filter:brightness(1.04)}
+
+/* lightbox */
+.lb{position:fixed;inset:0;z-index:200;background:rgba(6,10,18,.93);display:none;align-items:center;justify-content:center;padding:28px;cursor:zoom-out}
+.lb.open{display:flex}
+.lb img{max-width:96vw;max-height:90vh;width:auto;height:auto;border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,.6);cursor:default;background:#fff}
+.lb .close{position:absolute;top:16px;right:18px;width:44px;height:44px;border-radius:10px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.08);color:#fff;font-size:20px;cursor:pointer;display:grid;place-items:center}
+.lb .close:hover{background:rgba(255,255,255,.18)}
+.lb .cap{position:absolute;bottom:16px;left:0;right:0;text-align:center;color:rgba(255,255,255,.85);font-family:var(--mono);font-size:12.5px;padding:0 20px}
+
+/* overview strip */
+.ov-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:820px){.ov-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.ov-grid{grid-template-columns:1fr}}
+.ov{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 16px 18px;display:block;color:inherit}
+.ov:hover{border-color:var(--accent);text-decoration:none}
+.ov .n{font-family:var(--mono);font-size:11px;color:var(--accent-ink);font-weight:600}
+.ov .t{font-family:var(--display);font-weight:700;font-size:15px;margin-top:6px;color:var(--ink);line-height:1.2}
+.ov .s{font-size:12.5px;color:var(--muted);margin-top:6px}
+
+/* footer */
+.aalto-foot b{font-family:var(--display);font-weight:700;font-size:15px;color:var(--ink);display:block}
+.aalto-foot span{font-size:10.5px;color:var(--muted);font-family:var(--mono)}
+footer{background:var(--surface);border-top:1px solid var(--border);padding:44px 0 40px;font-size:14px}
+.foot-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:28px} @media(max-width:820px){.foot-grid{grid-template-columns:1fr}}
+footer h4{font-family:var(--display);font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+footer ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+.note{font-size:12.5px;color:var(--muted);margin-top:26px;border-top:1px solid var(--border);padding-top:18px}
+.kbd{font-family:var(--mono);font-size:12px;background:var(--panel-2);border:1px solid var(--border);border-radius:5px;padding:1px 6px;color:var(--ink-2)}
+</style>
+
+<!-- NAV -->
+<nav class="nav"><div class="nav-in">
+  <span class="brand">
+    <span class="vmc-tile">VMC</span>
+    <span class="bt"><b>Vehicle Mechatronics</b><span>Previous Projects</span></span>
+  </span>
+  <span class="aalto-lock"><b>Aalto University</b><span>School of Engineering</span></span>
+  <div class="nav-links">
+    <a href="#p1">Rescue Robot</a>
+    <a href="#p2">Path Planning</a>
+    <a href="#p3">M2M LiDAR</a>
+    <a href="#p4">Outdoor Nav</a>
+    <a class="home" href="index.html">ROS Explorer</a>
+    <a class="home" href="localisation.html">Localisation</a>
+    <button class="tgl" id="themeBtn" aria-label="Toggle colour theme" title="Toggle theme">◐</button>
+  </div>
+</div></nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-grid" aria-hidden="true"></div>
+  <div class="hero-in">
+    <span class="eyebrow">Vehicle Mechatronics · Portfolio</span>
+    <h1>Previous <span class="hl">Projects</span></h1>
+    <p class="lede">Four robotics and autonomy projects, each told in three slides — the <b>challenge</b> we set out to solve, the <b>methods</b> we built, and the <b>results</b> we measured. From an indoor rescue robot to full-stack outdoor navigation from a satellite image.</p>
+    <div class="chips-row">
+      <a class="pill-link p" href="#p1">Start with project one</a>
+      <a class="pill-link" href="#overview">See all four</a>
+    </div>
+  </div>
+</header>
+
+<!-- OVERVIEW -->
+<section id="overview">
+  <div class="wrap">
+    <div class="ov-grid">
+      <a class="ov" href="#p1"><div class="n">01 · 2022</div><div class="t">Autonomous Rescue Robot</div><div class="s">Mapping and squeezing through tight gaps with a 3D LiDAR.</div></a>
+      <a class="ov" href="#p2"><div class="n">02 · CERN / Mira</div><div class="t">Path-Finding Algorithm Comparison</div><div class="s">A* vs. Dijkstra vs. RRT for autonomous navigation.</div></a>
+      <a class="ov" href="#p3"><div class="n">03 · 2026</div><div class="t">Overcoming LiDAR Blind Spots</div><div class="s">Cooperative M2M perception for near-field human safety.</div></a>
+      <a class="ov" href="#p4"><div class="n">04 · SMEAK / Panther</div><div class="t">Satellite Imagery to Outdoor Autonomy</div><div class="s">A full outdoor navigation stack, GPS route to camera fusion.</div></a>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECT 1 -->
+<section id="p1" class="alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">Project 01 · 2022</div>
+      <h2>Autonomous Rescue Robot</h2>
+      <p>A robot for rescue missions that maps its surroundings and threads through <b>small openings</b> — navigating autonomously using only a 3D LiDAR.</p>
+      <div class="proj-meta">
+        <span class="tag"><b>Platform</b> Differential-drive robot</span>
+        <span class="tag"><b>Sensor</b> Velodyne VLP-16 3D LiDAR</span>
+        <span class="tag"><b>Control</b> Arduino Micro &amp; Nano</span>
+        <span class="tag"><b>Stack</b> ROS Navigation</span>
+        <span class="tag"><b>Team</b> Alamikkotervo · Habibiroudkenar · Rumjantsev · Vainio</span>
+      </div>
+    </div>
+    <div class="slides">
+      <div class="slide challenge">
+        <div class="slide-tag"><span class="num">1</span> Challenges</div>
+        <h3>Squeeze through, safely</h3>
+        <ul class="blist">
+          <li>Build a robot genuinely <b>useful in rescue missions</b> — able to map an unknown space and pass through narrow openings.</li>
+          <li>Navigate autonomously using a <b>3D LiDAR as the only exteroceptive sensor</b>, with no dedicated 2D scanner.</li>
+          <li>Handle extremely <b>tight clearances</b>, with obstacles just centimetres from the wheels.</li>
+          <li>Quantify how <b>accurate</b> the resulting navigation actually is.</li>
+        </ul>
+        <figure class="fig pushdown"><img src="assets/p1-gap.jpg" alt="The robot in a narrow gap between cardboard boxes in the lab" loading="lazy"><figcaption>The test scene — threading a tight gap between obstacles.</figcaption></figure>
+      </div>
+      <div class="slide method">
+        <div class="slide-tag"><span class="num">2</span> Methods</div>
+        <h3>Platform &amp; navigation</h3>
+        <ul class="blist">
+          <li>Modified a <b>differential wheeled robot</b> to support autonomous navigation.</li>
+          <li>Mounted a <b>Velodyne VLP-16</b> 3D LiDAR as the sole perception sensor.</li>
+          <li><b>Arduino Micro and Nano</b> for low-level motor and sensor control.</li>
+          <li>Ran the <b>ROS Navigation Stack</b>, localising from wheel odometry fused with 3D LiDAR data.</li>
+          <li>Built both <b>3D and 2D maps</b> of the environment on the fly.</li>
+        </ul>
+        <figure class="fig pushdown"><img src="assets/p1-navstack.png" alt="ROS navigation stack diagram: move_base, global and local planners and costmaps, AMCL localization" loading="lazy"><figcaption>The ROS navigation stack driving the robot.</figcaption></figure>
+      </div>
+      <div class="slide result">
+        <div class="slide-tag"><span class="num">3</span> Results</div>
+        <h3>4 cm to spare</h3>
+        <ul class="blist">
+          <li>With optimal localisation, the robot passed through a gap with only <b>4 cm clearance</b> between the wheels and the obstacles.</li>
+          <li>Produced an <b>accurate 3D and 2D map</b> of the environment.</li>
+          <li>Wheel odometry + 3D LiDAR alone were <b>not accurate enough</b> for consistent localisation.</li>
+          <li>Recommendation: add an <b>IMU</b> as a second localisation sensor for more reliable results.</li>
+        </ul>
+        <div class="metrics">
+          <div class="metric"><div class="v">4 cm</div><div class="k">Gap clearance</div></div>
+          <div class="metric"><div class="v">3D + 2D</div><div class="k">Maps built</div></div>
+        </div>
+        <figure class="fig"><img src="assets/p1-map3d.jpg" alt="Coloured 3D LiDAR point-cloud map of the room built in RViz" loading="lazy"><figcaption>The 3D LiDAR map reconstructed in RViz.</figcaption></figure>
+      </div>
+    </div>
+    <div class="figrow">
+      <figure class="fig"><video src="assets/p1-run.mp4" poster="assets/p1-run.jpg" controls muted loop playsinline preload="none"></video><figcaption>Autonomous run — the robot navigating through the narrow gap.</figcaption></figure>
+      <figure class="fig"><img src="assets/p1-robot.jpg" alt="The differential-drive robot with a Velodyne VLP-16 LiDAR mounted on top" loading="lazy"><figcaption>The platform: differential-drive base, Velodyne VLP-16 on top.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECT 2 -->
+<section id="p2">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">Project 02 · Mira robot · CERN</div>
+      <h2>Comparison of Path-Finding Algorithms</h2>
+      <p>Benchmarking <b>A*</b>, <b>Dijkstra</b> and <b>RRT</b> for autonomous navigation of mobile robots, to replace manual control of CERN's radiation-survey robots.</p>
+      <div class="proj-meta">
+        <span class="tag"><b>Goal</b> Autonomy for the Mira robot</span>
+        <span class="tag"><b>Stack</b> ROS · Gmapping SLAM · Python</span>
+        <span class="tag"><b>Test bed</b> Gazebo sim + Dbot (Aalto)</span>
+        <span class="tag"><b>Metrics</b> Path length · compute time · nodes</span>
+        <span class="tag"><b>Authors</b> Harju · Anis · Salo · Hussain · Habibiroudkenar · Kuosmanen · Kiviluoma</span>
+      </div>
+    </div>
+    <div class="slides">
+      <div class="slide challenge">
+        <div class="slide-tag"><span class="num">1</span> Challenges</div>
+        <h3>Which planner, and why</h3>
+        <ul class="blist">
+          <li>CERN's radiation-survey robots are <b>manually controlled</b> — slow, demanding, and human-intensive.</li>
+          <li>Automating navigation means picking a path planner that balances <b>path length, computation time, node count</b> and power.</li>
+          <li>No single algorithm wins everywhere — the right choice is <b>application-dependent</b>.</li>
+          <li>Test in a genuinely hard map: three CERN facility grids with <b>over 50% of cells occupied</b>.</li>
+        </ul>
+        <figure class="fig pushdown"><img src="assets/p2-dbot.jpg" alt="Dbot, the wheeled test robot at Aalto" loading="lazy"><figcaption>Dbot — the LiDAR-equipped robot used to validate on real hardware.</figcaption></figure>
+      </div>
+      <div class="slide method">
+        <div class="slide-tag"><span class="num">2</span> Methods</div>
+        <h3>Build, map, benchmark</h3>
+        <ul class="blist">
+          <li>Built on <b>ROS</b> (<span class="mono-in">rviz</span>, <span class="mono-in">rclpy</span>, <span class="mono-in">nav_msgs</span>); <b>Gmapping SLAM</b> for 2D occupancy grids.</li>
+          <li>Implemented <b>A*</b>, <b>Dijkstra</b> and <b>RRT</b> in Python, with a Euclidean-distance heuristic on an 8-connected grid.</li>
+          <li>Tested on three <b>629 × 810</b> facility maps, each algorithm run <b>30+ times</b> with varied start/goal pairs.</li>
+          <li>Validated in a <b>Gazebo</b> simulation, then on <b>Dbot</b> — a real LiDAR-equipped robot at Aalto.</li>
+        </ul>
+        <figure class="fig pushdown"><img src="assets/p2-astar.png" alt="A* shortest path drawn across the CERN occupancy-grid map" loading="lazy"><figcaption>A* searching the CERN occupancy grid from start to goal.</figcaption></figure>
+      </div>
+      <div class="slide result">
+        <div class="slide-tag"><span class="num">3</span> Results</div>
+        <h3>A* is the balance</h3>
+        <ul class="blist">
+          <li><b>A*</b> gave the best overall balance — near-optimal paths at low compute cost.</li>
+          <li><b>Dijkstra</b> matched A*'s path length but was <b>2×+ slower</b>, exploring uniformly in all directions.</li>
+          <li><b>RRT</b> explored the fewest nodes but produced <b>longer, sub-optimal paths</b> at far higher compute time.</li>
+        </ul>
+        <table class="rtable">
+          <thead><tr><th>Algo</th><th>Path (m)</th><th>Time (ms)</th><th>Nodes</th></tr></thead>
+          <tbody>
+            <tr class="best"><td>A*</td><td class="win">23.54</td><td class="win">24.3</td><td>341</td></tr>
+            <tr><td>Dijkstra</td><td>23.54</td><td>573.3</td><td>341</td></tr>
+            <tr><td>RRT</td><td>26.65</td><td>3207.4</td><td>26</td></tr>
+          </tbody>
+        </table>
+        <div class="cap">Representative run · map kartoslamsps1x</div>
+        <figure class="fig"><img src="assets/p2-paths.png" alt="Side-by-side paths from A*, Dijkstra and RRT on the same map" loading="lazy"><figcaption>Same start &amp; goal — A* (left), Dijkstra (centre), RRT (right).</figcaption></figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECT 3 -->
+<section id="p3" class="alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">Project 03 · 2026</div>
+      <h2>Overcoming LiDAR Blind Spots with M2M Communication</h2>
+      <p>A cooperative-perception layer that bridges a <b>ceiling-mounted crane LiDAR</b> to an autonomous mobile robot, giving it active human detection in its near-field blind zone.</p>
+      <div class="proj-meta">
+        <span class="tag"><b>Setup</b> AMR (16-ch) + crane LiDAR (32-ch @ 2.95 m)</span>
+        <span class="tag"><b>Link</b> 5 GHz Wi-Fi · ROS 2 Humble</span>
+        <span class="tag"><b>Model</b> VoxelNeXt human detection</span>
+        <span class="tag"><b>Stack</b> tf2 · Nav2 occupancy grid</span>
+        <span class="tag"><b>Team</b> Precision 5 — Eid · Le · Ijaz · Tervonen · Long</span>
+      </div>
+    </div>
+    <div class="slides">
+      <div class="slide challenge">
+        <div class="slide-tag"><span class="num">1</span> Challenges</div>
+        <h3>The near-field blind zone</h3>
+        <ul class="blist">
+          <li>AMRs increasingly rely on <b>3D LiDAR</b> in dynamic, human-shared indoor spaces.</li>
+          <li>Every 3D LiDAR has a <b>physical minimum detection range</b>, creating a ~<b>70 cm blind zone</b> that risks collisions with nearby people.</li>
+          <li>Add a real-time, <b>safety-oriented perception layer</b> for active human detection.</li>
+          <li>Do it <b>without physically modifying</b> the vehicle itself.</li>
+        </ul>
+        <figure class="fig pushdown"><img src="assets/p3-scene.jpg" alt="The AMR sharing an indoor space with a person near obstacles" loading="lazy"><figcaption>A human-shared indoor space — the near-field is the danger zone.</figcaption></figure>
+      </div>
+      <div class="slide method">
+        <div class="slide-tag"><span class="num">2</span> Methods</div>
+        <h3>Cooperative perception</h3>
+        <ul class="blist">
+          <li>Paired a differential-drive AMR (16-channel LiDAR) with an <b>overhead crane LiDAR</b> (32-channel at 2.95 m).</li>
+          <li><b>Machine-to-Machine (M2M)</b> link over local 5 GHz Wi-Fi via <b>ROS 2 Humble</b>.</li>
+          <li>Pipeline: dynamic coordinate alignment with <span class="mono-in">tf2</span> → human detection on crane data with <b>VoxelNeXt</b> → merged point cloud → <b>2D occupancy grid</b> for Nav2.</li>
+          <li>Switched DDS QoS from <b>Reliable → Best Effort</b> to remove network latency and system freezing.</li>
+        </ul>
+        <figure class="fig pushdown"><img src="assets/p3-arch.png" alt="Cooperative perception architecture: crane and AMR LiDAR inputs, VoxelNeXt processing, Nav2 output" loading="lazy"><figcaption>Cooperative pipeline: two LiDAR inputs → detection → Nav2.</figcaption></figure>
+      </div>
+      <div class="slide result">
+        <div class="slide-tag"><span class="num">3</span> Results</div>
+        <h3>Blind zone eliminated</h3>
+        <ul class="blist">
+          <li>Eliminated the 70 cm blind zone — the AMR <b>autonomously halted</b> for occluded near-field humans.</li>
+          <li>Latency stayed low enough to <b>trigger safety stops before collision</b>.</li>
+          <li>VoxelNeXt accuracy rose from <b>10–50%</b> in static scenes to an <b>85% peak</b> in dynamic ones, as motion exposed varied scan angles.</li>
+          <li>Limits: scaling to large warehouses may add transmission delay; 1 Hz logging likely under-reported true responsiveness.</li>
+        </ul>
+        <div class="metrics">
+          <div class="metric"><div class="v">70 cm</div><div class="k">Blind zone removed</div></div>
+          <div class="metric"><div class="v">85%</div><div class="k">Peak detection</div></div>
+        </div>
+        <figure class="fig"><img src="assets/p3-detect.jpg" alt="LiDAR view with a detected person highlighted by a bounding box near the AMR" loading="lazy"><figcaption>A near-field human detected from the crane LiDAR feed.</figcaption></figure>
+      </div>
+    </div>
+    <div class="figrow">
+      <figure class="fig"><video src="assets/p3-nohuman.mp4" poster="assets/p3-nohuman.jpg" controls muted loop playsinline preload="none"></video><figcaption class="vidcap"><span class="dot bad"></span> Without human detection — the blind spot is unguarded.</figcaption></figure>
+      <figure class="fig"><video src="assets/p3-human.mp4" poster="assets/p3-human.jpg" controls muted loop playsinline preload="none"></video><figcaption class="vidcap"><span class="dot good"></span> With human detection — the AMR halts for the person.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECT 4 -->
+<section id="p4">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">Project 04 · SMEAK / Panther UGV</div>
+      <h2>From Satellite Imagery to Full-Stack Outdoor Navigation</h2>
+      <p>An outdoor autonomy stack that drives a UGV ~<b>250 m</b> between two points clicked on a satellite image — staying on the road, stopping for people, avoiding obstacles, with <b>no premade map</b>.</p>
+      <div class="proj-meta">
+        <span class="tag"><b>Platform</b> Husarion Panther V1.2 (skid-steer)</span>
+        <span class="tag"><b>Sensing</b> StereoLabs ZED X · Orin NX · GNSS/IMU</span>
+        <span class="tag"><b>Stack</b> ROS 2 · Nav2 · OSMnx · PPLiteSeg</span>
+        <span class="tag"><b>Mission</b> ~250 m outdoor A → B → A</span>
+        <span class="tag"><b>Author</b> Habibiroudkenar</span>
+      </div>
+    </div>
+    <div class="slides">
+      <div class="slide challenge">
+        <div class="slide-tag"><span class="num">1</span> Challenges</div>
+        <h3>Autonomy from a map click</h3>
+        <ul class="blist">
+          <li>Drive outdoors from a point clicked on <b>satellite imagery</b> to another, with no premade map to save memory and stay flexible.</li>
+          <li>Extract a <b>drivable road network</b> from overhead imagery.</li>
+          <li>Convert a <b>GPS route into the robot's local frame</b> so Nav2 can follow it.</li>
+          <li>Perceive the drivable surface <b>locally with a camera</b>, and stop for people.</li>
+          <li>Fuse the <b>global GPS route with local perception</b>, then survive the sim-to-real gap.</li>
+        </ul>
+        <figure class="fig pushdown"><img src="assets/p4-sat.png" alt="Satellite tile alongside its PCA feature map" loading="lazy"><figcaption>The starting point: a satellite tile — but roads don't isolate cleanly.</figcaption></figure>
+      </div>
+      <div class="slide method">
+        <div class="slide-tag"><span class="num">2</span> Methods</div>
+        <h3>A five-stage stack</h3>
+        <ul class="blist">
+          <li><b>Simulation:</b> a Gazebo/Ignition digital twin over a Husarnet VPN as the test workbench.</li>
+          <li><b>Road extraction:</b> PCA feature maps and SAM were only partial; <b>OSM + parameter-tuned extraction</b> produced a clean, connected road graph.</li>
+          <li><b>Route planning:</b> click GPS start/goal in Mapviz → <b>OSMnx graph</b> + <span class="mono-in">networkx</span> shortest path on real roads.</li>
+          <li><b>Hand-off:</b> GPS → <span class="mono-in">map</span> frame via UTM-anchor or <span class="mono-in">/fromLL</span> → densified waypoints → sequential Nav2 <span class="mono-in">NavigateToPose</span>.</li>
+          <li><b>Perception:</b> classical → FastSAM → adopted <b>PPLiteSeg</b> semantic segmentation (road + person), feeding a fusion node and a human safety stop.</li>
+        </ul>
+        <figure class="fig pushdown"><img src="assets/p4-pipeline.png" alt="Full navigation pipeline: GPS route planner and camera perception fused into a single cmd_vel" loading="lazy"><figcaption>The full stack: GPS route + camera perception → fused command.</figcaption></figure>
+      </div>
+      <div class="slide result">
+        <div class="slide-tag"><span class="num">3</span> Results</div>
+        <h3>Components proven in sim</h3>
+        <ul class="blist">
+          <li>Learned satellite segmentation alone failed to isolate roads; <b>OSM + tuning</b> gave a clean, plannable network.</li>
+          <li>The GPS → Nav2 pipeline was validated in sim — a coherent <b>global route</b> with smooth, obstacle-avoiding local paths.</li>
+          <li><b>PPLiteSeg</b> gave the most stable drivable-surface segmentation and enabled a working <b>human emergency stop</b>.</li>
+          <li>Each component works standalone; <b>full end-to-end fusion on the real vehicle</b> was the remaining next step, blocked by frame, latency and DDS sim-to-real issues.</li>
+        </ul>
+        <figure class="fig"><img src="assets/p4-global.png" alt="Global GPS waypoint route and the robot's trail following it in Gazebo" loading="lazy"><figcaption>Global route (blue) tracked across the map in simulation.</figcaption></figure>
+      </div>
+    </div>
+    <div class="figrow">
+      <figure class="fig"><video src="assets/p4-segfollow.mp4" poster="assets/p4-segfollow.jpg" controls muted loop playsinline preload="none"></video><figcaption>Live camera road segmentation &amp; road-following (PPLiteSeg).</figcaption></figure>
+      <figure class="fig"><img src="assets/p4-network.png" alt="Clean connected binary road network extracted from OpenStreetMap data" loading="lazy"><figcaption>OSM + tuned extraction → a clean, connected road network.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<!-- lightbox -->
+<div class="lb" id="lightbox" aria-hidden="true" role="dialog" aria-label="Enlarged image">
+  <button class="close" id="lbClose" aria-label="Close">✕</button>
+  <img id="lbImg" alt="">
+  <div class="cap" id="lbCap"></div>
+</div>
+
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <span class="brand" style="color:var(--ink)"><span class="vmc-tile">VMC</span><span class="bt"><b>Vehicle Mechatronics</b><span>Previous Projects</span></span></span>
+      <p style="color:var(--muted);font-size:13.5px;margin-top:14px;max-width:44ch">A portfolio of robotics and autonomy projects presented for Vehicle Mechatronics — each captured in three slides: challenges, methods, and results.</p>
+      <div class="aalto-foot" style="margin-top:18px">
+        <b>Aalto University</b>
+        <span>Aalto-yliopisto · Aalto-universitetet · Aalto University</span>
+      </div>
+    </div>
+    <div>
+      <h4>The projects</h4>
+      <ul>
+        <li><a href="#p1">01 · Autonomous Rescue Robot</a></li>
+        <li><a href="#p2">02 · Path-Finding Algorithms</a></li>
+        <li><a href="#p3">03 · LiDAR Blind Spots (M2M)</a></li>
+        <li><a href="#p4">04 · Outdoor Navigation Stack</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Elsewhere in this deck</h4>
+      <ul>
+        <li><a href="index.html">ROS Ecosystem Explorer</a></li>
+        <li><a href="localisation.html">Localisation Explorer</a></li>
+        <li><a href="https://site.aaltoroboticsclub.fi/" target="_blank" rel="noopener">Aalto Robotics Club</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="note">Press <span class="kbd">T</span> to toggle light / dark. A companion to the Vehicle Mechatronics lectures at Aalto University.</p>
+</div></footer>
+
+<script>
+"use strict";
+/* THEME — shared behaviour with the other pages */
+(function(){
+  const btn=document.getElementById('themeBtn');
+  const cur=()=>document.documentElement.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
+  const set=t=>{document.documentElement.setAttribute('data-theme',t);try{localStorage.setItem('ros-theme',t)}catch(e){}};
+  try{const s=localStorage.getItem('ros-theme');if(s)document.documentElement.setAttribute('data-theme',s);}catch(e){}
+  btn.addEventListener('click',()=>set(cur()==='dark'?'light':'dark'));
+  document.addEventListener('keydown',e=>{if((e.key==='t'||e.key==='T')&&!/input|textarea|select/i.test(e.target.tagName))set(cur()==='dark'?'light':'dark');});
+})();
+
+/* LIGHTBOX — click any figure image to enlarge */
+(function(){
+  const lb=document.getElementById('lightbox'), img=document.getElementById('lbImg'), cap=document.getElementById('lbCap');
+  const open=(src,alt,text)=>{img.src=src;img.alt=alt||'';cap.textContent=text||'';lb.classList.add('open');lb.setAttribute('aria-hidden','false');};
+  const close=()=>{lb.classList.remove('open');lb.setAttribute('aria-hidden','true');img.removeAttribute('src');};
+  document.querySelectorAll('.fig img').forEach(im=>{
+    im.addEventListener('click',()=>{
+      const fc=im.closest('figure').querySelector('figcaption');
+      open(im.currentSrc||im.src, im.alt, fc?fc.textContent.trim():'');
+    });
+  });
+  lb.addEventListener('click',e=>{ if(e.target!==img) close(); });
+  document.getElementById('lbClose').addEventListener('click',close);
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') close(); });
+})();
+</script>
