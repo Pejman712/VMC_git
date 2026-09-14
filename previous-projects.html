@@ -33,6 +33,31 @@
   --alert:#F0575C; --good:#38C177; --record:#F0982C;
   --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
 }
+/* extra theme options — shared across pages */
+:root[data-theme="midnight"]{
+  --bg:#070B14; --surface:#0F1526; --panel:#141B30; --panel-2:#1C2542;
+  --ink:#E7E9F6; --ink-2:#B4B9DA; --muted:#7A82AC; --border:#232D4E; --border-2:#333F68;
+  --navy:#242A55; --accent:#7C86FF; --accent-ink:#B3B8FF; --node:#4FD6C9; --topic:#CB8BFF;
+  --sat:#F5C24B; --match:#F5B942; --record:#F5A93B; --alert:#FF6B72; --good:#46D08A;
+  --axX:#FF6B72; --axY:#46D08A; --axZ:#7C86FF; --viewport-bg:#05070F;
+  --shadow:0 1px 2px rgba(0,0,0,.5), 0 12px 34px rgba(0,0,0,.5);
+}
+:root[data-theme="sepia"]{
+  --bg:#F1E7D6; --surface:#FBF5EA; --panel:#F0E6D2; --panel-2:#E7D7BC;
+  --ink:#2E2519; --ink-2:#4A3D2A; --muted:#7C6C51; --border:#DDCBAA; --border-2:#CBB489;
+  --navy:#5C4326; --accent:#9A6A2F; --accent-ink:#7A4E1E; --node:#3E7C6B; --topic:#8A4E86;
+  --sat:#C08A2A; --match:#B5842A; --record:#B5661C; --alert:#B23A2E; --good:#4E7A3A;
+  --axX:#B23A2E; --axY:#4E7A3A; --axZ:#3A6A9A; --viewport-bg:#241B10;
+  --shadow:0 1px 2px rgba(90,60,20,.10), 0 8px 26px rgba(90,60,20,.14);
+}
+:root[data-theme="contrast"]{
+  --bg:#000000; --surface:#0A0A0A; --panel:#111111; --panel-2:#1A1A1A;
+  --ink:#FFFFFF; --ink-2:#F2F2F2; --muted:#CBCBCB; --border:#5C5C5C; --border-2:#7C7C7C;
+  --navy:#0A2A4A; --accent:#5AB0FF; --accent-ink:#9AD0FF; --node:#3DE0D5; --topic:#E58CFF;
+  --sat:#FFC94A; --match:#FFC94A; --record:#FFB020; --alert:#FF5A5F; --good:#3CE07A;
+  --axX:#FF5A5F; --axY:#3CE07A; --axZ:#5AB0FF; --viewport-bg:#000000;
+  --shadow:0 1px 2px rgba(0,0,0,.7), 0 12px 34px rgba(0,0,0,.7);
+}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} *{animation-duration:.001ms!important;transition-duration:.001ms!important} }
@@ -186,6 +211,19 @@ footer ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;
   </div>
 </div></nav>
 
+<!-- QR: scan to open this page -->
+<div class="qr-band">
+  <div class="qr-band-in">
+    <div class="qr-card" id="qrCode"></div>
+    <div class="qr-copy">
+      <div class="qr-kicker">Scan · Share · Open</div>
+      <h2>Open this page on your phone</h2>
+      <p>Point a camera at the code to open <b>the Previous Projects portfolio</b> on any device — the QR always points at this exact page.</p>
+      <div class="qr-url" id="qrUrl"></div>
+    </div>
+  </div>
+</div>
+
 <!-- HERO -->
 <header class="hero">
   <div class="hero-grid" aria-hidden="true"></div>
@@ -237,7 +275,8 @@ footer ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;
           <li>Handle extremely <b>tight clearances</b>, with obstacles just centimetres from the wheels.</li>
           <li>Quantify how <b>accurate</b> the resulting navigation actually is.</li>
         </ul>
-        <figure class="fig pushdown"><img src="assets/p1-gap.jpg" alt="The robot in a narrow gap between cardboard boxes in the lab" loading="lazy"><figcaption>The test scene — threading a tight gap between obstacles.</figcaption></figure>
+        <figure class="fig"><img src="assets/p1-gap.jpg" alt="The robot in a narrow gap between cardboard boxes in the lab" loading="lazy"><figcaption>The test scene — threading a tight gap between obstacles.</figcaption></figure>
+        <figure class="fig pushdown"><img src="assets/p1-robot.jpg" alt="The differential-drive robot with a Velodyne VLP-16 LiDAR mounted on top" loading="lazy"><figcaption>The platform: differential-drive base, Velodyne VLP-16 on top.</figcaption></figure>
       </div>
       <div class="slide method">
         <div class="slide-tag"><span class="num">2</span> Methods</div>
@@ -267,10 +306,7 @@ footer ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;
         <figure class="fig"><img src="assets/p1-map3d.jpg" alt="Coloured 3D LiDAR point-cloud map of the room built in RViz" loading="lazy"><figcaption>The 3D LiDAR map reconstructed in RViz.</figcaption></figure>
       </div>
     </div>
-    <div class="figrow">
-      <figure class="fig"><video src="assets/p1-run.mp4" poster="assets/p1-run.jpg" controls muted loop playsinline preload="none"></video><figcaption>Autonomous run — the robot navigating through the narrow gap.</figcaption></figure>
-      <figure class="fig"><img src="assets/p1-robot.jpg" alt="The differential-drive robot with a Velodyne VLP-16 LiDAR mounted on top" loading="lazy"><figcaption>The platform: differential-drive base, Velodyne VLP-16 on top.</figcaption></figure>
-    </div>
+    <figure class="fig"><video src="assets/p1-run.mp4" poster="assets/p1-run.jpg" controls muted loop playsinline preload="none"></video><figcaption>Autonomous run — the robot navigating through the narrow gap.</figcaption></figure>
   </div>
 </section>
 
@@ -452,6 +488,7 @@ footer ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;
       <figure class="fig"><video src="assets/p4-segfollow.mp4" poster="assets/p4-segfollow.jpg" controls muted loop playsinline preload="none"></video><figcaption>Live camera road segmentation &amp; road-following (PPLiteSeg).</figcaption></figure>
       <figure class="fig"><img src="assets/p4-network.png" alt="Clean connected binary road network extracted from OpenStreetMap data" loading="lazy"><figcaption>OSM + tuned extraction → a clean, connected road network.</figcaption></figure>
     </div>
+    <figure class="fig pushdown"><img src="assets/p4-estop.png" alt="PPLiteSeg segmentation view: a detected person is highlighted and a HUMAN STOP is triggered, showing the pixel area of the person" loading="lazy"><figcaption><b>Emergency stop.</b> PPLiteSeg flags a person in the drivable scene (area = 3543 px) and raises <span class="mono-in">HUMAN STOP active</span>, halting the vehicle while it keeps tracking the road target.</figcaption></figure>
   </div>
 </section>
 
@@ -495,15 +532,8 @@ footer ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;
 
 <script>
 "use strict";
-/* THEME — shared behaviour with the other pages */
-(function(){
-  const btn=document.getElementById('themeBtn');
-  const cur=()=>document.documentElement.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
-  const set=t=>{document.documentElement.setAttribute('data-theme',t);try{localStorage.setItem('ros-theme',t)}catch(e){}};
-  try{const s=localStorage.getItem('ros-theme');if(s)document.documentElement.setAttribute('data-theme',s);}catch(e){}
-  btn.addEventListener('click',()=>set(cur()==='dark'?'light':'dark'));
-  document.addEventListener('keydown',e=>{if((e.key==='t'||e.key==='T')&&!/input|textarea|select/i.test(e.target.tagName))set(cur()==='dark'?'light':'dark');});
-})();
+/* THEME — stored theme applied early; menu + cycling handled by assets/site.js */
+(function(){ try{const s=localStorage.getItem('ros-theme');if(s)document.documentElement.setAttribute('data-theme',s);}catch(e){} })();
 
 /* LIGHTBOX — click any figure image to enlarge */
 (function(){
@@ -521,3 +551,7 @@ footer ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;
   document.addEventListener('keydown',e=>{ if(e.key==='Escape') close(); });
 })();
 </script>
+
+<!-- QR code + theme menu -->
+<script src="assets/qrcode.min.js"></script>
+<script src="assets/site.js"></script>

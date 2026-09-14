@@ -47,6 +47,31 @@
   --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
 }
 
+/* extra theme options — shared across pages */
+:root[data-theme="midnight"]{
+  --bg:#070B14; --surface:#0F1526; --panel:#141B30; --panel-2:#1C2542;
+  --ink:#E7E9F6; --ink-2:#B4B9DA; --muted:#7A82AC; --border:#232D4E; --border-2:#333F68;
+  --navy:#242A55; --accent:#7C86FF; --accent-ink:#B3B8FF; --node:#4FD6C9; --topic:#CB8BFF;
+  --sat:#F5C24B; --match:#F5B942; --record:#F5A93B; --alert:#FF6B72; --good:#46D08A;
+  --axX:#FF6B72; --axY:#46D08A; --axZ:#7C86FF; --viewport-bg:#05070F;
+  --shadow:0 1px 2px rgba(0,0,0,.5), 0 12px 34px rgba(0,0,0,.5);
+}
+:root[data-theme="sepia"]{
+  --bg:#F1E7D6; --surface:#FBF5EA; --panel:#F0E6D2; --panel-2:#E7D7BC;
+  --ink:#2E2519; --ink-2:#4A3D2A; --muted:#7C6C51; --border:#DDCBAA; --border-2:#CBB489;
+  --navy:#5C4326; --accent:#9A6A2F; --accent-ink:#7A4E1E; --node:#3E7C6B; --topic:#8A4E86;
+  --sat:#C08A2A; --match:#B5842A; --record:#B5661C; --alert:#B23A2E; --good:#4E7A3A;
+  --axX:#B23A2E; --axY:#4E7A3A; --axZ:#3A6A9A; --viewport-bg:#241B10;
+  --shadow:0 1px 2px rgba(90,60,20,.10), 0 8px 26px rgba(90,60,20,.14);
+}
+:root[data-theme="contrast"]{
+  --bg:#000000; --surface:#0A0A0A; --panel:#111111; --panel-2:#1A1A1A;
+  --ink:#FFFFFF; --ink-2:#F2F2F2; --muted:#CBCBCB; --border:#5C5C5C; --border-2:#7C7C7C;
+  --navy:#0A2A4A; --accent:#5AB0FF; --accent-ink:#9AD0FF; --node:#3DE0D5; --topic:#E58CFF;
+  --sat:#FFC94A; --match:#FFC94A; --record:#FFB020; --alert:#FF5A5F; --good:#3CE07A;
+  --axX:#FF5A5F; --axY:#3CE07A; --axZ:#5AB0FF; --viewport-bg:#000000;
+  --shadow:0 1px 2px rgba(0,0,0,.7), 0 12px 34px rgba(0,0,0,.7);
+}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} *{animation-duration:.001ms!important;transition-duration:.001ms!important} }
@@ -353,6 +378,19 @@ footer .src{font-size:12.5px;color:var(--muted)}
     <button class="tgl" id="themeBtn" aria-label="Toggle colour theme" title="Toggle theme">◐</button>
   </div>
 </nav>
+
+<!-- QR: scan to open this page -->
+<div class="qr-band">
+  <div class="qr-band-in">
+    <div class="qr-card" id="qrCode"></div>
+    <div class="qr-copy">
+      <div class="qr-kicker">Scan · Share · Open</div>
+      <h2>Open this page on your phone</h2>
+      <p>Point a camera at the code to open <b>the ROS Ecosystem Explorer</b> on any device — the QR always points at this exact page.</p>
+      <div class="qr-url" id="qrUrl"></div>
+    </div>
+  </div>
+</div>
 
 <!-- ================= HERO ================= -->
 <header class="hero">
@@ -788,15 +826,9 @@ const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelect
 const reduceMotion=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
 
 /* ---------- THEME ---------- */
-(function(){
-  const btn=$('#themeBtn');
-  function cur(){ return document.documentElement.getAttribute('data-theme') ||
-    (window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'); }
-  function set(t){ document.documentElement.setAttribute('data-theme',t); try{localStorage.setItem('ros-theme',t)}catch(e){}; redrawAll(); }
-  try{ const s=localStorage.getItem('ros-theme'); if(s) document.documentElement.setAttribute('data-theme',s);}catch(e){}
-  btn.addEventListener('click',()=>set(cur()==='dark'?'light':'dark'));
-  document.addEventListener('keydown',e=>{ if((e.key==='t'||e.key==='T')&&!/input|textarea/i.test(e.target.tagName)) set(cur()==='dark'?'light':'dark'); });
-})();
+/* Stored theme is applied early here; the theme menu, cycling and redraw
+   hook are handled by assets/site.js (which fires window.redrawAll on change). */
+(function(){ try{ const s=localStorage.getItem('ros-theme'); if(s) document.documentElement.setAttribute('data-theme',s);}catch(e){} })();
 function cssvar(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
 
 /* ---------- HERO packet loop ---------- */
@@ -1279,3 +1311,7 @@ function init(){
 window.addEventListener('resize',()=>{ clearTimeout(window._rt); window._rt=setTimeout(layoutStage,150); });
 if(document.readyState!=='loading') init(); else document.addEventListener('DOMContentLoaded',init);
 </script>
+
+<!-- QR code + theme menu -->
+<script src="assets/qrcode.min.js"></script>
+<script src="assets/site.js"></script>
