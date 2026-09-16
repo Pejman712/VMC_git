@@ -1,0 +1,1048 @@
+<meta charset="utf-8">
+<title>Gaussian Splatting Explorer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A step-by-step, interactive companion to 3D Gaussian Splatting — the anatomy of a Gaussian, the splatting rasteriser, the training loop, adaptive density control, and a survey of recent advances with 30+ papers.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+:root{
+  --bg:#F1F4F8; --surface:#FFFFFF; --panel:#F3F6FA; --panel-2:#E7EEF6;
+  --ink:#0E1116; --ink-2:#33404E; --muted:#5B6572; --border:#D9DFE7; --border-2:#C3CCD8;
+  --navy:#00396B;
+  --accent:#0064AF; --accent-ink:#00548F;      /* Aalto blue */
+  --sat:#E4A11B; --alert:#CF3B41; --good:#1E8E56; --match:#D98A00; --purple:#7A54C8;
+  --axX:#D63C43; --axY:#E08A1E; --axZ:#2FA457;
+  --viewport-bg:#0B1220;
+  --shadow:0 1px 2px rgba(16,32,54,.06), 0 6px 22px rgba(16,32,54,.07);
+  --radius:12px; --radius-s:8px; --maxw:1140px;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:'Arimo',Arial,Helvetica,sans-serif;
+  --display:'Arimo',Arial,Helvetica,sans-serif;
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --bg:#0C1420; --surface:#141F2E; --panel:#182434; --panel-2:#1E2C40;
+  --ink:#E8EEF7; --ink-2:#B7C4D6; --muted:#8496AE; --border:#26364C; --border-2:#33475F;
+  --navy:#2C3E60; --accent:#3E92DA; --accent-ink:#9CC8EE;
+  --sat:#F1B434; --alert:#F0575C; --good:#38C177; --match:#F5B942; --purple:#A98BEF;
+  --axX:#F0575C; --axY:#F0A93A; --axZ:#43C877;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+}}
+:root[data-theme="dark"]{
+  --bg:#0C1420; --surface:#141F2E; --panel:#182434; --panel-2:#1E2C40;
+  --ink:#E8EEF7; --ink-2:#B7C4D6; --muted:#8496AE; --border:#26364C; --border-2:#33475F;
+  --navy:#2C3E60; --accent:#3E92DA; --accent-ink:#9CC8EE;
+  --sat:#F1B434; --alert:#F0575C; --good:#38C177; --match:#F5B942; --purple:#A98BEF;
+  --axX:#F0575C; --axY:#F0A93A; --axZ:#43C877;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+}
+:root[data-theme="midnight"]{
+  --bg:#070B14; --surface:#0F1526; --panel:#141B30; --panel-2:#1C2542;
+  --ink:#E7E9F6; --ink-2:#B4B9DA; --muted:#7A82AC; --border:#232D4E; --border-2:#333F68;
+  --navy:#242A55; --accent:#7C86FF; --accent-ink:#B3B8FF; --purple:#CB8BFF;
+  --sat:#F5C24B; --match:#F5B942; --alert:#FF6B72; --good:#46D08A;
+  --axX:#FF6B72; --axY:#46D08A; --axZ:#7C86FF; --viewport-bg:#05070F;
+  --shadow:0 1px 2px rgba(0,0,0,.5), 0 12px 34px rgba(0,0,0,.5);
+}
+:root[data-theme="sepia"]{
+  --bg:#F1E7D6; --surface:#FBF5EA; --panel:#F0E6D2; --panel-2:#E7D7BC;
+  --ink:#2E2519; --ink-2:#4A3D2A; --muted:#7C6C51; --border:#DDCBAA; --border-2:#CBB489;
+  --navy:#5C4326; --accent:#9A6A2F; --accent-ink:#7A4E1E; --purple:#8A4E86;
+  --sat:#C08A2A; --match:#B5842A; --alert:#B23A2E; --good:#4E7A3A;
+  --axX:#B23A2E; --axY:#4E7A3A; --axZ:#3A6A9A; --viewport-bg:#241B10;
+  --shadow:0 1px 2px rgba(90,60,20,.10), 0 8px 26px rgba(90,60,20,.14);
+}
+:root[data-theme="contrast"]{
+  --bg:#000000; --surface:#0A0A0A; --panel:#111111; --panel-2:#1A1A1A;
+  --ink:#FFFFFF; --ink-2:#F2F2F2; --muted:#CBCBCB; --border:#5C5C5C; --border-2:#7C7C7C;
+  --navy:#0A2A4A; --accent:#5AB0FF; --accent-ink:#9AD0FF; --purple:#E58CFF;
+  --sat:#FFC94A; --match:#FFC94A; --alert:#FF5A5F; --good:#3CE07A;
+  --axX:#FF5A5F; --axY:#3CE07A; --axZ:#5AB0FF; --viewport-bg:#000000;
+  --shadow:0 1px 2px rgba(0,0,0,.7), 0 12px 34px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} *{animation-duration:.001ms!important;transition-duration:.001ms!important} }
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--display);font-weight:700;line-height:1.1;text-wrap:balance;margin:0;letter-spacing:-.01em}
+a{color:var(--accent-ink);text-decoration:none} a:hover{text-decoration:underline}
+:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px;border-radius:4px}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+.mono{font-family:var(--mono)} .tnum{font-variant-numeric:tabular-nums}
+sup.cite{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--accent-ink);vertical-align:super;line-height:0}
+sup.cite a{color:var(--accent-ink)}
+
+/* nav */
+.nav{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+.nav-in{max-width:var(--maxw);margin:0 auto;padding:11px 22px;display:flex;align-items:center;gap:18px}
+.brand{display:flex;align-items:center;gap:10px;color:var(--ink)}
+.vmc-tile{width:36px;height:36px;border-radius:7px;background:var(--accent);color:#fff;font-family:var(--display);font-weight:700;font-size:13px;display:grid;place-items:center;letter-spacing:.01em;flex:none}
+.brand .bt{display:flex;flex-direction:column;line-height:1.08}
+.brand .bt b{font-family:var(--display);font-weight:700;font-size:14.5px;letter-spacing:-.01em}
+.brand .bt span{font-size:10.5px;color:var(--muted);font-family:var(--mono);letter-spacing:.02em}
+.aalto-lock{display:flex;flex-direction:column;line-height:1.06;padding-left:14px;margin-left:2px;border-left:1px solid var(--border-2)}
+.aalto-lock b{font-family:var(--display);font-weight:700;font-size:13px;color:var(--accent-ink)}
+.aalto-lock span{font-size:9px;color:var(--muted);font-family:var(--mono)}
+.nav-links{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap;align-items:center}
+.nav-links a{font-size:13.5px;color:var(--muted);padding:6px 10px;border-radius:8px;font-weight:500}
+.nav-links a:hover{color:var(--ink);background:var(--panel);text-decoration:none}
+.nav-links a.home{color:var(--accent-ink);border:1px solid var(--border-2)}
+.tgl{width:38px;height:38px;border:1px solid var(--border-2);background:var(--surface);border-radius:10px;cursor:pointer;color:var(--ink);font-size:16px;display:grid;place-items:center}
+.tgl:hover{border-color:var(--accent)}
+@media(max-width:980px){ .nav-links a:not(.home){display:none} .aalto-lock{display:none} }
+
+/* hero */
+.hero{position:relative;overflow:hidden;background:var(--accent);color:#fff}
+.hero-grid{position:absolute;inset:0;opacity:1;background-image:linear-gradient(rgba(255,255,255,.10) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.10) 1px,transparent 1px);background-size:34px 34px;mask-image:radial-gradient(120% 90% at 78% 6%,#000 30%,transparent 78%)}
+.hero-blobs{position:absolute;inset:0;pointer-events:none}
+.hero-in{position:relative;max-width:var(--maxw);margin:0 auto;padding:60px 22px 46px}
+.eyebrow{font-family:var(--mono);font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.82);font-weight:600}
+.hero h1{font-size:clamp(2.2rem,5vw,3.5rem);font-weight:700;letter-spacing:-.015em;margin:14px 0 0;color:#fff}
+.hero h1 .hl{color:#BFE0FF}
+.lede{font-size:clamp(1.02rem,1.7vw,1.18rem);color:rgba(255,255,255,.92);max-width:60ch;margin:16px 0 0}
+.chips-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:26px}
+.pill-link{font-family:var(--display);font-weight:700;font-size:13.5px;padding:10px 16px;border-radius:8px;border:1.5px solid rgba(255,255,255,.6);background:transparent;color:#fff;cursor:pointer}
+.pill-link:hover{border-color:#fff;background:rgba(255,255,255,.12);text-decoration:none}
+.pill-link.p{background:#fff;color:var(--accent-ink);border-color:#fff}
+
+/* sections */
+section{padding:56px 0}
+.alt{background:var(--panel);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.sec-head{max-width:none;margin-bottom:26px;background:var(--accent);color:#fff;border-radius:10px;padding:22px 26px}
+.sec-kicker{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.85);font-weight:600;display:flex;align-items:center;gap:9px}
+.sec-kicker::before{content:"";width:22px;height:2px;background:rgba(255,255,255,.7);display:inline-block}
+.sec-head h2{font-size:clamp(1.6rem,3.1vw,2.2rem);margin:11px 0 0;color:#fff}
+.sec-head p{color:rgba(255,255,255,.9);margin:11px 0 0;font-size:1.01rem;max-width:82ch}
+.sec-head p b{color:#fff}
+.sec-head sup.cite,.sec-head sup.cite a{color:#BFE0FF}
+.aalto-foot b{font-family:var(--display);font-weight:700;font-size:15px;color:var(--ink);display:block}
+.aalto-foot span{font-size:10.5px;color:var(--muted);font-family:var(--mono)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+.pad{padding:24px}
+.card h3{font-size:1.16rem;margin-bottom:4px}
+.card .sub{color:var(--muted);font-size:13px;margin-bottom:16px}
+.lead-p{font-size:1.03rem;color:var(--ink-2);max-width:80ch;margin:0 0 22px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px} @media(max-width:900px){.grid-2{grid-template-columns:1fr}}
+.grid-2b{display:grid;grid-template-columns:1.15fr .85fr;gap:20px} @media(max-width:900px){.grid-2b{grid-template-columns:1fr}}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px} @media(max-width:820px){.grid-3{grid-template-columns:1fr}}
+.viewport{background:var(--viewport-bg);border-radius:10px;border:1px solid #1d2a3d;overflow:hidden}
+.viewport canvas{display:block;width:100%;height:auto}
+
+/* buttons + controls */
+.btnrow{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-top:14px}
+.mini-btn{font-family:var(--display);font-weight:600;font-size:13px;border-radius:9px;padding:9px 14px;cursor:pointer;border:1px solid var(--border-2);background:var(--surface);color:var(--ink)}
+.mini-btn:hover{border-color:var(--accent)} .mini-btn:disabled{opacity:.45;cursor:not-allowed}
+.mini-btn.primary{background:var(--accent);color:#fff;border-color:transparent}
+.seg{display:inline-flex;border:1px solid var(--border-2);border-radius:9px;overflow:hidden;flex-wrap:wrap}
+.seg button{font-family:var(--mono);font-size:12.5px;padding:8px 13px;border:none;background:var(--surface);color:var(--muted);cursor:pointer;border-right:1px solid var(--border)}
+.seg button:last-child{border-right:none}
+.seg button.active{background:var(--accent);color:#fff;font-weight:600}
+.rng{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink-2);font-family:var(--mono);margin-top:12px}
+.rng input[type=range]{accent-color:var(--accent);flex:1} .rng .v{color:var(--accent-ink);min-width:66px;text-align:right}
+.rng>span:first-child{min-width:104px}
+.toggle-chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-family:var(--mono);color:var(--ink-2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer;user-select:none;background:var(--surface)}
+.toggle-chip input{accent-color:var(--accent)}
+
+/* readouts */
+.readout{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ro{background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:10px 12px}
+.ro .k{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.ro .val{font-family:var(--mono);font-size:1.3rem;font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px}
+.stat-line{font-family:var(--mono);font-size:13px;color:var(--ink-2);background:var(--panel);border-radius:8px;padding:10px 12px;margin-top:12px}
+.stat-line b{color:var(--accent-ink)}
+.axkey{display:flex;gap:16px;margin-top:12px;font-family:var(--mono);font-size:12px;flex-wrap:wrap}
+.axkey span{display:inline-flex;align-items:center;gap:6px} .axkey i{width:14px;height:14px;border-radius:4px}
+
+/* math */
+.mathbox{font-family:var(--mono);font-size:13px;background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:0 9px 9px 0;padding:14px 16px;overflow-x:auto;color:var(--ink-2);line-height:1.9}
+.mathbox b{color:var(--ink)}
+.steps{counter-reset:st;display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.step{display:flex;gap:12px;font-size:13.5px;color:var(--ink-2)}
+.step::before{counter-increment:st;content:counter(st);flex:none;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--display);font-weight:700;font-size:13px;display:grid;place-items:center}
+.step b{color:var(--ink)}
+.step.hot::before{background:var(--sat);box-shadow:0 0 0 4px color-mix(in srgb,var(--sat) 32%,transparent)}
+
+/* attribute chips */
+.attrs{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:6px}
+@media(max-width:560px){.attrs{grid-template-columns:1fr}}
+.attr{border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:0 9px 9px 0;padding:10px 13px;background:var(--panel)}
+.attr .t{font-family:var(--display);font-weight:700;font-size:14px;color:var(--ink);display:flex;align-items:center;gap:8px}
+.attr .t .sym{font-family:var(--mono);font-size:12px;color:var(--accent-ink);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:1px 7px}
+.attr .d{font-size:12.5px;color:var(--ink-2);margin-top:5px}
+
+/* tech list / pipeline */
+.techlist{display:flex;flex-direction:column;gap:12px;margin-top:4px}
+.tech{display:flex;gap:12px;align-items:flex-start;font-size:13.5px;color:var(--ink-2)}
+.tech .t{font-family:var(--mono);font-weight:600;color:var(--ink);min-width:132px}
+.pipeline{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px}
+.pstep{font-family:var(--mono);font-size:12px;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:8px 11px;color:var(--ink-2);transition:all .18s}
+.pstep b{color:var(--accent-ink)}
+.pstep.on{background:var(--accent);border-color:transparent;color:#fff}
+.pstep.on b{color:#fff}
+.parrow{color:var(--muted);font-size:14px}
+
+/* comparison table */
+.cmp{width:100%;border-collapse:collapse;font-size:13.5px}
+.cmp th,.cmp td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+.cmp thead th{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.cmp tbody th{font-family:var(--display);font-weight:600;color:var(--ink);width:26%}
+.cmp .nerf{color:var(--purple)} .cmp .gs{color:var(--accent-ink)}
+.cmp td b{color:var(--ink)}
+.cmp-wrap{overflow-x:auto}
+
+/* timeline */
+.tl{position:relative;margin-top:8px;padding-left:26px}
+.tl::before{content:"";position:absolute;left:8px;top:6px;bottom:6px;width:2px;background:var(--border-2)}
+.tl-item{position:relative;padding:0 0 20px 6px}
+.tl-item::before{content:"";position:absolute;left:-22px;top:5px;width:12px;height:12px;border-radius:50%;background:var(--accent);border:2px solid var(--surface);box-shadow:0 0 0 2px var(--accent)}
+.tl-item.nerf::before{background:var(--purple);box-shadow:0 0 0 2px var(--purple)}
+.tl-yr{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--accent-ink)}
+.tl-item.nerf .tl-yr{color:var(--purple)}
+.tl-t{font-family:var(--display);font-weight:700;font-size:14.5px;color:var(--ink);margin-top:1px}
+.tl-d{font-size:12.5px;color:var(--ink-2);margin-top:2px}
+
+/* advances cards */
+.adv{display:grid;grid-template-columns:repeat(2,1fr);gap:16px} @media(max-width:820px){.adv{grid-template-columns:1fr}}
+.advcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow)}
+.advcard .h{display:flex;align-items:center;gap:10px}
+.advcard .ic{width:30px;height:30px;border-radius:8px;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent-ink);display:grid;place-items:center;flex:none;font-size:16px}
+.advcard h3{font-size:1.04rem}
+.advcard p{font-size:13.5px;color:var(--ink-2);margin:10px 0 0}
+.advcard .refs{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:10px}
+
+/* references */
+.refgroup{margin-top:22px}
+.refgroup h4{font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent-ink);margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+ol.refs{list-style:none;counter-reset:ref;padding:0;margin:0;display:flex;flex-direction:column;gap:9px}
+ol.refs li{counter-increment:ref;display:flex;gap:12px;font-size:13.5px;color:var(--ink-2);line-height:1.5}
+ol.refs li::before{content:"["counter(ref)"]";font-family:var(--mono);font-size:12px;font-weight:600;color:var(--accent-ink);flex:none;min-width:34px}
+ol.refs li b{color:var(--ink);font-weight:600}
+ol.refs li .venue{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+ol.refs a{word-break:break-word}
+
+footer{background:var(--surface);border-top:1px solid var(--border);padding:44px 0 40px;font-size:14px}
+.foot-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:28px} @media(max-width:820px){.foot-grid{grid-template-columns:1fr}}
+footer h4{font-family:var(--display);font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+footer ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+.note{font-size:12.5px;color:var(--muted);margin-top:26px;border-top:1px solid var(--border);padding-top:18px}
+.kbd{font-family:var(--mono);font-size:12px;background:var(--panel-2);border:1px solid var(--border);border-radius:5px;padding:1px 6px;color:var(--ink-2)}
+</style>
+
+<!-- NAV -->
+<nav class="nav"><div class="nav-in">
+  <span class="brand">
+    <span class="vmc-tile">VMC</span>
+    <span class="bt"><b>Vehicle Mechatronics</b><span>Gaussian Splatting</span></span>
+  </span>
+  <span class="aalto-lock"><b>Aalto University</b><span>School of Engineering</span></span>
+  <div class="nav-links">
+    <a href="#idea">Big idea</a>
+    <a href="#anatomy">Anatomy</a>
+    <a href="#render">Splatting</a>
+    <a href="#train">Training</a>
+    <a href="#density">Density</a>
+    <a href="#advances">Advances</a>
+    <a href="#refs">Papers</a>
+    <a class="home" href="index.html">← ROS Explorer</a>
+    <a class="home" href="localisation.html">Localisation</a>
+  </div>
+  <button class="tgl" id="themeBtn" aria-label="Toggle theme" title="Toggle theme">◐</button>
+</div></nav>
+
+<!-- QR -->
+<div class="qr-band">
+  <div class="qr-band-in">
+    <div class="qr-card" id="qrCode"></div>
+    <div class="qr-copy">
+      <div class="qr-kicker">Scan · Share · Open</div>
+      <h2>Open this page on your phone</h2>
+      <p>Point a camera at the code to open <b>the Gaussian Splatting page</b> on any device — the QR always points at this exact page.</p>
+      <div class="qr-url" id="qrUrl"></div>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-grid" aria-hidden="true"></div>
+  <canvas class="hero-blobs" id="heroCv" aria-hidden="true"></canvas>
+  <div class="hero-in">
+    <span class="eyebrow">Vehicle Mechatronics · Novel View Synthesis</span>
+    <h1>Painting the world with <span class="hl">millions of blurry dots</span></h1>
+    <p class="lede">3D Gaussian Splatting turns a set of photos into a scene you can fly through in real time — not with a neural network you query, but with millions of little translucent 3D ellipsoids you simply draw. This page builds the idea up piece by piece, interactively, then surveys where the field went next.</p>
+    <div class="chips-row">
+      <a class="pill-link p" href="#anatomy">Start with one Gaussian</a>
+      <a class="pill-link" href="#advances">Jump to recent advances</a>
+    </div>
+  </div>
+</header>
+
+<!-- BIG IDEA -->
+<section id="idea">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">The big idea</div>
+      <h2>An explicit scene you can draw, not a network you query</h2>
+      <p>In 2020, <b>NeRF</b><sup class="cite"><a href="#r2">[2]</a></sup> showed you could store a whole 3D scene inside a neural network and render photorealistic new views — but rendering meant firing hundreds of network queries down every pixel's ray, so a single frame took seconds. In 2023, Kerbl et al.<sup class="cite"><a href="#r1">[1]</a></sup> asked a different question: what if the scene were made of <b>explicit primitives</b> we could rasterise directly? Their answer — a cloud of 3D Gaussians — hit photorealistic quality at <b>&ge;100 FPS</b>, and reset the field.</p>
+    </div>
+
+    <p class="lead-p">Both approaches optimise a <b>radiance field</b> (what colour every point emits, in every direction) so that rendering it reproduces your input photos. The difference is the <i>representation</i> — and that difference is why splatting is fast enough for robotics, VR, and live mapping.</p>
+
+    <div class="grid-2b">
+      <div class="card pad">
+        <h3>NeRF vs. 3D Gaussian Splatting</h3>
+        <div class="sub">Same goal — reproduce the photos from new viewpoints — very different machinery.</div>
+        <div class="cmp-wrap">
+        <table class="cmp">
+          <thead><tr><th></th><th class="nerf">NeRF (implicit)</th><th class="gs">3D Gaussian Splatting (explicit)</th></tr></thead>
+          <tbody>
+            <tr><th>Scene is…</th><td class="nerf">weights of an MLP</td><td class="gs">a set of 3D Gaussians (position, shape, colour, opacity)</td></tr>
+            <tr><th>Rendering</th><td class="nerf">ray marching — <b>query the net</b> at many samples per ray</td><td class="gs">project &amp; <b>rasterise</b> splats, blend front-to-back</td></tr>
+            <tr><th>Speed</th><td class="nerf">seconds/frame (base); faster variants exist</td><td class="gs"><b>real-time</b>, &ge;100 FPS at 1080p</td></tr>
+            <tr><th>Train time</th><td class="nerf">hours&ndash;days (base)</td><td class="gs"><b>minutes&ndash;tens of minutes</b></td></tr>
+            <tr><th>Editable?</th><td class="nerf">hard — it's a black box</td><td class="gs">easy — move / delete / recolour primitives</td></tr>
+            <tr><th>Memory</th><td class="nerf">tiny net, heavy compute</td><td class="gs">large point set, light compute</td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+      <div class="card pad">
+        <h3>The whole method in one breath</h3>
+        <div class="steps">
+          <div class="step"><div><b>Start</b> from a sparse point cloud that Structure-from-Motion already gives you for free while estimating the camera poses.</div></div>
+          <div class="step"><div><b>Put a Gaussian</b> at each point — a soft, coloured, semi-transparent ellipsoid.</div></div>
+          <div class="step"><div><b>Render</b> by projecting every Gaussian into the image and blending them (differentiably).</div></div>
+          <div class="step"><div><b>Compare</b> to the real photo, backpropagate the error, nudge every Gaussian's shape and colour.</div></div>
+          <div class="step"><div><b>Grow / prune</b> the set where detail is missing or wasted — then repeat.</div></div>
+        </div>
+        <div class="stat-line" style="margin-top:16px">The rest of this page is just these five steps, slowed down and made interactive. <b>Everything below runs live in your browser.</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ANATOMY -->
+<section id="anatomy" class="alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">Step 1 · Anatomy of a Gaussian</div>
+      <h2>What exactly is one splat?</h2>
+      <p>A single 3D Gaussian is a fuzzy ellipsoid described by just a handful of numbers. Drag the sliders to reshape the one below and watch its <b>covariance matrix</b> — the object that encodes its size and orientation — update live. This is a 2D slice; the real thing is the same idea in 3D.</p>
+    </div>
+    <div class="grid-2">
+      <div class="card pad">
+        <h3>One anisotropic Gaussian</h3>
+        <div class="sub">Bright core, soft falloff. The dashed ellipse is the 3&sigma; contour — where its influence essentially ends.</div>
+        <div class="viewport"><canvas id="splatCv" width="620" height="380" role="img" aria-label="A single anisotropic 2D Gaussian splat with its 3-sigma covariance ellipse"></canvas></div>
+        <div class="rng"><span>Scale x</span><input type="range" id="sX" min="8" max="120" value="70"><span class="v" id="sXv">70</span></div>
+        <div class="rng"><span>Scale y</span><input type="range" id="sY" min="8" max="120" value="34"><span class="v" id="sYv">34</span></div>
+        <div class="rng"><span>Rotation θ</span><input type="range" id="sR" min="0" max="180" value="28"><span class="v" id="sRv">28°</span></div>
+        <div class="rng"><span>Opacity α</span><input type="range" id="sA" min="5" max="100" value="90"><span class="v" id="sAv">0.90</span></div>
+        <div class="rng"><span>Hue</span><input type="range" id="sH" min="0" max="360" value="205"><span class="v" id="sHv">205°</span></div>
+      </div>
+      <div class="card pad">
+        <h3>The five attributes stored per Gaussian</h3>
+        <div class="sub">That's all a splat is — no neural network hiding inside.</div>
+        <div class="attrs">
+          <div class="attr"><div class="t"><span class="sym">μ</span>Position</div><div class="d">Where it sits in 3D — its mean (x, y, z). <b>3 numbers.</b></div></div>
+          <div class="attr"><div class="t"><span class="sym">Σ</span>Covariance</div><div class="d">Its size &amp; orientation, stored as scale <b>s</b> (3) + rotation quaternion <b>q</b> (4) so Σ = R S Sᵀ Rᵀ stays valid.</div></div>
+          <div class="attr"><div class="t"><span class="sym">α</span>Opacity</div><div class="d">How much light it blocks / contributes, 0–1. <b>1 number.</b></div></div>
+          <div class="attr"><div class="t"><span class="sym">c</span>Colour (SH)</div><div class="d">View-<i>dependent</i> colour via spherical harmonics — so highlights shift as you move. <b>up to 48 numbers.</b></div></div>
+        </div>
+        <div class="mathbox" style="margin-top:16px">G(x) = exp( −½ (x−<b>μ</b>)ᵀ <b>Σ</b>⁻¹ (x−<b>μ</b>) )<br><br>Σ = R S Sᵀ Rᵀ &nbsp;&nbsp;<span style="color:var(--muted)">// R from quaternion q, S = diag(sₓ,s_y,s_z)</span></div>
+        <div class="readout" style="margin-top:14px;grid-template-columns:1fr">
+          <div class="ro"><div class="k">covariance Σ (this slice)</div><div class="val" id="covOut" style="font-size:1.05rem">—</div></div>
+        </div>
+        <div class="stat-line" style="margin-top:12px">Why store <b>scale + rotation</b> instead of Σ directly? Gradient descent could push a raw Σ to something invalid (not a real ellipse). Factoring it as R S SᵀRᵀ <b>guarantees</b> a positive-definite covariance at every step.<sup class="cite"><a href="#r1">[1]</a></sup></div>
+      </div>
+    </div>
+
+    <div class="card pad" style="margin-top:20px">
+      <h3>Why "spherical harmonics" for colour?</h3>
+      <div class="sub">A wet road, a glossy car, a metal rail — their colour changes with your viewing angle. A flat RGB can't do that; SH can.</div>
+      <div class="grid-2" style="align-items:center">
+        <div class="viewport" style="background:var(--surface);border-color:var(--border)"><svg id="shSvg" viewBox="0 0 560 220" role="img" aria-label="Spherical-harmonics lobes: colour varies with viewing direction"></svg></div>
+        <div>
+          <p class="lead-p" style="margin:0">Each Gaussian stores a small set of SH coefficients per colour channel. Evaluated in the direction from the Gaussian to your eye, they reconstruct a smoothly <b>direction-varying colour</b>. Degree 0 is a constant (plain RGB); adding degrees 1–3 lets the splat encode specular highlights and subtle sheen.</p>
+          <div class="axkey"><span><i style="background:var(--accent)"></i>colour toward camera A</span><span><i style="background:var(--sat)"></i>colour toward camera B</span></div>
+          <div class="stat-line" style="margin-top:14px">Turning off SH (degree 0 only) is a common <b>compression</b> trick<sup class="cite"><a href="#r12">[12]</a><a href="#r14">[14]</a></sup> — it slashes memory at a small quality cost.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SPLATTING / RENDER -->
+<section id="render">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">Step 2 · The splatting rasteriser</div>
+      <h2>From 3D ellipsoids to pixels — and why order matters</h2>
+      <p>"Splatting" means: <b>project</b> each 3D Gaussian onto the image (it becomes a 2D Gaussian "footprint"), then <b>blend</b> the footprints together. Blending is <b>order-dependent</b> — a near, opaque splat must cover a far one behind it. Get the order wrong and the image falls apart. Toggle the sort below to see it.</p>
+    </div>
+    <div class="grid-2">
+      <div class="card pad">
+        <h3>Alpha compositing, live</h3>
+        <div class="sub">Five overlapping splats drifting in depth. With correct front-to-back sorting the nearer ones occlude; without it, far splats bleed through.</div>
+        <div class="viewport"><canvas id="compCv" width="620" height="400" role="img" aria-label="Overlapping coloured Gaussians blended with and without depth sorting"></canvas></div>
+        <div class="btnrow">
+          <button class="mini-btn primary" id="compPlay">⏸ Pause</button>
+          <label class="toggle-chip"><input type="checkbox" id="compSort" checked> Sort by depth (correct)</label>
+          <label class="toggle-chip"><input type="checkbox" id="compEllipse"> Show footprints</label>
+        </div>
+        <div class="stat-line" id="compStat" style="margin-top:12px"></div>
+      </div>
+      <div class="card pad">
+        <h3>How each pixel gets its colour</h3>
+        <div class="sub">The exact blend the rasteriser runs, per pixel, over the splats that cover it (sorted near→far).</div>
+        <div class="mathbox">C = Σᵢ &nbsp;<b>cᵢ αᵢ</b> &nbsp;Πⱼ&lt;ᵢ (1 − αⱼ)<br><br><span style="color:var(--muted)">running transmittance</span> &nbsp;T ← T · (1 − αᵢ)</div>
+        <div class="steps" style="margin-top:16px">
+          <div class="step"><div><b>Project:</b> the 3D covariance Σ becomes a 2D one via the camera Jacobian (the "EWA" splatting trick<sup class="cite"><a href="#r3">[3]</a></sup>) — each ellipsoid casts an elliptical footprint.</div></div>
+          <div class="step"><div><b>Sort:</b> order the splats by depth. 3DGS does this globally per frame with a fast GPU radix sort.</div></div>
+          <div class="step"><div><b>Tile:</b> split the screen into 16×16 tiles; each tile only blends the splats that touch it — this is what makes it real-time.</div></div>
+          <div class="step"><div><b>Blend:</b> walk front→back, accumulating colour weighted by opacity and remaining transmittance T, until T is nearly 0.</div></div>
+        </div>
+        <div class="stat-line" style="margin-top:12px">The blend is a <b>weighted sum of smooth functions</b> — so it's differentiable. That single fact is what lets the whole scene be learned by gradient descent, which is Step 3.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRAINING -->
+<section id="train" class="alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">Step 3 · The training loop</div>
+      <h2>Photos in, gradients out</h2>
+      <p>Because rendering is differentiable, training is a plain optimisation loop: render a view we have a photo of, measure how wrong it looks, and let the error flow back to <b>every</b> Gaussian's position, shape, colour and opacity. Step through the cycle below and watch a toy scene sharpen from a sparse point cloud into a faithful render.</p>
+    </div>
+    <div class="grid-2b">
+      <div class="card pad">
+        <h3>One optimisation cycle</h3>
+        <div class="sub">Left: current render. Right: the target photo. They converge as the loop runs.</div>
+        <div class="viewport"><canvas id="trainCv" width="620" height="330" role="img" aria-label="A cloud of Gaussians being optimised to match a target image"></canvas></div>
+        <div class="pipeline" id="trainPipe">
+          <span class="pstep" data-p="0"><b>Render</b></span><span class="parrow">→</span>
+          <span class="pstep" data-p="1"><b>Compare</b> (loss)</span><span class="parrow">→</span>
+          <span class="pstep" data-p="2"><b>Backprop</b></span><span class="parrow">→</span>
+          <span class="pstep" data-p="3"><b>Adam step</b></span><span class="parrow">→</span>
+          <span class="pstep" data-p="4"><b>Densify</b></span>
+        </div>
+        <div class="btnrow">
+          <button class="mini-btn primary" id="trainPlay">▶ Run</button>
+          <button class="mini-btn" id="trainStep">Step once</button>
+          <button class="mini-btn" id="trainReset">Reset</button>
+          <span class="mono" style="font-size:12px;color:var(--muted);margin-left:auto">iter <b id="trainIter" style="color:var(--accent-ink)">0</b> · splats <b id="trainN" style="color:var(--accent-ink)">0</b></span>
+        </div>
+      </div>
+      <div class="card pad">
+        <h3>What each stage does</h3>
+        <div class="steps" id="trainSteps">
+          <div class="step" data-s="0"><div><b>Render</b> the current Gaussians from this camera into an image.</div></div>
+          <div class="step" data-s="1"><div><b>Compare</b> to the ground-truth photo with a loss that mixes pixel error and structural similarity: <span class="mono">L = (1−λ)·L₁ + λ·L_D-SSIM</span>.</div></div>
+          <div class="step" data-s="2"><div><b>Backpropagate</b> that loss through the differentiable rasteriser to get a gradient for every attribute of every splat.</div></div>
+          <div class="step" data-s="3"><div><b>Update</b> all attributes with the Adam optimiser (a small, adaptive gradient step).</div></div>
+          <div class="step" data-s="4"><div><b>Densify &amp; prune</b> every ~100 iters — the subject of Step 4.</div></div>
+        </div>
+        <div class="readout" style="margin-top:16px;grid-template-columns:1fr 1fr">
+          <div class="ro"><div class="k">loss ↓</div><div class="val" id="trainLoss" style="color:var(--alert)">—</div></div>
+          <div class="ro"><div class="k">PSNR ↑</div><div class="val" id="trainPsnr" style="color:var(--good)">—</div></div>
+        </div>
+        <div class="viewport" style="background:var(--surface);border-color:var(--border);margin-top:14px"><svg id="lossSvg" viewBox="0 0 520 150" role="img" aria-label="Training loss decreasing over iterations"></svg></div>
+        <div class="stat-line" style="margin-top:12px">This mirrors the real recipe from Kerbl et al.<sup class="cite"><a href="#r1">[1]</a></sup> — a rendered image is <i>the</i> supervision signal; no 3D ground truth is needed, only the photos you already took.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DENSITY -->
+<section id="density">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">Step 4 · Adaptive density control</div>
+      <h2>Spending Gaussians where they're needed</h2>
+      <p>A fixed set of splats can't be right everywhere: blank walls waste them, fine detail starves. So during training the optimiser <b>edits the set itself</b> — cloning splats into under-reconstructed areas, splitting over-large ones, and deleting near-transparent ones. This is the secret behind the sharpness, and it's driven entirely by the gradient signal.</p>
+    </div>
+    <div class="grid-3">
+      <div class="card pad">
+        <h3 style="color:var(--good)">Clone</h3>
+        <div class="sub">Under-reconstruction: detail is missing.</div>
+        <div class="viewport" style="background:var(--surface);border-color:var(--border)"><svg viewBox="0 0 220 150" class="dsvg" id="dClone" role="img" aria-label="A small Gaussian being cloned to add detail"></svg></div>
+        <p style="font-size:13px;color:var(--ink-2);margin-top:12px">A <b>small</b> Gaussian in a region with large positional gradient is <b>copied</b> and nudged along the gradient — adding coverage where the render is still blurry.</p>
+      </div>
+      <div class="card pad">
+        <h3 style="color:var(--sat)">Split</h3>
+        <div class="sub">Over-reconstruction: one blob does too much.</div>
+        <div class="viewport" style="background:var(--surface);border-color:var(--border)"><svg viewBox="0 0 220 150" class="dsvg" id="dSplit" role="img" aria-label="A large Gaussian being split into two smaller ones"></svg></div>
+        <p style="font-size:13px;color:var(--ink-2);margin-top:12px">A <b>large</b> Gaussian with high gradient is replaced by <b>two smaller</b> ones (scaled down by ~1.6×), sampled from its own distribution — trading one coarse splat for finer ones.</p>
+      </div>
+      <div class="card pad">
+        <h3 style="color:var(--alert)">Prune</h3>
+        <div class="sub">Waste: it barely contributes.</div>
+        <div class="viewport" style="background:var(--surface);border-color:var(--border)"><svg viewBox="0 0 220 150" class="dsvg" id="dPrune" role="img" aria-label="A transparent Gaussian being removed"></svg></div>
+        <p style="font-size:13px;color:var(--ink-2);margin-top:12px">Any Gaussian whose opacity falls below a threshold (α &lt; 0.005) is <b>deleted</b>. Opacity is also periodically reset toward zero so dead splats get cleaned up.</p>
+      </div>
+    </div>
+    <div class="card pad" style="margin-top:20px">
+      <h3>The rule in one line</h3>
+      <div class="mathbox">if &nbsp;‖∇<sub>μ</sub> L‖ &gt; τ:&nbsp; <b style="color:var(--good)">clone</b> (if small) &nbsp;or&nbsp; <b style="color:var(--sat)">split</b> (if large) &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; if &nbsp;α &lt; ε:&nbsp; <b style="color:var(--alert)">prune</b></div>
+      <p style="font-size:13.5px;color:var(--ink-2);margin-top:14px">A scene often starts at ~100k splats from SfM and grows to <b>1–5 million</b>. Managing that budget is an active research theme on its own — treating it as a principled sampling process<sup class="cite"><a href="#r11">[11]</a></sup>, or capping and compressing the count for the same quality<sup class="cite"><a href="#r10">[10]</a><a href="#r12">[12]</a><a href="#r14">[14]</a></sup>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- RECENT ADVANCES -->
+<section id="advances" class="alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">The field since 2023</div>
+      <h2>Recent advances</h2>
+      <p>The original paper landed in mid-2023 and set off an explosion of follow-ups — thousands within a year. Here's the shape of it: first a short timeline, then the major research directions, each pointing at representative papers listed in full below.</p>
+    </div>
+
+    <div class="grid-2b">
+      <div class="card pad">
+        <h3>A quick timeline</h3>
+        <div class="tl" style="margin-top:14px">
+          <div class="tl-item nerf"><div class="tl-yr">2001–02</div><div class="tl-t">EWA Splatting</div><div class="tl-d">Zwicker et al. formalise anti-aliased elliptical splatting — the rendering ancestor.<sup class="cite"><a href="#r3">[3]</a></sup></div></div>
+          <div class="tl-item nerf"><div class="tl-yr">2020</div><div class="tl-t">NeRF</div><div class="tl-d">Neural radiance fields make photorealistic view synthesis possible — but slow.<sup class="cite"><a href="#r2">[2]</a></sup></div></div>
+          <div class="tl-item"><div class="tl-yr">Aug 2023</div><div class="tl-t">3D Gaussian Splatting</div><div class="tl-d">Real-time radiance fields at SIGGRAPH — the breakthrough.<sup class="cite"><a href="#r1">[1]</a></sup></div></div>
+          <div class="tl-item"><div class="tl-yr">Late 2023</div><div class="tl-t">Dynamic &amp; generative</div><div class="tl-d">4D scenes<sup class="cite"><a href="#r20">[20]</a><a href="#r21">[21]</a></sup> and text-to-3D<sup class="cite"><a href="#r24">[24]</a></sup> arrive within months.</div></div>
+          <div class="tl-item"><div class="tl-yr">2024</div><div class="tl-t">Quality, geometry, scale</div><div class="tl-d">Anti-aliasing<sup class="cite"><a href="#r6">[6]</a></sup>, surfaces<sup class="cite"><a href="#r7">[7]</a><a href="#r9">[9]</a></sup>, city-scale<sup class="cite"><a href="#r17">[17]</a><a href="#r19">[19]</a></sup>, SLAM<sup class="cite"><a href="#r29">[29]</a><a href="#r30">[30]</a></sup>, feed-forward<sup class="cite"><a href="#r27">[27]</a></sup>.</div></div>
+        </div>
+      </div>
+      <div class="card pad">
+        <h3>Why robotics cares (the VMC angle)</h3>
+        <p class="lead-p" style="margin:0 0 14px">For a vehicle, a splat map is attractive for concrete reasons:</p>
+        <div class="techlist">
+          <div class="tech"><span class="t">Real-time</span><span>Rendering fast enough to sit inside a perception or simulation loop.</span></div>
+          <div class="tech"><span class="t">Dense &amp; metric</span><span>A continuous photometric map, not just sparse feature points — and it doubles as a SLAM map.<sup class="cite"><a href="#r29">[29]</a><a href="#r30">[30]</a><a href="#r31">[31]</a></sup></span></div>
+          <div class="tech"><span class="t">Sim-ready</span><span>Photoreal reconstructions become sensor-in-the-loop simulators for training &amp; testing.</span></div>
+          <div class="tech"><span class="t">Editable</span><span>Objects are explicit primitives — remove a parked car, add an obstacle, relight the scene.<sup class="cite"><a href="#r33">[33]</a></sup></span></div>
+        </div>
+        <div class="stat-line" style="margin-top:16px">This is the same story as the <a href="localisation.html">Localisation</a> page: LiDAR &amp; visual SLAM build a map to localise against — Gaussian Splatting is a new, photorealistic kind of that map.</div>
+      </div>
+    </div>
+
+    <h3 style="margin:34px 0 4px;font-size:1.3rem">Major research directions</h3>
+    <p style="color:var(--muted);font-size:13.5px;margin:0 0 18px">Each card points to representative papers; full citations are in the <a href="#refs">reference list</a>.</p>
+    <div class="adv">
+      <div class="advcard"><div class="h"><span class="ic">▦</span><h3>Anti-aliasing &amp; quality</h3></div>
+        <p>Plain 3DGS shimmers and blurs when you zoom or change resolution. <b>Mip-Splatting</b> adds a 3D smoothing + 2D mip filter to render alias-free at any scale; MCMC-based optimisation improves robustness and count control.</p>
+        <div class="refs">Papers: [6] Mip-Splatting · [11] 3DGS-MCMC</div>
+      </div>
+      <div class="advcard"><div class="h"><span class="ic">◭</span><h3>Geometry &amp; surfaces</h3></div>
+        <p>Fuzzy blobs make lovely images but noisy geometry. <b>2D Gaussian Splatting</b>, <b>SuGaR</b> and <b>Gaussian Opacity Fields</b> flatten or regularise the splats so you can extract clean, watertight meshes.</p>
+        <div class="refs">Papers: [7] 2DGS · [8] GOF · [9] SuGaR</div>
+      </div>
+      <div class="advcard"><div class="h"><span class="ic">⇩</span><h3>Compression &amp; efficiency</h3></div>
+        <p>Millions of splats are heavy. <b>Scaffold-GS</b>, <b>LightGaussian</b>, compact-representation and vector-quantisation methods cut storage by 10–30× — from gigabytes to tens of megabytes — with little quality loss.</p>
+        <div class="refs">Papers: [10] Scaffold-GS · [12] LightGaussian · [13] Compressed-3DGS · [14] Compact-3DGS · [15] EAGLES · [16] SOG</div>
+      </div>
+      <div class="advcard"><div class="h"><span class="ic">◱</span><h3>Large scenes &amp; LOD</h3></div>
+        <p>City blocks and drone captures overflow GPU memory. <b>Hierarchical 3DGS</b>, <b>Octree-GS</b> and <b>VastGaussian</b> add level-of-detail and partitioning to render vast datasets in real time.</p>
+        <div class="refs">Papers: [17] Hierarchical-3DGS · [18] Octree-GS · [19] VastGaussian</div>
+      </div>
+      <div class="advcard"><div class="h"><span class="ic">◷</span><h3>Dynamic &amp; 4D scenes</h3></div>
+        <p>The world moves. <b>4D-GS</b>, <b>Dynamic 3D Gaussians</b>, <b>Deformable-3DGS</b> and <b>Spacetime Gaussians</b> add time — deforming splats to capture and replay moving scenes and even track points.</p>
+        <div class="refs">Papers: [20] 4D-GS · [21] Dynamic-3DG · [22] Deformable-3DGS · [23] Spacetime-GS</div>
+      </div>
+      <div class="advcard"><div class="h"><span class="ic">✦</span><h3>Generation (text/image → 3D)</h3></div>
+        <p>Marry splatting with 2D diffusion priors and you get fast 3D asset creation. <b>DreamGaussian</b> makes a textured mesh in minutes; <b>GaussianDreamer</b> and <b>GSGEN</b> push text-to-3D quality.</p>
+        <div class="refs">Papers: [24] DreamGaussian · [25] GaussianDreamer · [26] GSGEN</div>
+      </div>
+      <div class="advcard"><div class="h"><span class="ic">⧉</span><h3>Feed-forward reconstruction</h3></div>
+        <p>Skip per-scene optimisation entirely: a network <b>predicts</b> the Gaussians in one forward pass. <b>pixelSplat</b> and <b>MVSplat</b> reconstruct from just a couple of images, generalising across scenes.</p>
+        <div class="refs">Papers: [27] pixelSplat · [28] MVSplat</div>
+      </div>
+      <div class="advcard"><div class="h"><span class="ic">◎</span><h3>SLAM &amp; robotics</h3></div>
+        <p>Build the splat map <i>and</i> localise at once. <b>SplaTAM</b>, <b>Gaussian-Splatting SLAM</b> and <b>GS-SLAM</b> do dense RGB-D or monocular tracking-and-mapping with a Gaussian map.</p>
+        <div class="refs">Papers: [29] SplaTAM · [30] MonoGS · [31] GS-SLAM</div>
+      </div>
+      <div class="advcard"><div class="h"><span class="ic">☺</span><h3>Avatars &amp; physics</h3></div>
+        <p>Rig the splats to a body or drive them with a simulator. <b>GaussianAvatars</b> makes controllable photoreal heads; <b>PhysGaussian</b> runs continuum mechanics directly on the Gaussians.</p>
+        <div class="refs">Papers: [32] GaussianAvatars · [33] PhysGaussian</div>
+      </div>
+      <div class="advcard"><div class="h"><span class="ic">◐</span><h3>Foundations &amp; lineage</h3></div>
+        <p>Splatting didn't appear from nowhere: differentiable point-based rendering (<b>Pulsar</b>, <b>DSS</b>) and classic <b>EWA</b> splatting set the stage that 3DGS built on.</p>
+        <div class="refs">Papers: [3] EWA · [4] Pulsar · [5] DSS</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REFERENCES -->
+<section id="refs">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">Bibliography</div>
+      <h2>References — 33 papers</h2>
+      <p>Grouped by theme, in the order cited above. Links go to the arXiv abstract (or the publisher's DOI for pre-arXiv work). Venues are the peer-reviewed publication where applicable.</p>
+    </div>
+
+    <div class="refgroup">
+      <h4>Foundations &amp; lineage</h4>
+      <ol class="refs">
+        <li id="r1"><span><b>3D Gaussian Splatting for Real-Time Radiance Field Rendering.</b> Kerbl, Kopanas, Leimkühler, Drettakis. <span class="venue">ACM SIGGRAPH / ToG 2023.</span> <a href="https://arxiv.org/abs/2308.04079" target="_blank" rel="noopener">arXiv:2308.04079</a></span></li>
+        <li id="r2"><span><b>NeRF: Representing Scenes as Neural Radiance Fields for View Synthesis.</b> Mildenhall, Srinivasan, Tancik, Barron, Ramamoorthi, Ng. <span class="venue">ECCV 2020.</span> <a href="https://arxiv.org/abs/2003.08934" target="_blank" rel="noopener">arXiv:2003.08934</a></span></li>
+        <li id="r3"><span><b>EWA Splatting.</b> Zwicker, Pfister, van Baar, Gross. <span class="venue">IEEE TVCG 2002.</span> <a href="https://doi.org/10.1109/TVCG.2002.1021576" target="_blank" rel="noopener">doi:10.1109/TVCG.2002.1021576</a></span></li>
+        <li id="r4"><span><b>Pulsar: Efficient Sphere-based Neural Rendering.</b> Lassner, Zollhöfer. <span class="venue">CVPR 2021.</span> <a href="https://arxiv.org/abs/2004.07484" target="_blank" rel="noopener">arXiv:2004.07484</a></span></li>
+        <li id="r5"><span><b>Differentiable Surface Splatting for Point-based Geometry Processing (DSS).</b> Yifan, Serena, Wu, Öztireli, Sorkine-Hornung. <span class="venue">ACM SIGGRAPH Asia 2019.</span> <a href="https://arxiv.org/abs/1906.04173" target="_blank" rel="noopener">arXiv:1906.04173</a></span></li>
+      </ol>
+    </div>
+
+    <div class="refgroup">
+      <h4>Anti-aliasing, quality &amp; geometry</h4>
+      <ol class="refs" start="6" style="counter-reset:ref 5">
+        <li id="r6"><span><b>Mip-Splatting: Alias-free 3D Gaussian Splatting.</b> Yu, Chen, Huang, Sattler, Geiger. <span class="venue">CVPR 2024.</span> <a href="https://arxiv.org/abs/2311.16493" target="_blank" rel="noopener">arXiv:2311.16493</a></span></li>
+        <li id="r7"><span><b>2D Gaussian Splatting for Geometrically Accurate Radiance Fields.</b> Huang, Yu, Chen, Geiger, Gao. <span class="venue">ACM SIGGRAPH 2024.</span> <a href="https://arxiv.org/abs/2403.17888" target="_blank" rel="noopener">arXiv:2403.17888</a></span></li>
+        <li id="r8"><span><b>Gaussian Opacity Fields: Efficient Adaptive Surface Reconstruction in Unbounded Scenes.</b> Yu, Sattler, Geiger. <span class="venue">ACM SIGGRAPH Asia 2024.</span> <a href="https://arxiv.org/abs/2404.10772" target="_blank" rel="noopener">arXiv:2404.10772</a></span></li>
+        <li id="r9"><span><b>SuGaR: Surface-Aligned Gaussian Splatting for Efficient 3D Mesh Reconstruction.</b> Guédon, Lepetit. <span class="venue">CVPR 2024.</span> <a href="https://arxiv.org/abs/2311.12775" target="_blank" rel="noopener">arXiv:2311.12775</a></span></li>
+        <li id="r10"><span><b>Scaffold-GS: Structured 3D Gaussians for View-Adaptive Rendering.</b> Lu, Yu, Xu, Xiangli, Wang, Lin, Dai. <span class="venue">CVPR 2024.</span> <a href="https://arxiv.org/abs/2312.00109" target="_blank" rel="noopener">arXiv:2312.00109</a></span></li>
+        <li id="r11"><span><b>3D Gaussian Splatting as Markov Chain Monte Carlo.</b> Kheradmand, Rebain, Sharma, Sun, Tseng, Isack, Kar, Tagliasacchi, Yi. <span class="venue">NeurIPS 2024.</span> <a href="https://arxiv.org/abs/2404.09591" target="_blank" rel="noopener">arXiv:2404.09591</a></span></li>
+      </ol>
+    </div>
+
+    <div class="refgroup">
+      <h4>Compression &amp; efficiency</h4>
+      <ol class="refs" start="12" style="counter-reset:ref 11">
+        <li id="r12"><span><b>LightGaussian: Unbounded 3D Gaussian Compression with 15× Reduction.</b> Fan, Wang, Yu, Kong, Zhang, Wang. <span class="venue">NeurIPS 2024.</span> <a href="https://arxiv.org/abs/2311.17245" target="_blank" rel="noopener">arXiv:2311.17245</a></span></li>
+        <li id="r13"><span><b>Compressed 3D Gaussian Splatting for Accelerated Novel View Synthesis.</b> Niedermayr, Stumpfegger, Westermann. <span class="venue">CVPR 2024.</span> <a href="https://arxiv.org/abs/2401.02436" target="_blank" rel="noopener">arXiv:2401.02436</a></span></li>
+        <li id="r14"><span><b>Compact 3D Gaussian Representation for Radiance Field.</b> Lee, Rho, Sun, Ko, Park. <span class="venue">CVPR 2024.</span> <a href="https://arxiv.org/abs/2311.13681" target="_blank" rel="noopener">arXiv:2311.13681</a></span></li>
+        <li id="r15"><span><b>EAGLES: Efficient Accelerated 3D Gaussians with Lightweight Encodings.</b> Girish, Gupta, Shrivastava. <span class="venue">ECCV 2024.</span> <a href="https://arxiv.org/abs/2312.04564" target="_blank" rel="noopener">arXiv:2312.04564</a></span></li>
+        <li id="r16"><span><b>Compact 3D Scene Representation via Self-Organizing Gaussian Grids (SOG).</b> Morgenstern, Barthel, Hilsmann, Eisert. <span class="venue">ECCV 2024.</span> <a href="https://arxiv.org/abs/2312.13299" target="_blank" rel="noopener">arXiv:2312.13299</a></span></li>
+      </ol>
+    </div>
+
+    <div class="refgroup">
+      <h4>Large scenes &amp; level-of-detail</h4>
+      <ol class="refs" start="17" style="counter-reset:ref 16">
+        <li id="r17"><span><b>A Hierarchical 3D Gaussian Representation for Real-Time Rendering of Very Large Datasets.</b> Kerbl, Meuleman, Kopanas, Wimmer, Lanvin, Drettakis. <span class="venue">ACM SIGGRAPH 2024.</span> <a href="https://arxiv.org/abs/2406.12080" target="_blank" rel="noopener">arXiv:2406.12080</a></span></li>
+        <li id="r18"><span><b>Octree-GS: Towards Consistent Real-time Rendering with LOD-Structured 3D Gaussians.</b> Ren, Lu, Wang, Xu, Wang, Lin, Dai. <span class="venue">2024.</span> <a href="https://arxiv.org/abs/2403.17898" target="_blank" rel="noopener">arXiv:2403.17898</a></span></li>
+        <li id="r19"><span><b>VastGaussian: Vast 3D Gaussians for Large Scene Reconstruction.</b> Lin, Li, Ye, Wei, Xie, Sun, Chen, Xiao. <span class="venue">CVPR 2024.</span> <a href="https://arxiv.org/abs/2402.17427" target="_blank" rel="noopener">arXiv:2402.17427</a></span></li>
+      </ol>
+    </div>
+
+    <div class="refgroup">
+      <h4>Dynamic &amp; 4D scenes</h4>
+      <ol class="refs" start="20" style="counter-reset:ref 19">
+        <li id="r20"><span><b>4D Gaussian Splatting for Real-Time Dynamic Scene Rendering.</b> Wu, Yi, Fang, Xie, Zhang, Wei, Liu, Tian, Wang. <span class="venue">CVPR 2024.</span> <a href="https://arxiv.org/abs/2310.08528" target="_blank" rel="noopener">arXiv:2310.08528</a></span></li>
+        <li id="r21"><span><b>Dynamic 3D Gaussians: Tracking by Persistent Dynamic View Synthesis.</b> Luiten, Kopanas, Leibe, Ramanan. <span class="venue">3DV 2024.</span> <a href="https://arxiv.org/abs/2308.09713" target="_blank" rel="noopener">arXiv:2308.09713</a></span></li>
+        <li id="r22"><span><b>Deformable 3D Gaussians for High-Fidelity Monocular Dynamic Scene Reconstruction.</b> Yang, Gao, Zhou, Jiao, Zhang, Jin. <span class="venue">CVPR 2024.</span> <a href="https://arxiv.org/abs/2309.13101" target="_blank" rel="noopener">arXiv:2309.13101</a></span></li>
+        <li id="r23"><span><b>Spacetime Gaussian Feature Splatting for Real-Time Dynamic View Synthesis.</b> Li, Chen, Wang, Kim, Chen, Xu. <span class="venue">CVPR 2024.</span> <a href="https://arxiv.org/abs/2312.16812" target="_blank" rel="noopener">arXiv:2312.16812</a></span></li>
+      </ol>
+    </div>
+
+    <div class="refgroup">
+      <h4>Generation (text / image → 3D)</h4>
+      <ol class="refs" start="24" style="counter-reset:ref 23">
+        <li id="r24"><span><b>DreamGaussian: Generative Gaussian Splatting for Efficient 3D Content Creation.</b> Tang, Ren, Zhou, Liu, Zeng. <span class="venue">ICLR 2024.</span> <a href="https://arxiv.org/abs/2309.16653" target="_blank" rel="noopener">arXiv:2309.16653</a></span></li>
+        <li id="r25"><span><b>GaussianDreamer: Fast Generation from Text to 3D Gaussians.</b> Yi, Fang, Wu, Xie, Zhang, Liu, Tian, Wang. <span class="venue">CVPR 2024.</span> <a href="https://arxiv.org/abs/2310.08529" target="_blank" rel="noopener">arXiv:2310.08529</a></span></li>
+        <li id="r26"><span><b>Text-to-3D using Gaussian Splatting (GSGEN).</b> Chen, Chen, Jiao, Jiang. <span class="venue">CVPR 2024.</span> <a href="https://arxiv.org/abs/2309.16585" target="_blank" rel="noopener">arXiv:2309.16585</a></span></li>
+      </ol>
+    </div>
+
+    <div class="refgroup">
+      <h4>Feed-forward reconstruction</h4>
+      <ol class="refs" start="27" style="counter-reset:ref 26">
+        <li id="r27"><span><b>pixelSplat: 3D Gaussian Splats from Image Pairs for Scalable Generalizable 3D Reconstruction.</b> Charatan, Li, Tagliasacchi, Sitzmann. <span class="venue">CVPR 2024.</span> <a href="https://arxiv.org/abs/2312.12337" target="_blank" rel="noopener">arXiv:2312.12337</a></span></li>
+        <li id="r28"><span><b>MVSplat: Efficient 3D Gaussian Splatting from Sparse Multi-View Images.</b> Chen, Xu, Zheng, Zhuang, Pollefeys, Geiger, Cham, Cai. <span class="venue">ECCV 2024.</span> <a href="https://arxiv.org/abs/2403.14627" target="_blank" rel="noopener">arXiv:2403.14627</a></span></li>
+      </ol>
+    </div>
+
+    <div class="refgroup">
+      <h4>SLAM &amp; robotics</h4>
+      <ol class="refs" start="29" style="counter-reset:ref 28">
+        <li id="r29"><span><b>SplaTAM: Splat, Track &amp; Map 3D Gaussians for Dense RGB-D SLAM.</b> Keetha, Karhade, Jatavallabhula, Yang, Scherer, Ramanan, Luiten. <span class="venue">CVPR 2024.</span> <a href="https://arxiv.org/abs/2312.02126" target="_blank" rel="noopener">arXiv:2312.02126</a></span></li>
+        <li id="r30"><span><b>Gaussian Splatting SLAM (MonoGS).</b> Matsuki, Murai, Kelly, Davison. <span class="venue">CVPR 2024.</span> <a href="https://arxiv.org/abs/2312.06741" target="_blank" rel="noopener">arXiv:2312.06741</a></span></li>
+        <li id="r31"><span><b>GS-SLAM: Dense Visual SLAM with 3D Gaussian Splatting.</b> Yan, Qu, Xu, Zeng, Liu, Zhao, Wang. <span class="venue">CVPR 2024.</span> <a href="https://arxiv.org/abs/2311.11700" target="_blank" rel="noopener">arXiv:2311.11700</a></span></li>
+      </ol>
+    </div>
+
+    <div class="refgroup">
+      <h4>Avatars &amp; physics</h4>
+      <ol class="refs" start="32" style="counter-reset:ref 31">
+        <li id="r32"><span><b>GaussianAvatars: Photorealistic Head Avatars with Rigged 3D Gaussians.</b> Qian, Kirschstein, Schoneveld, Davoli, Giebenhain, Nießner. <span class="venue">CVPR 2024.</span> <a href="https://arxiv.org/abs/2312.02069" target="_blank" rel="noopener">arXiv:2312.02069</a></span></li>
+        <li id="r33"><span><b>PhysGaussian: Physics-Integrated 3D Gaussians for Generative Dynamics.</b> Xie, Zong, Qiu, Li, Feng, Yang, Jiang. <span class="venue">CVPR 2024.</span> <a href="https://arxiv.org/abs/2311.12198" target="_blank" rel="noopener">arXiv:2311.12198</a></span></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <span class="brand" style="color:var(--ink)"><span class="vmc-tile">VMC</span><span class="bt"><b>Vehicle Mechatronics</b><span>Gaussian Splatting</span></span></span>
+      <p style="color:var(--muted);font-size:13.5px;margin-top:14px;max-width:46ch">A step-by-step, interactive companion to 3D Gaussian Splatting — from a single ellipsoid to the training loop, adaptive density control, and the fast-moving research frontier.</p>
+      <div class="aalto-foot" style="margin-top:18px">
+        <b>Aalto University</b>
+        <span>Aalto-yliopisto · Aalto-universitetet · Aalto University</span>
+      </div>
+      <p style="margin-top:16px"><a href="index.html">← ROS Ecosystem Explorer</a> &nbsp;·&nbsp; <a href="localisation.html">Localisation</a> &nbsp;·&nbsp; <a href="previous-projects.html">Previous Projects →</a></p>
+    </div>
+    <div>
+      <h4>In this page</h4>
+      <ul>
+        <li><a href="#idea">The big idea · vs NeRF</a></li>
+        <li><a href="#anatomy">Anatomy of a Gaussian</a></li>
+        <li><a href="#render">The splatting rasteriser</a></li>
+        <li><a href="#train">The training loop</a></li>
+        <li><a href="#density">Adaptive density control</a></li>
+        <li><a href="#advances">Recent advances</a></li>
+        <li><a href="#refs">References (33)</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Go deeper</h4>
+      <ul>
+        <li><a href="https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/" target="_blank" rel="noopener">3DGS project page (Inria)</a></li>
+        <li><a href="https://github.com/graphdeco-inria/gaussian-splatting" target="_blank" rel="noopener">Official code (graphdeco-inria)</a></li>
+        <li><a href="https://arxiv.org/abs/2308.04079" target="_blank" rel="noopener">Original paper (arXiv)</a></li>
+        <li><a href="https://site.aaltoroboticsclub.fi/" target="_blank" rel="noopener">Aalto Robotics Club</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="note">Press <span class="kbd">T</span> to cycle light / dark themes. The single-splat, compositing and training demos run live in your browser and are illustrative 2D analogues of the real 3D method. Educational resource for Vehicle Mechatronics.</p>
+</div></footer>
+
+<script>
+"use strict";
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const reduceMotion=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+const cssvar=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const TAU=Math.PI*2;
+
+/* THEME — applied early; menu handled by assets/site.js */
+(function(){ try{const s=localStorage.getItem('ros-theme');if(s)document.documentElement.setAttribute('data-theme',s);}catch(e){} })();
+
+function hsl(h,s,l,a){return `hsla(${h},${s}%,${l}%,${a==null?1:a})`;}
+
+/* ============ HERO blobs ============ */
+(function(){
+  const cv=$('#heroCv'); if(!cv) return; const ctx=cv.getContext('2d');
+  let W=0,H=0,blobs=[];
+  function resize(){ const r=cv.parentElement.getBoundingClientRect(); W=cv.width=Math.max(320,r.width|0); H=cv.height=Math.max(200,r.height|0); }
+  function seed(){ blobs=[]; for(let i=0;i<26;i++){ blobs.push({x:Math.random(),y:Math.random(),r:20+Math.random()*70,h:180+Math.random()*70,ph:Math.random()*TAU,sp:.2+Math.random()*.5}); } }
+  resize(); seed(); window.addEventListener('resize',()=>{resize();});
+  let t=0;
+  function frame(){ ctx.clearRect(0,0,W,H); t+=reduceMotion?0:0.006;
+    ctx.globalCompositeOperation='lighter';
+    blobs.forEach(b=>{ const x=(b.x+0.03*Math.sin(t*b.sp+b.ph))*W; const y=(b.y+0.03*Math.cos(t*b.sp*1.2+b.ph))*H;
+      const g=ctx.createRadialGradient(x,y,0,x,y,b.r); g.addColorStop(0,`hsla(${b.h},80%,72%,.22)`); g.addColorStop(1,'hsla(200,80%,60%,0)');
+      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,b.r,0,TAU); ctx.fill(); });
+    ctx.globalCompositeOperation='source-over';
+    if(!reduceMotion) requestAnimationFrame(frame);
+  }
+  frame();
+})();
+
+/* ============ Step 1: single Gaussian explorer ============ */
+(function(){
+  const cv=$('#splatCv'); if(!cv) return; const ctx=cv.getContext('2d');
+  const els={sX:$('#sX'),sY:$('#sY'),sR:$('#sR'),sA:$('#sA'),sH:$('#sH')};
+  const out={sXv:$('#sXv'),sYv:$('#sYv'),sRv:$('#sRv'),sAv:$('#sAv'),sHv:$('#sHv'),cov:$('#covOut')};
+  let raf=null;
+  function draw(){
+    const W=cv.width,H=cv.height, cx=W/2, cy=H/2;
+    const sx=+els.sX.value, sy=+els.sY.value, th=(+els.sR.value)*Math.PI/180, al=(+els.sA.value)/100, hue=+els.sH.value;
+    out.sXv.textContent=sx; out.sYv.textContent=sy; out.sRv.textContent=(+els.sR.value)+'°'; out.sAv.textContent=al.toFixed(2); out.sHv.textContent=hue+'°';
+    const c=Math.cos(th), s=Math.sin(th);
+    // covariance Σ = R diag(sx^2,sy^2) R^T
+    const s11=c*c*sx*sx+s*s*sy*sy, s22=s*s*sx*sx+c*c*sy*sy, s12=c*s*(sx*sx-sy*sy);
+    out.cov.innerHTML=`[ ${s11.toFixed(0)}&nbsp; ${s12.toFixed(0)} ;&nbsp; ${s12.toFixed(0)}&nbsp; ${s22.toFixed(0)} ]`;
+    // inverse
+    const det=s11*s22-s12*s12; const i11=s22/det, i22=s11/det, i12=-s12/det;
+    ctx.clearRect(0,0,W,H); ctx.fillStyle=cssvar('--viewport-bg'); ctx.fillRect(0,0,W,H);
+    // grid
+    ctx.strokeStyle='rgba(120,150,190,.10)'; ctx.lineWidth=1;
+    for(let x=cx%40;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    for(let y=cy%40;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+    // gaussian field via ImageData
+    const img=ctx.getImageData(0,0,W,H); const d=img.data;
+    // base color from hue
+    const rgb=hslToRgb(hue/360,0.72,0.58);
+    const stepPx=1;
+    for(let y=0;y<H;y+=stepPx){ for(let x=0;x<W;x+=stepPx){
+      const dx=x-cx, dy=y-cy; const m=i11*dx*dx+2*i12*dx*dy+i22*dy*dy; const g=Math.exp(-0.5*m)*al;
+      if(g<0.004) continue; const idx=(y*W+x)*4;
+      d[idx]  =Math.min(255,d[idx]  +rgb[0]*g);
+      d[idx+1]=Math.min(255,d[idx+1]+rgb[1]*g);
+      d[idx+2]=Math.min(255,d[idx+2]+rgb[2]*g);
+    }}
+    ctx.putImageData(img,0,0);
+    // 3-sigma ellipse
+    ctx.save(); ctx.translate(cx,cy); ctx.rotate(th);
+    ctx.setLineDash([6,5]); ctx.lineWidth=1.6; ctx.strokeStyle='rgba(255,255,255,.75)';
+    ctx.beginPath(); ctx.ellipse(0,0,3*sx,3*sy,0,0,TAU); ctx.stroke();
+    ctx.setLineDash([]); ctx.lineWidth=1.4;
+    // principal axes
+    ctx.strokeStyle=cssvar('--accent'); ctx.beginPath(); ctx.moveTo(-3*sx,0); ctx.lineTo(3*sx,0); ctx.stroke();
+    ctx.strokeStyle=cssvar('--sat'); ctx.beginPath(); ctx.moveTo(0,-3*sy); ctx.lineTo(0,3*sy); ctx.stroke();
+    ctx.restore();
+    // center dot
+    ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(cx,cy,3,0,TAU); ctx.fill();
+    ctx.font='12px '+cssvar('--mono'); ctx.fillStyle='rgba(255,255,255,.6)';
+    ctx.fillText('μ (mean)',cx+8,cy-8);
+  }
+  function schedule(){ if(raf) return; raf=requestAnimationFrame(()=>{raf=null;draw();}); }
+  Object.values(els).forEach(e=>e.addEventListener('input',schedule));
+  document.addEventListener('themechange',schedule);
+  window.__splatDraw=draw; draw();
+})();
+
+function hslToRgb(h,s,l){
+  let r,g,b;
+  if(s===0){r=g=b=l;} else{
+    const hue2rgb=(p,q,t)=>{ if(t<0)t+=1; if(t>1)t-=1; if(t<1/6)return p+(q-p)*6*t; if(t<1/2)return q; if(t<2/3)return p+(q-p)*(2/3-t)*6; return p; };
+    const q=l<0.5?l*(1+s):l+s-l*s; const p=2*l-q;
+    r=hue2rgb(p,q,h+1/3); g=hue2rgb(p,q,h); b=hue2rgb(p,q,h-1/3);
+  }
+  return [Math.round(r*255),Math.round(g*255),Math.round(b*255)];
+}
+
+/* ============ SH lobes (SVG) ============ */
+(function(){
+  const svg=$('#shSvg'); if(!svg) return;
+  const acc=cssvar('--accent'), sat=cssvar('--sat'), mut=cssvar('--muted'), ink=cssvar('--ink-2');
+  function lobe(cx,cy,fill,label,phase){
+    let pts='';
+    for(let i=0;i<=60;i++){ const a=-Math.PI/2+Math.PI*(i/60); // top half arcs
+      const r=44*(0.55+0.45*Math.pow(Math.cos(a-phase)*0.5+0.5,2));
+      const x=cx+Math.cos(a)*r, y=cy+Math.sin(a)*r; pts+=(i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1)+' '; }
+    return `<path d="${pts}" fill="${fill}" fill-opacity="0.18" stroke="${fill}" stroke-width="2"/>`;
+  }
+  svg.innerHTML=
+    `<line x1="30" y1="150" x2="530" y2="150" stroke="${mut}" stroke-opacity=".4"/>`+
+    lobe(170,150,acc,'A',-0.5)+lobe(390,150,sat,'B',0.5)+
+    `<circle cx="170" cy="150" r="4" fill="${acc}"/><circle cx="390" cy="150" r="4" fill="${sat}"/>`+
+    `<text x="170" y="185" fill="${ink}" font-family="monospace" font-size="12" text-anchor="middle">view A → cool</text>`+
+    `<text x="390" y="185" fill="${ink}" font-family="monospace" font-size="12" text-anchor="middle">view B → warm</text>`+
+    `<text x="280" y="30" fill="${ink}" font-family="monospace" font-size="12" text-anchor="middle">same Gaussian, colour depends on direction</text>`;
+})();
+
+/* ============ Step 2: alpha compositing / depth sort ============ */
+(function(){
+  const cv=$('#compCv'); if(!cv) return; const ctx=cv.getContext('2d');
+  const playBtn=$('#compPlay'), sortCb=$('#compSort'), ellCb=$('#compEllipse'), stat=$('#compStat');
+  const hues=[205,32,150,320,265];
+  let splats=[], playing=!reduceMotion, t=0;
+  function seed(){ splats=hues.map((h,i)=>({h, baseZ:i, x:0.5+0.26*Math.cos(i*1.3), y:0.5+0.2*Math.sin(i*1.7), rx:0.16+0.05*(i%2), ry:0.12+0.04*((i+1)%2), a:0.62+0.12*((i)%2), sp:0.4+0.16*i, ph:i*1.1})); }
+  seed();
+  function draw(){
+    const W=cv.width,H=cv.height; ctx.clearRect(0,0,W,H);
+    ctx.fillStyle=cssvar('--viewport-bg'); ctx.fillRect(0,0,W,H);
+    // compute animated depth
+    const list=splats.map((s,i)=>{ const z=s.baseZ+ (playing?1.4*Math.sin(t*s.sp+s.ph):0); return {...s,z,cx:s.x*W,cy:s.y*H,RX:s.rx*W,RY:s.ry*H}; });
+    let ordered=list.slice();
+    if(sortCb.checked) ordered.sort((a,b)=>b.z-a.z); // far first, painter's algorithm
+    // draw far->near so nearer painted last
+    ordered.forEach(s=>{
+      const g=ctx.createRadialGradient(s.cx,s.cy,0,s.cx,s.cy,Math.max(s.RX,s.RY));
+      const light=54+ (s.z*3);
+      g.addColorStop(0,hsl(s.h,78,clamp(light,30,72),s.a));
+      g.addColorStop(0.7,hsl(s.h,78,clamp(light,30,72),s.a*0.5));
+      g.addColorStop(1,hsl(s.h,78,50,0));
+      ctx.save(); ctx.translate(s.cx,s.cy); ctx.scale(s.RX/Math.max(s.RX,s.RY), s.RY/Math.max(s.RX,s.RY));
+      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(0,0,Math.max(s.RX,s.RY),0,TAU); ctx.fill();
+      ctx.restore();
+      if(ellCb.checked){ ctx.save(); ctx.translate(s.cx,s.cy); ctx.strokeStyle='rgba(255,255,255,.5)'; ctx.lineWidth=1.2; ctx.setLineDash([4,4]);
+        ctx.beginPath(); ctx.ellipse(0,0,s.RX,s.RY,0,0,TAU); ctx.stroke(); ctx.restore(); }
+    });
+    stat.innerHTML = sortCb.checked
+      ? '<b>Sorted.</b> Nearer splats are painted last, so they correctly occlude the ones behind — the image is coherent.'
+      : '<b style="color:var(--alert)">Unsorted.</b> Splats blend in arbitrary order, so far ones bleed over near ones — note the wrong occlusions.';
+  }
+  function loop(){ if(playing){ t+=0.012; } draw(); requestAnimationFrame(loop); }
+  playBtn.addEventListener('click',()=>{ playing=!playing; playBtn.textContent=playing?'⏸ Pause':'▶ Play'; });
+  [sortCb,ellCb].forEach(c=>c.addEventListener('change',draw));
+  document.addEventListener('themechange',draw);
+  playBtn.textContent=playing?'⏸ Pause':'▶ Play';
+  if(reduceMotion){ draw(); } else loop();
+})();
+
+/* ============ Step 3: toy training loop ============ */
+(function(){
+  const cv=$('#trainCv'); if(!cv) return; const ctx=cv.getContext('2d');
+  const playBtn=$('#trainPlay'), stepBtn=$('#trainStep'), resetBtn=$('#trainReset');
+  const iterEl=$('#trainIter'), nEl=$('#trainN'), lossEl=$('#trainLoss'), psnrEl=$('#trainPsnr');
+  const pipe=$$('#trainPipe .pstep'), steps=$$('#trainSteps .step'), lossSvg=$('#lossSvg');
+  const GN=28;                       // target grid resolution
+  let target=null;                   // Float target GN*GN*3 (0..1)
+  let gs=[];                         // gaussians
+  let iter=0, playing=false, lossHist=[], stage=0;
+
+  // build a simple procedural target ("scene"): sky gradient + sun + ground + hill
+  function buildTarget(){
+    target=new Float32Array(GN*GN*3);
+    for(let y=0;y<GN;y++)for(let x=0;x<GN;x++){
+      const u=x/(GN-1), v=y/(GN-1); let r,g,b;
+      if(v<0.62){ // sky
+        r=0.30+0.15*v; g=0.55+0.18*v; b=0.85-0.05*v;
+        const dsun=Math.hypot(u-0.74,v-0.26); if(dsun<0.12){ const k=1-dsun/0.12; r=r*(1-k)+1.0*k; g=g*(1-k)+0.86*k; b=b*(1-k)+0.35*k; }
+      } else { // ground
+        r=0.18+0.12*u; g=0.42+0.12*(1-u); b=0.20;
+        if(Math.hypot((u-0.32)*1.2, v-0.66)<0.16){ r=0.16;g=0.5;b=0.22; } // hill
+      }
+      const i=(y*GN+x)*3; target[i]=r; target[i+1]=g; target[i+2]=b;
+    }
+  }
+  function sampleTarget(u,v){ const x=clamp(Math.round(u*(GN-1)),0,GN-1), y=clamp(Math.round(v*(GN-1)),0,GN-1); const i=(y*GN+x)*3; return [target[i],target[i+1],target[i+2]]; }
+
+  function initGauss(){
+    gs=[]; const n=16;
+    for(let i=0;i<n;i++){ const u=Math.random(), v=Math.random(); const c=sampleTarget(u,v);
+      gs.push(mkG(u,v,0.14+Math.random()*0.05, c)); }
+    iter=0; lossHist=[];
+  }
+  function mkG(u,v,rad,col){ return {u,v, sx:rad,sy:rad, r:col[0],g:col[1],b:col[2], a:0.7}; }
+
+  // render current gaussians to a GN*GN buffer (additive splatting, painter over dark)
+  function render(buf){
+    for(let k=0;k<buf.length;k++) buf[k]=0;
+    for(const G of gs){
+      const cx=G.u*(GN-1), cy=G.v*(GN-1);
+      const rx=Math.max(0.6,G.sx*GN), ry=Math.max(0.6,G.sy*GN);
+      const x0=Math.max(0,Math.floor(cx-3*rx)), x1=Math.min(GN-1,Math.ceil(cx+3*rx));
+      const y0=Math.max(0,Math.floor(cy-3*ry)), y1=Math.min(GN-1,Math.ceil(cy+3*ry));
+      const ix=1/(rx*rx), iy=1/(ry*ry);
+      for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
+        const dx=x-cx, dy=y-cy; const m=ix*dx*dx+iy*dy*dy; if(m>9) continue;
+        const w=Math.exp(-0.5*m)*G.a; const i=(y*GN+x)*3;
+        buf[i]+=G.r*w; buf[i+1]+=G.g*w; buf[i+2]+=G.b*w;
+      }
+    }
+    for(let k=0;k<buf.length;k++) buf[k]=Math.min(1,buf[k]);
+  }
+
+  // one optimisation step: numeric-ish gradient by residual-driven local updates
+  const renderBuf=new Float32Array(GN*GN*3);
+  function trainStep(doDensify){
+    render(renderBuf);
+    // loss + gradients (treat additive contribution): move each gaussian toward reducing residual
+    let loss=0; for(let k=0;k<renderBuf.length;k++){ const e=renderBuf[k]-target[k]; loss+=e*e; }
+    loss/=renderBuf.length;
+    // per-gaussian gradient estimate on colour, opacity, position, scale
+    const lr=0.9;
+    for(const G of gs){
+      const cx=G.u*(GN-1), cy=G.v*(GN-1);
+      const rx=Math.max(0.6,G.sx*GN), ry=Math.max(0.6,G.sy*GN);
+      const x0=Math.max(0,Math.floor(cx-3*rx)), x1=Math.min(GN-1,Math.ceil(cx+3*rx));
+      const y0=Math.max(0,Math.floor(cy-3*ry)), y1=Math.min(GN-1,Math.ceil(cy+3*ry));
+      const ix=1/(rx*rx), iy=1/(ry*ry);
+      let gr=0,gg=0,gb=0, gpx=0,gpy=0, gw=0, sw=0;
+      for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
+        const dx=x-cx, dy=y-cy; const m=ix*dx*dx+iy*dy*dy; if(m>9) continue;
+        const w=Math.exp(-0.5*m); const i=(y*GN+x)*3;
+        const er=renderBuf[i]-target[i], eg=renderBuf[i+1]-target[i+1], eb=renderBuf[i+2]-target[i+2];
+        // colour grad
+        gr+=er*w*G.a; gg+=eg*w*G.a; gb+=eb*w*G.a;
+        // opacity grad
+        gw+=(er*G.r+eg*G.g+eb*G.b)*w;
+        // positional grad (pull toward reducing error): dw/dpos
+        const emag=(er*G.r+eg*G.g+eb*G.b)*G.a*w;
+        gpx+= emag*(dx*ix); gpy+= emag*(dy*iy);
+        sw+=w;
+      }
+      if(sw<1e-4) continue; const inv=1/sw;
+      G.r=clamp(G.r-lr*gr*inv,0,1); G.g=clamp(G.g-lr*gg*inv,0,1); G.b=clamp(G.b-lr*gb*inv,0,1);
+      G.a=clamp(G.a-0.4*gw*inv,0.02,1);
+      G.u=clamp(G.u - 0.02*gpx*inv,0,1); G.v=clamp(G.v - 0.02*gpy*inv,0,1);
+      G._grad=Math.abs(gpx)+Math.abs(gpy);
+    }
+    iter++;
+    lossHist.push(loss); if(lossHist.length>140) lossHist.shift();
+    // densify / prune
+    if(doDensify && iter%12===0){
+      // prune
+      gs=gs.filter(G=>G.a>0.05);
+      // seed new gaussians at highest-residual pixels
+      if(gs.length<70){
+        let cand=[]; for(let y=0;y<GN;y+=2)for(let x=0;x<GN;x+=2){ const i=(y*GN+x)*3;
+          const e=Math.abs(renderBuf[i]-target[i])+Math.abs(renderBuf[i+1]-target[i+1])+Math.abs(renderBuf[i+2]-target[i+2]);
+          cand.push({e,u:x/(GN-1),v:y/(GN-1)}); }
+        cand.sort((a,b)=>b.e-a.e);
+        for(let j=0;j<4 && gs.length<70;j++){ const c=cand[j]; if(c.e<0.12) break; const col=sampleTarget(c.u,c.v); gs.push(mkG(c.u,c.v,0.06+Math.random()*0.03,col)); }
+      }
+      // split large high-grad
+      const extra=[]; for(const G of gs){ if(G.sx>0.13 && (G._grad||0)>0.02 && gs.length+extra.length<70){ G.sx*=0.62;G.sy*=0.62;
+          const off=0.04; extra.push(mkG(clamp(G.u+off,0,1),clamp(G.v+off,0,1),G.sx,[G.r,G.g,G.b])); G.u=clamp(G.u-off,0,1); } }
+      gs=gs.concat(extra);
+    }
+    return loss;
+  }
+
+  // draw both panes
+  const small=document.createElement('canvas'); small.width=GN; small.height=GN; const sctx=small.getContext('2d');
+  function blit(buf, dx, dw){
+    const img=sctx.createImageData(GN,GN); const d=img.data;
+    for(let k=0,p=0;k<GN*GN;k++){ d[p]=buf[k*3]*255; d[p+1]=buf[k*3+1]*255; d[p+2]=buf[k*3+2]*255; d[p+3]=255; p+=4; }
+    sctx.putImageData(img,0,0);
+    ctx.imageSmoothingEnabled=false; ctx.drawImage(small,dx,0,dw,cv.height);
+  }
+  function draw(){
+    const W=cv.width,H=cv.height; ctx.clearRect(0,0,W,H);
+    ctx.fillStyle=cssvar('--viewport-bg'); ctx.fillRect(0,0,W,H);
+    const gap=14; const pw=(W-gap)/2;
+    render(renderBuf); blit(renderBuf,0,pw);
+    // target on right
+    blit(target,pw+gap,pw);
+    // labels
+    ctx.font='12px '+cssvar('--mono');
+    ctx.fillStyle='rgba(255,255,255,.85)'; ctx.fillText('render ('+gs.length+' splats)',8,18);
+    ctx.fillText('target photo',pw+gap+8,18);
+    ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.strokeRect(0,0,pw,H); ctx.strokeRect(pw+gap,0,pw,H);
+  }
+  function drawLoss(){
+    if(!lossSvg) return; const W=520,H=150, pad=6;
+    if(lossHist.length<2){ lossSvg.innerHTML=''; return; }
+    const mx=Math.max(...lossHist), mn=Math.min(...lossHist);
+    const xs=i=>pad+(W-2*pad)*i/(lossHist.length-1);
+    const ys=v=>{ const t=(v-mn)/((mx-mn)||1); return pad+(H-2*pad)*(1-t)*0.9+H*0.03; };
+    let p=''; lossHist.forEach((v,i)=>{ p+=(i?'L':'M')+xs(i).toFixed(1)+' '+ys(v).toFixed(1)+' '; });
+    lossSvg.innerHTML=`<path d="${p}" fill="none" stroke="${cssvar('--alert')}" stroke-width="2"/>`+
+      `<text x="${W-4}" y="16" text-anchor="end" fill="${cssvar('--muted')}" font-family="monospace" font-size="11">loss vs. iteration</text>`;
+  }
+  function updateReadouts(loss){
+    iterEl.textContent=iter; nEl.textContent=gs.length;
+    lossEl.textContent=loss!=null?loss.toFixed(4):'—';
+    if(loss!=null){ const psnr=10*Math.log10(1/Math.max(loss,1e-6)); psnrEl.textContent=psnr.toFixed(1)+' dB'; }
+  }
+  function setStage(s){ stage=s; pipe.forEach((el,i)=>el.classList.toggle('on',i===s)); steps.forEach((el,i)=>el.classList.toggle('hot',i===s)); }
+
+  let animT=0;
+  function loop(){
+    if(playing){
+      // cycle the pipeline highlight for teaching feel
+      animT++; setStage(Math.floor(animT/6)%5);
+      const loss=trainStep(true);
+      updateReadouts(loss); draw(); drawLoss();
+    }
+    requestAnimationFrame(loop);
+  }
+  function reset(){ buildTarget(); initGauss(); setStage(0); animT=0;
+    render(renderBuf); let l=0; for(let k=0;k<renderBuf.length;k++){const e=renderBuf[k]-target[k]; l+=e*e;} l/=renderBuf.length;
+    lossHist=[l]; updateReadouts(l); draw(); drawLoss(); }
+  playBtn.addEventListener('click',()=>{ playing=!playing; playBtn.textContent=playing?'⏸ Pause':'▶ Run'; if(playing) playBtn.classList.remove('primary'); else playBtn.classList.add('primary'); });
+  stepBtn.addEventListener('click',()=>{ const l=trainStep(true); animT++; setStage(Math.floor(animT/1)%5); updateReadouts(l); draw(); drawLoss(); });
+  resetBtn.addEventListener('click',()=>{ playing=false; playBtn.textContent='▶ Run'; playBtn.classList.add('primary'); reset(); });
+  document.addEventListener('themechange',()=>{draw();drawLoss();});
+  reset();
+  if(!reduceMotion) loop();
+})();
+
+/* ============ Step 4: density control mini-diagrams ============ */
+(function(){
+  function G(cx,cy,rx,ry,fill,op){ return `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${fill}" fill-opacity="${op}" stroke="${fill}" stroke-opacity=".8" stroke-width="1.4"/>`; }
+  const good=cssvar('--good'), sat=cssvar('--sat'), alert=cssvar('--alert'), mut=cssvar('--muted');
+  const arrow=(x1,y1,x2,y2)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${mut}" stroke-width="2" marker-end="url(#ah)"/>`;
+  const defs=`<defs><marker id="ah" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 z" fill="${mut}"/></marker></defs>`;
+  const dClone=$('#dClone'); if(dClone) dClone.innerHTML=defs+G(58,75,15,15,good,.5)+arrow(88,75,128,75)+G(150,62,14,14,good,.5)+G(172,90,14,14,good,.5)+`<text x="110" y="130" fill="${mut}" font-family="monospace" font-size="11" text-anchor="middle">copy + offset</text>`;
+  const dSplit=$('#dSplit'); if(dSplit) dSplit.innerHTML=defs+G(56,75,26,20,sat,.4)+arrow(92,75,128,75)+G(152,64,13,11,sat,.5)+G(178,88,13,11,sat,.5)+`<text x="110" y="130" fill="${mut}" font-family="monospace" font-size="11" text-anchor="middle">1 large → 2 small</text>`;
+  const dPrune=$('#dPrune'); if(dPrune) dPrune.innerHTML=defs+G(58,75,16,16,alert,.12)+arrow(90,75,126,75)+`<g opacity=".3"><line x1="150" y1="62" x2="178" y2="90" stroke="${alert}" stroke-width="2"/><line x1="178" y1="62" x2="150" y2="90" stroke="${alert}" stroke-width="2"/></g>`+`<text x="110" y="130" fill="${mut}" font-family="monospace" font-size="11" text-anchor="middle">α &lt; ε → deleted</text>`;
+})();
+</script>
+
+<script src="assets/qrcode.min.js"></script>
+<script src="assets/site.js"></script>
