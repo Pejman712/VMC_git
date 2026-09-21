@@ -238,6 +238,7 @@ footer ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;
   <span class="aalto-lock"><b>Aalto University</b><span>School of Engineering</span></span>
   <div class="nav-links">
     <a href="#idea">Big idea</a>
+    <a href="#init">Seed</a>
     <a href="#anatomy">Anatomy</a>
     <a href="#render">Splatting</a>
     <a href="#train">Training</a>
@@ -317,6 +318,46 @@ footer ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;
           <div class="step"><div><b>Grow / prune</b> the set where detail is missing or wasted — then repeat.</div></div>
         </div>
         <div class="stat-line" style="margin-top:16px">The rest of this page is just these five steps, slowed down and made interactive. <b>Everything below runs live in your browser.</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STEP 0 · RGB + LiDAR FUSION -->
+<section id="init">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">Step 0 · Where splats are born</div>
+      <h2>From RGB + LiDAR to a coloured 3D point cloud</h2>
+      <p>Before any optimisation you need a starting point cloud. A camera gives <b>colour</b> but no depth — every pixel is really a whole ray into the scene. A LiDAR gives exact <b>depth</b> but no colour — a bare grey cloud. <b>Fuse</b> them: lift each RGB image point out along its camera ray until it lands on the LiDAR geometry, and you get the coloured 3D points every Gaussian is initialised from. Press <b>Fuse</b> and orbit the result.</p>
+    </div>
+    <div class="grid-2b">
+      <div class="card pad">
+        <h3>RGB image → LiDAR geometry</h3>
+        <div class="sub">The flat colours fly out along the camera rays and settle onto the LiDAR points, gaining depth. <span style="color:var(--muted)">grey = LiDAR · colour = RGB</span></div>
+        <div class="viewport"><canvas id="fusionCv" width="620" height="410" role="img" aria-label="RGB image points animating onto a 3D LiDAR point cloud, viewed from rotating angles"></canvas></div>
+        <div class="btnrow">
+          <button class="mini-btn primary" id="fzPlay">▶ Fuse</button>
+          <button class="mini-btn" id="fzReplay">↻ Replay</button>
+          <div class="seg" id="fzView" style="margin-left:auto">
+            <button data-v="orbit" class="active">Orbit</button>
+            <button data-v="front">Front</button>
+            <button data-v="side">Side</button>
+            <button data-v="top">Top</button>
+          </div>
+        </div>
+        <div class="rng"><span>Fuse progress</span><input type="range" id="fzProg" min="0" max="100" value="0"><span class="v" id="fzProgV">0%</span></div>
+        <label class="toggle-chip" style="margin-top:10px"><input type="checkbox" id="fzLidar" checked> Show LiDAR points</label>
+      </div>
+      <div class="card pad">
+        <h3>Why this is the natural seed</h3>
+        <div class="steps">
+          <div class="step"><div><b>Camera</b> pixels carry colour but are ambiguous in depth — a pixel is a whole ray, not a point.</div></div>
+          <div class="step"><div><b>LiDAR</b> returns precise 3D range but no appearance — just a grey cloud of hits.</div></div>
+          <div class="step"><div><b>Fuse:</b> project each LiDAR point into the image to read its colour (equivalently, lift each pixel onto its LiDAR ray) → a <b>coloured 3D point</b>.</div></div>
+          <div class="step"><div><b>Initialise</b> one Gaussian per coloured point — position from LiDAR, colour from RGB — then let training refine its shape &amp; opacity (Step 3).</div></div>
+        </div>
+        <div class="stat-line" style="margin-top:14px">Vanilla 3DGS instead seeds from sparse <b>Structure-from-Motion</b> points, but LiDAR-initialised splatting is now common for outdoor and driving scenes<sup class="cite"><a href="#r17">[17]</a></sup> — the very map your <a href="localisation.html">LiDAR SLAM</a> builds, made photorealistic.</div>
       </div>
     </div>
   </div>
@@ -685,6 +726,7 @@ footer ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;
       <h4>In this page</h4>
       <ul>
         <li><a href="#idea">The big idea · vs NeRF</a></li>
+        <li><a href="#init">Step 0 · RGB + LiDAR seed</a></li>
         <li><a href="#anatomy">Anatomy of a Gaussian</a></li>
         <li><a href="#render">The splatting rasteriser</a></li>
         <li><a href="#train">The training loop</a></li>
@@ -1030,6 +1072,86 @@ function hslToRgb(h,s,l){
   document.addEventListener('themechange',()=>{draw();drawLoss();});
   reset();
   if(!reduceMotion) loop();
+})();
+
+/* ============ Step 0: RGB + LiDAR fusion animation ============ */
+(function(){
+  const cv=$('#fusionCv'); if(!cv) return; const ctx=cv.getContext('2d');
+  const playBtn=$('#fzPlay'), replayBtn=$('#fzReplay'), prog=$('#fzProg'), progV=$('#fzProgV'), lidarCb=$('#fzLidar');
+  const FLATZ=2.7;               // depth of the flat "photo" plane before fusing
+  let pts=[];
+  function build(){
+    pts=[];
+    const P=(x,y,z,r,g,b)=>pts.push({tx:x,ty:y,tz:z,r,g,b,dl:Math.random()*0.35});
+    // ground plane
+    for(let x=-2.1;x<=2.11;x+=0.24)for(let z=-2.1;z<=2.11;z+=0.24){
+      const n=0.5+0.5*Math.sin(x*2.3+z*1.7);
+      P(x,0,z, 62+26*n, 100+34*n, 72+18*n);
+    }
+    // car body shell
+    for(let x=-0.55;x<=0.551;x+=0.11)for(let y=0.04;y<=0.46;y+=0.11)for(let z=-0.32;z<=0.321;z+=0.16){
+      const edge=(Math.abs(x)>0.44||Math.abs(z)>0.24||y>0.38||y<0.08);
+      if(!edge) continue; P(x,y,z, 42,122,205);
+    }
+    // cabin roof
+    for(let x=-0.3;x<=0.301;x+=0.1)for(let z=-0.26;z<=0.261;z+=0.13){ P(x,0.5,z, 150,205,235); }
+    // lamp post
+    for(let y=0;y<=1.25;y+=0.09){ P(1.4,y,-1.2, 200,150,60); }
+    for(let a=0;a<12;a++){ const an=a/12*TAU; P(1.4+Math.cos(an)*0.18,1.3,-1.2+Math.sin(an)*0.06, 210,72,72); }
+    // tree canopy + trunk
+    for(let i=0;i<64;i++){ const u=Math.random()*TAU,v=Math.acos(2*Math.random()-1),r=0.34+Math.random()*0.12;
+      P(-1.45+Math.sin(v)*Math.cos(u)*r, 0.98+Math.cos(v)*r, 1.25+Math.sin(v)*Math.sin(u)*r, 48+Math.random()*30,140+Math.random()*30,66); }
+    for(let y=0;y<=0.72;y+=0.12){ P(-1.45,y,1.25, 110,80,50); }
+  }
+  build();
+  const VIEWS={orbit:{yaw:0.5,pitch:0.28,orbit:true},front:{yaw:0.22,pitch:0.16,orbit:false},side:{yaw:1.5,pitch:0.2,orbit:false},top:{yaw:0.6,pitch:1.15,orbit:false}};
+  let cur={yaw:0.5,pitch:0.28}, tgt={yaw:0.5,pitch:0.28}, orbiting=!reduceMotion;
+  let t=0, playing=false;
+  function setView(v){ const V=VIEWS[v]; tgt.yaw=V.yaw; tgt.pitch=V.pitch; orbiting=V.orbit&&!reduceMotion;
+    $$('#fzView button').forEach(b=>b.classList.toggle('active',b.dataset.v===v)); }
+  $$('#fzView button').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.v)));
+  function ease(p){ return p<=0?0:p>=1?1:p*p*(3-2*p); }
+  function project(x,y,z){
+    const cyaw=Math.cos(cur.yaw),syaw=Math.sin(cur.yaw);
+    const xr=cyaw*x+syaw*z, zr=-syaw*x+cyaw*z;
+    const cp=Math.cos(cur.pitch),sp=Math.sin(cur.pitch), yy=y-0.45;
+    const yr=cp*yy-sp*zr, zr2=sp*yy+cp*zr;
+    const D=6.2, F=440, depth=D-zr2, sc=F/Math.max(0.15,depth);
+    return {X:cv.width/2+xr*sc, Y:cv.height*0.55-yr*sc, s:sc, depth};
+  }
+  function draw(){
+    const W=cv.width,H=cv.height; ctx.clearRect(0,0,W,H);
+    ctx.fillStyle=cssvar('--viewport-bg'); ctx.fillRect(0,0,W,H);
+    const showL=lidarCb.checked, list=[];
+    for(const p of pts){
+      const pe=ease(t*1.4-p.dl);
+      const z=FLATZ+(p.tz-FLATZ)*pe;
+      list.push({pr:project(p.tx,p.ty,z), r:p.r,g:p.g,b:p.b,a:0.96,rad:2.0});
+      if(showL){ const pl=project(p.tx,p.ty,p.tz); list.push({pr:{X:pl.X,Y:pl.Y,s:pl.s,depth:pl.depth+0.02}, r:150,g:166,b:186,a:0.4,rad:1.4}); }
+    }
+    list.sort((a,b)=>b.pr.depth-a.pr.depth);
+    for(const o of list){
+      const r=Math.max(0.6,o.rad*o.pr.s*0.02);
+      ctx.beginPath(); ctx.fillStyle='rgba('+(o.r|0)+','+(o.g|0)+','+(o.b|0)+','+o.a+')';
+      ctx.arc(o.pr.X,o.pr.Y,r,0,TAU); ctx.fill();
+    }
+    ctx.font='12px '+cssvar('--mono'); ctx.fillStyle='rgba(255,255,255,.72)';
+    const cap=t<0.02?'RGB image — flat, no depth yet':(t>0.98?'coloured 3D point cloud — ready to seed Gaussians':'lifting RGB onto LiDAR depth…');
+    ctx.fillText(cap,10,20);
+  }
+  function loop(){
+    cur.yaw+=(tgt.yaw-cur.yaw)*0.08; cur.pitch+=(tgt.pitch-cur.pitch)*0.08;
+    if(orbiting) tgt.yaw+=0.006;
+    if(playing){ t=Math.min(1,t+0.012); prog.value=Math.round(t*100); progV.textContent=Math.round(t*100)+'%';
+      if(t>=1){ playing=false; playBtn.textContent='▶ Fuse'; } }
+    draw(); requestAnimationFrame(loop);
+  }
+  playBtn.addEventListener('click',()=>{ if(t>=1) t=0; playing=!playing; playBtn.textContent=playing?'⏸ Pause':'▶ Fuse'; });
+  replayBtn.addEventListener('click',()=>{ t=0; prog.value=0; progV.textContent='0%'; playing=true; playBtn.textContent='⏸ Pause'; });
+  prog.addEventListener('input',()=>{ t=+prog.value/100; progV.textContent=prog.value+'%'; playing=false; playBtn.textContent='▶ Fuse'; });
+  lidarCb.addEventListener('change',draw);
+  document.addEventListener('themechange',draw);
+  loop();
 })();
 
 /* ============ Step 4: density control mini-diagrams ============ */

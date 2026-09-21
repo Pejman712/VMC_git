@@ -174,8 +174,15 @@ section{padding:56px 0}
 .axkey span{display:inline-flex;align-items:center;gap:6px} .axkey i{width:16px;height:3px;border-radius:2px}
 
 /* math note */
-.mathbox{font-family:var(--mono);font-size:13px;background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:0 9px 9px 0;padding:14px 16px;overflow-x:auto;white-space:nowrap;color:var(--ink-2)}
+.mathbox{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:0 9px 9px 0;padding:12px 16px;overflow-x:auto;color:var(--ink-2)}
 .mathbox b{color:var(--ink)}
+/* dependency-free math: serif math font, italic variables, real sub/superscripts */
+.mathbox .eq{font-family:'STIX Two Math','Cambria Math','Latin Modern Math','Times New Roman',Georgia,serif;font-size:17.5px;color:var(--ink);display:block;margin:9px 0;white-space:nowrap;letter-spacing:.005em}
+.mathbox .eq:first-child{margin-top:2px}.mathbox .eq:last-child{margin-bottom:2px}
+.mathbox var{font-style:italic}
+.mathbox sub,.mathbox sup{font-style:normal;font-size:.68em;line-height:0}
+.mathbox .op{color:var(--muted);font-style:normal;padding:0 .12em}
+.mathbox .lbl{color:var(--muted);font-style:normal;font-size:.82em}
 .steps{counter-reset:st;display:flex;flex-direction:column;gap:10px;margin-top:6px}
 .step{display:flex;gap:12px;font-size:13.5px;color:var(--ink-2)}
 .step::before{counter-increment:st;content:counter(st);flex:none;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--display);font-weight:700;font-size:13px;display:grid;place-items:center}
@@ -190,7 +197,8 @@ section{padding:56px 0}
 .tech{display:flex;gap:12px;align-items:flex-start;font-size:13.5px;color:var(--ink-2)}
 .tech .t{font-family:var(--mono);font-weight:600;color:var(--ink);min-width:118px}
 .pipeline{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px}
-.pstep{font-family:var(--mono);font-size:12px;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:8px 11px;color:var(--ink-2)}
+.pstep{font-family:var(--mono);font-size:12px;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:8px 11px;color:var(--ink-2);cursor:pointer;transition:border-color .12s,background .12s}
+.pstep.act{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--surface));color:var(--ink)}
 .pstep b{color:var(--accent-ink)}
 .parrow{color:var(--muted);font-size:14px}
 
@@ -200,6 +208,52 @@ footer h4{font-family:var(--display);font-size:13px;letter-spacing:.05em;text-tr
 footer ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
 .note{font-size:12.5px;color:var(--muted);margin-top:26px;border-top:1px solid var(--border);padding-top:18px}
 .kbd{font-family:var(--mono);font-size:12px;background:var(--panel-2);border:1px solid var(--border);border-radius:5px;padding:1px 6px;color:var(--ink-2)}
+
+/* registration method cards */
+.regbadge{display:inline-block;font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;padding:3px 9px;border-radius:20px;border:1px solid var(--border-2)}
+.regbadge.corr{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent-ink);border-color:color-mix(in srgb,var(--accent) 45%,transparent)}
+.regbadge.free{background:color-mix(in srgb,var(--good) 15%,transparent);color:var(--good);border-color:color-mix(in srgb,var(--good) 45%,transparent)}
+.regbadge.dist{background:color-mix(in srgb,var(--sat) 16%,transparent);color:var(--sat);border-color:color-mix(in srgb,var(--sat) 45%,transparent)}
+.reg-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.reg-head h3{font-size:1.1rem}
+.reg-mini{background:var(--viewport-bg);border-radius:9px;border:1px solid #1d2a3d;overflow:hidden;margin:12px 0}
+.reg-mini canvas{display:block;width:100%;height:auto}
+.reg-how{font-size:13px;color:var(--ink-2);margin:2px 0 0}
+.proscons{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+@media(max-width:520px){.proscons{grid-template-columns:1fr}}
+.proscons ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.proscons li{font-size:12.5px;color:var(--ink-2);display:flex;gap:7px;align-items:flex-start;line-height:1.4}
+.proscons .h{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:6px}
+.proscons .pro .h{color:var(--good)} .proscons .con .h{color:var(--alert)}
+.proscons .pro li::before{content:"+";color:var(--good);font-weight:700;flex:none}
+.proscons .con li::before{content:"–";color:var(--alert);font-weight:700;flex:none}
+/* live comparison table */
+table.cmp{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:12px}
+table.cmp th,table.cmp td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
+table.cmp th{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
+table.cmp td{color:var(--ink-2)}
+table.cmp td:first-child{font-weight:600;color:var(--ink)}
+table.cmp .er,table.cmp .it{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--accent-ink)}
+table.cmp tr[data-state="done"] .st{color:var(--good);font-weight:600}
+table.cmp tr[data-state="run"] .st{color:var(--sat)}
+
+/* sensor box system */
+.sensor-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px}
+@media(max-width:560px){.sensor-grid{grid-template-columns:1fr 1fr}}
+.sensor-box{border:1.5px solid var(--border-2);border-radius:10px;padding:10px 12px;cursor:pointer;background:var(--surface);user-select:none;transition:border-color .12s,background .12s;position:relative}
+.sensor-box:hover{border-color:var(--accent)}
+.sensor-box .sb-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sensor-box .sb-name{font-family:var(--display);font-weight:600;font-size:13px}
+.sensor-box .sb-dot{width:12px;height:12px;border-radius:50%;background:var(--border-2);flex:none;box-shadow:inset 0 0 0 2px var(--surface)}
+.sensor-box .sb-role{font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:3px}
+.sensor-box.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 9%,var(--surface))}
+.sensor-box.on .sb-dot{background:var(--good)}
+.sensor-box.off{opacity:.62}
+.sensor-box.on.motion{border-color:var(--good)} .sensor-box.on.motion .sb-dot{background:var(--good)}
+.preset-row{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 14px}
+.preset-btn{font-family:var(--mono);font-size:12px;padding:7px 12px;border-radius:8px;border:1px solid var(--border-2);background:var(--panel);color:var(--ink-2);cursor:pointer}
+.preset-btn:hover{border-color:var(--accent);color:var(--ink)}
+
 </style>
 
 <!-- NAV -->
@@ -217,8 +271,10 @@ footer ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;
   <div class="nav-links">
     <a href="#gnss">GNSS</a>
     <a href="#imu">IMU</a>
-    <a href="#slam">SLAM · ICP</a>
+    <a href="#odometry">Odometry</a>
+    <a href="#registration">Registration</a>
     <a href="#fusion">Fusion</a>
+    <a href="#slam">SLAM</a>
     <a href="#vslam">VSLAM</a>
     <a class="home" href="index.html">← ROS Explorer</a>
     <a class="home" href="gaussian-splatting.html">Gaussian Splatting →</a>
@@ -248,7 +304,7 @@ footer ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;
     <h1>Where <span class="hl">am I</span>, exactly?</h1>
     <p class="lede">An automated vehicle fuses many answers to that question: satellites overhead, an inertial sensor that feels every motion, the wheels, and the shape of the world around it. Play with each one — then watch a real <b>ICP</b> solver localise a LiDAR scan against a map.</p>
     <div class="chips-row">
-      <a class="pill-link p" href="#slam">Run the ICP solver</a>
+      <a class="pill-link p" href="#registration">Run the ICP solver</a>
       <a class="pill-link" href="#gnss">Start with GNSS</a>
     </div>
   </div>
@@ -343,40 +399,95 @@ footer ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;
         <div class="stat-line" style="margin-top:14px">Orientation — roll <b id="oRoll">0°</b> · pitch <b id="oPitch">0°</b> · yaw <b id="oYaw">0°</b>. At rest the accelerometer reads <b>≈9.81</b> on whichever axis points up — that's how it senses tilt.</div>
         <h3 style="margin-top:22px">Why fuse with GNSS?</h3>
         <div class="sub">Integrating noisy inertial data lets small errors compound — position drift grows ≈ t<sup>3/2</sup>.</div>
-        <div class="viewport" style="background:var(--surface);border-color:var(--border)"><svg id="driftSvg" viewBox="0 0 520 180" role="img" aria-label="Position error growth over time for cheap versus expensive MEMS IMUs"></svg></div>
+        <div class="viewport" style="background:var(--surface);border-color:var(--border)"><svg id="driftSvg" viewBox="0 0 520 180" role="img" aria-label="Position error growth over time for a regular MEMS IMU"></svg></div>
       </div>
-    </div>
-    <div class="card pad" style="margin-top:20px">
-      <h3>Wheel odometry — the other dead-reckoning sensor</h3>
-      <div class="sub">From wheel rotation: speed v = r·ω. Cheap and always available, but wheel <b>slip</b> and accumulating error make it a fusion input, not a standalone truth.</div>
-      <div class="stat-line">Like the IMU, odometry <b>drifts</b> — it's great over seconds, unreliable over minutes. That's the recurring theme of localisation: every sensor is wrong in its own way, so vehicles <b>fuse</b> them (e.g. an Extended Kalman Filter blending GNSS + IMU + odometry).</div>
     </div>
   </div>
 </section>
 
 
-<!-- SLAM / ICP -->
-<section id="slam">
+
+<!-- WHEEL ODOMETRY -->
+<section id="odometry">
   <div class="wrap">
     <div class="sec-head">
-      <div class="sec-kicker">Simultaneous Localisation &amp; Mapping</div>
-      <h2>Matching a LiDAR scan to the map</h2>
-      <p>GNSS is often unreliable (tunnels, cities), so vehicles localise against the world itself. Each LiDAR scan is a <b>point cloud</b>; SLAM finds the pose (X, Y, θ) that best aligns the scan to the known map — <b>point-cloud registration</b>. The classic method is <b>Iterative Closest Point (ICP)</b>. This one is real — it runs the actual algorithm.</p>
+      <div class="sec-kicker">Wheel odometry</div>
+      <h2>Counting the wheels</h2>
+      <p>The simplest dead-reckoning sensor: an encoder counts each wheel’s rotation and turns it into distance. Cheap and always available, it is the backbone of vehicle odometry — but it drifts and lies the instant a wheel slips.</p>
     </div>
+    <div class="card pad">
+      <h3>Wheel odometry — the other dead-reckoning sensor</h3>
+      <div class="sub">An encoder counts wheel rotations; each tick is a known slice of a turn. Distance travelled = <b>r·θ</b> (radius × total angle), and speed <b>v = r·ω</b>. Roll the wheel and watch the odometer add up.</div>
+      <div class="grid-2" style="margin-top:8px">
+        <div>
+          <div class="viewport" style="background:var(--surface);border-color:var(--border)"><canvas id="odoCv" width="620" height="250" role="img" aria-label="A rolling wheel; distance travelled equals radius times the total rotation angle"></canvas></div>
+          <div class="btnrow">
+            <button class="mini-btn primary" id="odoPlay">▶ Roll</button>
+            <button class="mini-btn" id="odoReset">Reset</button>
+            <div class="rng" style="margin-left:auto;min-width:210px"><span style="min-width:70px">Speed ω</span><input type="range" id="odoW" min="10" max="140" step="1" value="60"><span class="v" id="odoWV">2.1 rad/s</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="readout" style="grid-template-columns:1fr 1fr">
+            <div class="ro"><div class="k">wheel angle θ</div><div class="val" id="odoAng">0.0 rad</div></div>
+            <div class="ro"><div class="k">encoder ticks</div><div class="val" id="odoTicks">0</div></div>
+            <div class="ro x"><div class="k">speed v = r·ω</div><div class="val" id="odoV">0.00 m/s</div></div>
+            <div class="ro z"><div class="k">distance = r·θ</div><div class="val" id="odoDist">0.00 m</div></div>
+          </div>
+          <div class="stat-line" style="margin-top:12px">Wheel radius <b>r = 0.33 m</b>, encoder <b>2048 ticks/rev</b>. With no slip, counting ticks gives distance exactly — but the moment a wheel <b>slips or skids</b>, the count lies, and like the IMU the error <b>accumulates</b>. That's why odometry is a fusion input, not a standalone truth.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLAM / ICP -->
+<section id="registration" class="alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">LiDAR odometry · point-cloud registration</div>
+      <h2>The registration family</h2>
+      <p>A LiDAR scan is a <b>point cloud</b>. Matching one scan to the next — or to a map — recovers the pose (X, Y, θ) that best overlaps them: that is <b>LiDAR odometry</b>. The four solvers below are all <b>live</b>; they differ in <i>what they match</i>. <b>Correspondence-based</b> ICP variants pair each scan point to a map point every iteration; <b>correspondence-free</b> NDT matches against a grid of Gaussians; <b>distribution-to-distribution</b> GICP weights the error by each surface's local shape. Start with the step-by-step <b>ICP</b> solver, then point-to-plane, NDT and GICP — and compare their live performance at the end.</p>
+    </div>
+    <!-- Shared scenario controls (structure + initial pose) — drives ALL four solvers -->
+    <div class="card pad" style="margin-top:16px">
+      <div class="grid-2" style="align-items:start;gap:20px">
+        <div>
+          <div style="font-size:12.5px;color:var(--muted);font-family:var(--mono);margin-bottom:6px">Structure — applies to all four solvers (ICP, point-to-plane, NDT, GICP)</div>
+          <div class="seg" id="regShapeSeg" style="flex-wrap:wrap">
+            <button data-shape="room" class="active">Indoor room</button>
+            <button data-shape="lcorner">L-corner</button>
+            <button data-shape="circle">Circle</button>
+            <button data-shape="partial">Partial overlap</button>
+          </div>
+          <div class="stat-line" id="regShapeNote" style="margin-top:10px">A small indoor room with a doorway and a pillar — flat walls in two orientations.</div>
+        </div>
+        <div>
+          <div style="font-size:12.5px;color:var(--muted);font-family:var(--mono);margin-bottom:6px">Initial pose — the same starting guess (θ, X, Y) for every solver</div>
+          <div class="rng"><span style="min-width:118px">Initial θ</span><input type="range" id="regInit" min="-60" max="60" value="34"><span class="v" id="regInitV">34°</span></div>
+          <div class="rng" style="margin-top:10px"><span style="min-width:118px">Initial X</span><input type="range" id="regOffX" min="-60" max="60" value="0"><span class="v" id="regOffXV">0.00</span></div>
+          <div class="rng" style="margin-top:10px"><span style="min-width:118px">Initial Y</span><input type="range" id="regOffY" min="-60" max="60" value="0"><span class="v" id="regOffYV">0.00</span></div>
+          <div style="font-size:12px;color:var(--muted);margin-top:8px">Push the guess far, then run each solver and compare which ones still recover the pose.</div>
+        </div>
+      </div>
+    </div>
+
+
     <div class="grid-2">
       <div class="card pad">
-        <h3>ICP solver</h3>
-        <div class="sub"><span style="color:var(--ink)">■</span> map &nbsp; <span style="color:var(--alert)">■</span> scan &nbsp; <span style="color:var(--accent-ink)">╱</span> correspondences</div>
-        <div class="viewport"><canvas id="icpCv" width="620" height="420" role="img" aria-label="ICP aligning a red LiDAR scan onto the black map point cloud"></canvas></div>
+        <div class="reg-head"><h3>ICP solver — live</h3><span class="regbadge corr">correspondence-based</span></div>
+        <div class="sub" style="margin-top:6px">Aligning a LiDAR scan to the <b>current structure</b> (set above). <span style="color:var(--ink)">■</span> map (walls) &nbsp; <span style="color:var(--alert)">■</span> scan &nbsp; <span style="color:var(--accent-ink)">╱</span> correspondences</div>
+        <div class="viewport"><canvas id="icpCv" width="620" height="420" role="img" aria-label="ICP aligning a red LiDAR scan onto the indoor room map point cloud"></canvas></div>
         <div class="btnrow">
           <button class="mini-btn" id="icpMatch">1 · Find correspondences</button>
           <button class="mini-btn primary" id="icpStep">2 · Solve R,t &amp; apply</button>
           <button class="mini-btn" id="icpAuto">▶ Auto-run</button>
           <button class="mini-btn" id="icpReset">Reset</button>
         </div>
-        <div class="rng" style="margin-top:14px"><span style="min-width:118px">Initial guess (θ)</span><input type="range" id="icpInit" min="-60" max="60" value="38"><span class="v" id="icpInitV">38°</span></div>
+        <div style="font-size:12px;color:var(--muted);font-family:var(--mono);margin-top:14px">Initial pose (θ, X, Y) is set by the shared panel above — same for every solver.</div>
         <div class="rng" style="margin-top:12px"><span style="min-width:118px">Error threshold</span><input type="range" id="icpThresh" min="0.02" max="0.30" step="0.01" value="0.06"><span class="v" id="icpThreshV">0.06</span></div>
         <div class="rng" style="margin-top:12px"><span style="min-width:118px">Max iterations</span><input type="range" id="icpMax" min="1" max="50" step="1" value="20"><span class="v" id="icpMaxV">20</span></div>
+        <div class="rng" style="margin-top:12px"><span style="min-width:118px">Scan noise / outliers</span><input type="range" id="icpNoise" min="0" max="100" step="1" value="14"><span class="v" id="icpNoiseV">low</span></div>
         <div class="stat-line" id="icpStatus" style="margin-top:12px;display:none"></div>
       </div>
       <div class="card pad">
@@ -388,7 +499,11 @@ footer ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;
           <div class="step" data-s="2"><div><b>Solve rotation R</b> and <b>translation t</b> that minimise Σ‖m − R·s − t‖² (closed-form via SVD of the cross-covariance).</div></div>
           <div class="step" data-s="3"><div><b>Apply &amp; repeat:</b> move the scan by (R, t). Re-match and iterate until it stops improving.</div></div>
         </div>
-        <div class="mathbox" style="margin-top:16px">minimise &nbsp;<b>Σ ‖ mᵢ − R·sᵢ − t ‖²</b><br>&nbsp;&nbsp;H = Σ s̃ᵢ m̃ᵢᵀ&nbsp; → &nbsp;U Σ Vᵀ = svd(H)<br>&nbsp;&nbsp;<b>R</b> = V·diag(1, det(VUᵀ))·Uᵀ &nbsp;&nbsp; <b>t</b> = m̄ − R·s̄</div>
+        <div class="mathbox" style="margin-top:16px">
+          <span class="eq"><span class="op">minimise</span> ∑<sub>i</sub> ‖ <var>m</var><sub>i</sub> − <var>R</var> <var>s</var><sub>i</sub> − <var>t</var> ‖<sup>2</sup></span>
+          <span class="eq"><var>H</var> = ∑<sub>i</sub> <var>s̃</var><sub>i</sub> <var>m̃</var><sub>i</sub><sup>⊤</sup> <span class="op">→</span> <var>U</var>Σ<var>V</var><sup>⊤</sup> = svd(<var>H</var>)</span>
+          <span class="eq"><var>R</var> = <var>V</var> diag(1, det(<var>V U</var><sup>⊤</sup>)) <var>U</var><sup>⊤</sup> &ensp; <var>t</var> = <var>m̄</var> − <var>R</var> <var>s̄</var></span>
+        </div>
         <div class="readout" style="grid-template-columns:1fr 1fr 1fr;margin-top:16px">
           <div class="ro"><div class="k">iteration</div><div class="val" id="icpIter">0</div></div>
           <div class="ro"><div class="k">mean error</div><div class="val" id="icpErr">—</div></div>
@@ -397,17 +512,125 @@ footer ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;
         <div class="stat-line" style="margin-top:12px">⚠ ICP needs a <b>good initial guess</b> — push the slider far and it can converge to the wrong alignment (a local minimum). That's why odometry/IMU seed the scan first.</div>
       </div>
     </div>
+
+    <!-- Point-to-plane ICP (live) -->
     <div class="card pad" style="margin-top:20px">
-      <h3>Beyond plain ICP</h3>
-      <div class="sub">What real systems use once ICP isn't enough.</div>
-      <div class="grid-3">
-        <div class="tech"><span class="t">NDT</span><span>Model the map as piecewise normal distributions — faster, smoother registration.</span></div>
-        <div class="tech"><span class="t">Feature-based</span><span>Match geometric features (edges, planes) instead of raw points — e.g. LOAM, point-to-plane ICP.</span></div>
-        <div class="tech"><span class="t">Particle filters</span><span>Probabilistic pose estimation over many hypotheses — e.g. FastSLAM.</span></div>
-        <div class="tech"><span class="t">Graph SLAM</span><span>Optimise a graph of poses; loop closure corrects accumulated drift — e.g. Cartographer.</span></div>
-        <div class="tech"><span class="t">Learned SLAM</span><span>Deep networks estimate odometry directly from scans — e.g. LO-Net.</span></div>
-        <div class="tech"><span class="t">Why LiDAR</span><span>Direct, accurate range → generally more robust than camera-only SLAM.</span></div>
+      <div class="reg-head"><h3>Point-to-plane ICP — live</h3><span class="regbadge corr">correspondence-based</span></div>
+      <p class="reg-how">Measure error <b>along the surface normal</b> n, not straight to the point — so scan points slide freely <i>along</i> a wall and only the distance <i>into</i> it is penalised. Watch it snap onto the walls far faster than plain ICP.</p>
+      <div class="grid-2" style="margin-top:14px">
+        <div>
+          <div class="viewport"><canvas id="p2lCv" width="620" height="380" role="img" aria-label="Point-to-plane ICP aligning a scan to the room, error measured along wall normals"></canvas></div>
+          <div class="btnrow">
+            <button class="mini-btn" id="p2lMatch">1 · Find correspondences</button>
+            <button class="mini-btn primary" id="p2lStep">2 · Solve step</button>
+            <button class="mini-btn" id="p2lAuto">▶ Auto-run</button>
+            <button class="mini-btn" id="p2lReset">Reset</button>
+          </div>
+          <div class="rng" style="margin-top:12px"><span style="min-width:118px">Max iterations</span><input type="range" id="p2lMax" min="1" max="50" step="1" value="20"><span class="v" id="p2lMaxV">20</span></div>
+          <div class="stat-line" id="p2lStatus" style="margin-top:12px;display:none"></div>
+        </div>
+        <div>
+          <div class="mathbox">
+            <span class="eq"><span class="op">minimise</span> ∑<sub>i</sub> ( ( <var>R</var> <var>s</var><sub>i</sub> + <var>t</var> − <var>m</var><sub>i</sub> ) · <var>n</var><sub>i</sub> )<sup>2</sup></span>
+            <span class="eq"><span class="lbl">linearise</span> <var>R</var>(θ) <span class="op">⇒</span> weighted LS, <var>W</var><sub>i</sub> = <var>n</var><sub>i</sub> <var>n</var><sub>i</sub><sup>⊤</sup></span>
+          </div>
+          <div class="readout" style="grid-template-columns:1fr 1fr 1fr;margin-top:16px">
+            <div class="ro"><div class="k">iteration</div><div class="val" id="p2lIter">0</div></div>
+            <div class="ro"><div class="k">mean error</div><div class="val" id="p2lErr">—</div></div>
+            <div class="ro"><div class="k">solved θ</div><div class="val" id="p2lTheta">0°</div></div>
+          </div>
+          <div class="proscons" style="margin-top:16px">
+            <div class="pro"><div class="h">Pros</div><ul><li>Far faster convergence than point-to-point</li><li>Excellent on planar / indoor structure</li><li>Points slide freely along surfaces</li></ul></div>
+            <div class="con"><div class="h">Cons</div><ul><li>Needs estimated surface normals</li><li>Linearised (small-angle) solve</li><li>Still correspondence-based</li></ul></div>
+          </div>
+        </div>
       </div>
+    </div>
+
+    <!-- NDT (live) -->
+    <div class="card pad" style="margin-top:20px">
+      <div class="reg-head"><h3>NDT · Normal Distributions Transform — live</h3><span class="regbadge free">correspondence-free</span></div>
+      <p class="reg-how">Divide the map into a grid of <b>cells</b>; describe each cell's points by a Gaussian (mean + covariance). Then slide the scan to <b>maximise its likelihood</b> under those Gaussians — <b>no point pairing at all</b>. Change the cell size and watch the cost surface coarsen or sharpen.</p>
+      <div class="grid-2" style="margin-top:14px">
+        <div>
+          <div class="viewport"><canvas id="ndtCv" width="620" height="380" role="img" aria-label="NDT aligning a scan against a grid of Gaussian cells"></canvas></div>
+          <div class="btnrow">
+            <button class="mini-btn" id="ndtMatch">1 · Score cells</button>
+            <button class="mini-btn primary" id="ndtStep">2 · Solve step</button>
+            <button class="mini-btn" id="ndtAuto">▶ Auto-run</button>
+            <button class="mini-btn" id="ndtReset">Reset</button>
+          </div>
+          <div class="rng" style="margin-top:12px"><span style="min-width:118px">Max iterations</span><input type="range" id="ndtMax" min="1" max="50" step="1" value="20"><span class="v" id="ndtMaxV">20</span></div>
+          <div class="rng" style="margin-top:12px"><span style="min-width:118px">Cell size</span><input type="range" id="ndtCell" min="30" max="90" step="1" value="55"><span class="v" id="ndtCellV">0.55</span></div>
+          <div class="stat-line" id="ndtStatus" style="margin-top:12px;display:none"></div>
+        </div>
+        <div>
+          <div class="mathbox">
+            <span class="eq"><span class="op">maximise</span> ∑<sub>i</sub> log <var>N</var>( <var>R</var> <var>s</var><sub>i</sub> + <var>t</var> ; <var>μ</var><sub>k</sub>, Σ<sub>k</sub> )</span>
+            <span class="eq"><span class="lbl">point</span> <var>i</var> <span class="op">→</span> <span class="lbl">cell</span> <var>k</var>, &ensp; <var>W</var><sub>i</sub> = Σ<sub>k</sub><sup>−1</sup></span>
+          </div>
+          <div class="readout" style="grid-template-columns:1fr 1fr 1fr;margin-top:16px">
+            <div class="ro"><div class="k">iteration</div><div class="val" id="ndtIter">0</div></div>
+            <div class="ro"><div class="k">mean error</div><div class="val" id="ndtErr">—</div></div>
+            <div class="ro"><div class="k">solved θ</div><div class="val" id="ndtTheta">0°</div></div>
+          </div>
+          <div class="proscons" style="margin-top:16px">
+            <div class="pro"><div class="h">Pros</div><ul><li>No nearest-neighbour search</li><li>Smooth, differentiable cost surface</li><li>Robust; works at lower resolution</li></ul></div>
+            <div class="con"><div class="h">Cons</div><ul><li>Sensitive to cell size</li><li>Needs enough points per cell</li><li>Grid discretisation artefacts</li></ul></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GICP (live) -->
+    <div class="card pad" style="margin-top:20px">
+      <div class="reg-head"><h3>GICP · Generalised ICP — live</h3><span class="regbadge dist">distribution-to-distribution</span></div>
+      <p class="reg-how">Give <b>every point a local covariance</b> — a little disc that's flat along the surface. Match disc-to-disc (plane-to-plane), weighting each error by both clouds' shape. Raise the anisotropy to make the discs flatter and the behaviour more plane-to-plane.</p>
+      <div class="grid-2" style="margin-top:14px">
+        <div>
+          <div class="viewport"><canvas id="gicpCv" width="620" height="380" role="img" aria-label="GICP aligning a scan using local covariance discs on both clouds"></canvas></div>
+          <div class="btnrow">
+            <button class="mini-btn" id="gicpMatch">1 · Match discs</button>
+            <button class="mini-btn primary" id="gicpStep">2 · Solve step</button>
+            <button class="mini-btn" id="gicpAuto">▶ Auto-run</button>
+            <button class="mini-btn" id="gicpReset">Reset</button>
+          </div>
+          <div class="rng" style="margin-top:12px"><span style="min-width:118px">Max iterations</span><input type="range" id="gicpMax" min="1" max="50" step="1" value="20"><span class="v" id="gicpMaxV">20</span></div>
+          <div class="rng" style="margin-top:12px"><span style="min-width:118px">Disc anisotropy</span><input type="range" id="gicpAniso" min="2" max="30" step="1" value="10"><span class="v" id="gicpAnisoV">10×</span></div>
+          <div class="stat-line" id="gicpStatus" style="margin-top:12px;display:none"></div>
+        </div>
+        <div>
+          <div class="mathbox">
+            <span class="eq"><span class="op">minimise</span> ∑<sub>i</sub> <var>d</var><sub>i</sub><sup>⊤</sup> ( <var>C</var><sup>m</sup><sub>i</sub> + <var>R</var> <var>C</var><sup>s</sup><sub>i</sub> <var>R</var><sup>⊤</sup> )<sup>−1</sup> <var>d</var><sub>i</sub></span>
+            <span class="eq"><var>d</var><sub>i</sub> = <var>m</var><sub>i</sub> − ( <var>R</var> <var>s</var><sub>i</sub> + <var>t</var> ) &ensp; <var>W</var><sub>i</sub> = ( <var>C</var><sup>m</sup><sub>i</sub> + <var>R</var> <var>C</var><sup>s</sup><sub>i</sub> <var>R</var><sup>⊤</sup> )<sup>−1</sup></span>
+          </div>
+          <div class="readout" style="grid-template-columns:1fr 1fr 1fr;margin-top:16px">
+            <div class="ro"><div class="k">iteration</div><div class="val" id="gicpIter">0</div></div>
+            <div class="ro"><div class="k">mean error</div><div class="val" id="gicpErr">—</div></div>
+            <div class="ro"><div class="k">solved θ</div><div class="val" id="gicpTheta">0°</div></div>
+          </div>
+          <div class="proscons" style="margin-top:16px">
+            <div class="pro"><div class="h">Pros</div><ul><li>Unifies point-to-point &amp; point-to-plane</li><li>Statistically grounded (Mahalanobis)</li><li>Most accurate / robust of the family</li></ul></div>
+            <div class="con"><div class="h">Cons</div><ul><li>Needs per-point covariances</li><li>Heavier per-iteration compute</li><li>More parameters to tune</li></ul></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card pad" style="margin-top:20px">
+      <h3>Live performance comparison</h3>
+      <div class="sub">Run each solver (Auto-run is easiest), then read off how they did on the current scene &amp; initial guess. Lower error and fewer iterations is better.</div>
+      <div style="overflow-x:auto">
+      <table class="cmp" id="regCmp">
+        <thead><tr><th>Method</th><th>Matches</th><th>Iterations</th><th>Mean error</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr data-m="icp"><td>Point-to-point ICP</td><td>correspondence</td><td class="it">0</td><td class="er">—</td><td class="st">idle</td></tr>
+          <tr data-m="p2l"><td>Point-to-plane ICP</td><td>correspondence</td><td class="it">0</td><td class="er">—</td><td class="st">idle</td></tr>
+          <tr data-m="ndt"><td>NDT</td><td>correspondence-free</td><td class="it">0</td><td class="er">—</td><td class="st">idle</td></tr>
+          <tr data-m="gicp"><td>GICP</td><td>distribution</td><td class="it">0</td><td class="er">—</td><td class="st">idle</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <div class="stat-line" style="margin-top:12px">Try the same big <b>initial offset</b> on each: point-to-plane and GICP usually lock onto the walls in the fewest steps, while <b>NDT</b> stays robust when points don't correspond one-to-one (the <b>Partial overlap</b> structure).</div>
     </div>
   </div>
 </section>
@@ -418,7 +641,7 @@ footer ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;
     <div class="sec-head">
       <div class="sec-kicker">Sensor fusion · Kalman filter</div>
       <h2>Better than any one sensor</h2>
-      <p>Here's the payoff, and where the ICP you just built comes back. A <b>Kalman filter</b> fuses three flawed sources: <b style="color:var(--axY)">dead-reckoning</b> (IMU + odometry) — smooth but <b>drifting</b>; <b style="color:var(--accent-ink)">GNSS</b> — unbiased but <b>noisy</b> and lost in tunnels; and <b style="color:#a98bef">LiDAR + ICP</b> scan-matching — accurate wherever there's structure to match. Each step it <b>predicts</b> with the motion, then <b>corrects</b> with whatever measurements are available. Drive into the tunnel: GNSS drops, but ICP keeps the fix locked.</p>
+      <p>Here's the payoff, and where the registration you just built comes back. A <b>Kalman filter</b> fuses several flawed sources — each strong where another is weak. Build your own sensor suite below: switch <b style="color:var(--good)">wheel odometry</b>, <b>IMU</b>, <b style="color:var(--accent-ink)">GNSS</b>, <b style="color:#a98bef">LiDAR odometry</b> and <b style="color:#a98bef">map registration</b> on and off, and watch the fused estimate tighten or drift. Motion sensors <b>predict</b>; absolute sensors <b>correct</b>. Drive into the tunnel with only wheel odometry and the fix wanders; add registration and it locks back on — that's why AVs carry all of them.</p>
     </div>
     <div class="grid-2">
       <div class="card pad">
@@ -428,12 +651,13 @@ footer ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;
         <div class="btnrow">
           <button class="mini-btn primary" id="kfPlay">▶ Play</button>
           <button class="mini-btn" id="kfReset">Reset</button>
+          <label class="toggle-chip" style="margin-left:auto"><input type="checkbox" id="kfTunnel"> Tunnel (GNSS dropout)</label>
         </div>
-        <div class="btnrow" style="margin-top:8px">
-          <label class="toggle-chip"><input type="checkbox" id="kfTunnel"> Tunnel (GNSS dropout)</label>
-          <label class="toggle-chip" style="border-color:#a98bef"><input type="checkbox" id="kfLidar" checked style="accent-color:#a98bef"> LiDAR + ICP</label>
-        </div>
-        <div class="rng" style="margin-top:12px"><span style="min-width:118px">GNSS noise</span><input type="range" id="kfGnss" min="4" max="34" step="1" value="16"><span class="v" id="kfGnssV">16</span></div>
+        <div style="font-size:12.5px;color:var(--muted);font-family:var(--mono);margin:16px 0 6px">Sensor box system — click to switch each source on / off</div>
+        <div class="sensor-grid" id="sensorGrid"></div>
+        <div style="font-size:12.5px;color:var(--muted);font-family:var(--mono);margin:16px 0 6px">Scenario presets — try a sensor dropout</div>
+        <div class="preset-row" id="presetRow"></div>
+        <div class="rng" style="margin-top:6px"><span style="min-width:118px">GNSS noise</span><input type="range" id="kfGnss" min="4" max="34" step="1" value="16"><span class="v" id="kfGnssV">16</span></div>
         <div class="rng" style="margin-top:10px"><span style="min-width:118px">Odometry drift</span><input type="range" id="kfDrift" min="0" max="10" step="1" value="4"><span class="v" id="kfDriftV">4</span></div>
       </div>
       <div class="card pad">
@@ -445,9 +669,9 @@ footer ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;
         </div>
         <div class="axkey" style="margin-top:16px;gap:16px">
           <span><i style="background:var(--good)"></i>true path</span>
-          <span><i style="background:var(--axY)"></i>dead-reckoning</span>
+          <span><i style="background:var(--axY)"></i>odometry (dead-reckoning)</span>
           <span><i style="background:var(--accent)"></i>GNSS fixes</span>
-          <span><i style="background:#a98bef"></i>LiDAR / ICP</span>
+          <span><i style="background:#a98bef"></i>LiDAR / registration</span>
           <span><i style="background:var(--alert)"></i>fused (KF)</span>
         </div>
         <div class="steps" style="margin-top:18px">
@@ -455,14 +679,75 @@ footer ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;
           <div class="step"><div><b>Correct:</b> nudge toward each available measurement — GNSS <i>and</i> the LiDAR/ICP pose — weighted by the Kalman gain K (trust the more certain source). &nbsp;<span class="mono" style="color:var(--muted)">K = P⁻(P⁻+R)⁻¹</span></div></div>
           <div class="step"><div><b>Update:</b> &nbsp;<span class="mono" style="color:var(--muted)">x = x⁻ + K(z − x⁻),&nbsp; P = (I − K)P⁻</span> — the shaded ellipse is that uncertainty P.</div></div>
         </div>
-        <div class="stat-line" id="kfStatus" style="margin-top:16px">Press <b>Play</b>, then flip <b>Tunnel</b> on. With <b>LiDAR + ICP</b> enabled the fix barely moves in the tunnel — scan-matching covers for the lost GNSS. Turn <b>LiDAR + ICP</b> off and the same tunnel makes the estimate drift. That's why AVs run SLAM alongside GNSS.</div>
+        <div class="stat-line" id="kfStatus" style="margin-top:16px">Press <b>Play</b>, then experiment with the sensor boxes. The verdict here updates to describe your current suite — try turning everything off except <b>wheel odometry</b>, then add sensors back one at a time.</div>
       </div>
     </div>
   </div>
 </section>
 
+<!-- SLAM (mapping & loop closure) -->
+<section id="slam" class="alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-kicker">Simultaneous Localisation &amp; Mapping</div>
+      <h2>Closing the loop — a globally consistent map</h2>
+      <p>Every odometry source — wheel, IMU, LiDAR or visual — <b>drifts</b>, so a raw trajectory never quite closes. Full <b>SLAM</b> adds a back-end: keep a <b>graph of poses</b>, recognise revisited places (<b>loop closure</b>), and optimise the whole graph so the map stays globally consistent.</p>
+    </div>
+    <!-- Graph SLAM / RTAB-Map loop closure (live) -->
+    <div class="card pad" style="margin-top:20px">
+      <div class="reg-head"><h3>Loop closure &amp; graph SLAM — RTAB-Map style</h3><span class="regbadge free">appearance-based</span></div>
+      <p class="reg-how">Odometry always <b>drifts</b>, so the estimated trajectory slowly bends away from the true path. The cure: recognise a place you've <b>already seen</b> and pin the two together. <b>RTAB-Map</b> spots it with an <b>appearance-based</b> bag-of-words image database, adds a loop-closure constraint, then a <b>pose-graph optimiser</b> redistributes the error and closes the loop. Drive it, close the loop, then optimise.</p>
+      <div class="grid-2" style="margin-top:14px">
+        <div>
+          <div class="viewport"><canvas id="loopCv" width="620" height="400" role="img" aria-label="Top-down loop trajectory with drifting odometry, a loop-closure constraint, and graph optimisation"></canvas></div>
+          <div class="btnrow">
+            <button class="mini-btn primary" id="loopDrive">▶ Drive the loop</button>
+            <button class="mini-btn" id="loopClose">Detect loop closure</button>
+            <button class="mini-btn" id="loopOpt">Optimise graph</button>
+            <button class="mini-btn" id="loopReset">Reset</button>
+          </div>
+          <div class="btnrow" style="margin-top:8px">
+            <label class="toggle-chip"><input type="checkbox" id="loopShowGraph" checked> Show pose graph</label>
+            <div class="rng" style="margin-left:auto;min-width:200px"><span style="min-width:90px">Odometry drift</span><input type="range" id="loopDrift" min="4" max="30" step="1" value="15"><span class="v" id="loopDriftV">15</span></div>
+          </div>
+          <div class="stat-line" id="loopStatus" style="margin-top:12px">Press <b>Drive the loop</b> — watch the orange odometry trajectory bend away from the true green loop.</div>
+        </div>
+        <div>
+          <div class="steps">
+            <div class="step"><div><b>Front-end (odometry):</b> track features frame-to-frame for a pose estimate. Accurate locally, but error <b>accumulates</b> — the loop doesn't close.</div></div>
+            <div class="step"><div><b>Keyframes + pose graph:</b> store selected frames as graph <b>nodes</b>; consecutive nodes are linked by odometry <b>edges</b> (constraints).</div></div>
+            <div class="step"><div><b>Loop closure (appearance):</b> RTAB-Map compares the current image to a <b>bag-of-words database</b> of past keyframes. A strong match → a new edge saying "these are the same place".</div></div>
+            <div class="step"><div><b>Back-end optimisation:</b> a graph optimiser (g2o / GTSAM) spreads the loop-closure correction across every node — drift vanishes and the map stays consistent.</div></div>
+          </div>
+          <div class="axkey" style="margin-top:16px;gap:16px">
+            <span><i style="background:var(--good)"></i>true loop</span>
+            <span><i style="background:var(--axY)"></i>odometry (drift)</span>
+            <span><i style="background:var(--accent)"></i>pose graph</span>
+            <span><i style="background:var(--sat)"></i>keyframe</span>
+            <span><i style="background:#a98bef"></i>loop-closure edge</span>
+          </div>
+          <div class="stat-line" style="margin-top:14px">RTAB-Map's <b>memory management</b> keeps only the most relevant keyframes in "working memory" so loop-closure search stays real-time even on very large maps — the rest moves to long-term memory and is recalled when nearby.</div>
+        </div>
+      </div>
+    </div>
+    <div class="card pad" style="margin-top:20px">
+      <h3>And beyond registration</h3>
+      <div class="sub">Once frame-to-frame alignment works, full SLAM systems add:</div>
+      <div class="grid-3">
+        <div class="tech"><span class="t">Feature-based</span><span>Match geometric features (edges, planes) instead of raw points — e.g. LOAM.</span></div>
+        <div class="tech"><span class="t">Particle filters</span><span>Probabilistic pose estimation over many hypotheses — e.g. FastSLAM / AMCL.</span></div>
+        <div class="tech"><span class="t">Graph SLAM</span><span>Optimise a graph of poses; loop closure corrects accumulated drift — e.g. Cartographer.</span></div>
+        <div class="tech"><span class="t">Learned SLAM</span><span>Deep networks estimate odometry directly from scans — e.g. LO-Net.</span></div>
+        <div class="tech"><span class="t">Why LiDAR</span><span>Direct, accurate range → generally more robust than camera-only SLAM.</span></div>
+        <div class="tech"><span class="t">Which to use</span><span>Indoors / planar → point-to-plane or NDT; noisy or varied → GICP; huge maps → NDT.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
 <!-- VSLAM -->
-<section id="vslam" class="alt">
+<section id="vslam">
   <div class="wrap">
     <div class="sec-head">
       <div class="sec-kicker">Visual SLAM</div>
@@ -495,21 +780,25 @@ footer ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;
 
     <div class="card pad" style="margin-top:20px">
       <h3>The VSLAM pipeline</h3>
-      <div class="sub">From a stream of images to a 3D map and a trajectory.</div>
-      <div class="pipeline">
-        <span class="pstep"><b>Detect</b> features</span><span class="parrow">→</span>
-        <span class="pstep"><b>Match</b> across frames</span><span class="parrow">→</span>
-        <span class="pstep">Estimate <b>R, t</b> (up to scale)</span><span class="parrow">→</span>
-        <span class="pstep"><b>Triangulate</b> to 3D points</span><span class="parrow">→</span>
-        <span class="pstep"><b>Bundle adjustment</b></span><span class="parrow">→</span>
-        <span class="pstep"><b>Loop closure</b> (graph SLAM)</span>
+      <div class="sub">From a stream of images to a 3D map and a trajectory. <b>Click a stage</b> to see what it does.</div>
+      <div class="pipeline" id="vsPipe">
+        <span class="pstep" data-d="Find repeatable keypoints (corners, blobs) in each frame — ORB, SIFT/SURF, or a learned CNN detector."><b>Detect</b> features</span><span class="parrow">→</span>
+        <span class="pstep" data-d="Associate the same keypoints in the next frame by descriptor matching or KLT tracking — this is the data association."><b>Match</b> across frames</span><span class="parrow">→</span>
+        <span class="pstep" data-d="Recover camera rotation and translation from the matches via the essential/fundamental matrix. Monocular gives direction only — scale is unknown.">Estimate <b>R, t</b> (up to scale)</span><span class="parrow">→</span>
+        <span class="pstep" data-d="Intersect the matched rays from two viewpoints to place 3D map points (structure)."><b>Triangulate</b> to 3D points</span><span class="parrow">→</span>
+        <span class="pstep" data-d="Jointly refine recent camera poses and 3D points by minimising total reprojection error — the local optimiser."><b>Bundle adjustment</b></span><span class="parrow">→</span>
+        <span class="pstep" data-d="Recognise a previously-visited place and add a constraint, then optimise the pose graph to erase accumulated drift. RTAB-Map's specialty."><b>Loop closure</b> (graph SLAM)</span>
       </div>
+      <div class="stat-line" id="vsPipeDesc" style="margin-top:14px">Tap any stage above to read what happens there.</div>
       <div class="techlist" style="margin-top:20px">
         <div class="tech"><span class="t">ORB-SLAM</span><span>The widely-used classical VSLAM system — real-time features, tracking, mapping and loop closure.</span></div>
+        <div class="tech"><span class="t">RTAB-Map</span><span>Real-Time Appearance-Based Mapping — graph SLAM with bag-of-words loop closure and memory management to stay real-time on large maps. Works with RGB-D, stereo, and LiDAR. Explore it live in the <a href="#slam">SLAM section</a> above.</span></div>
         <div class="tech"><span class="t">Scale problem</span><span>Monocular VSLAM gets direction but not metric distance; fuse IMU or use a stereo pair to recover real-world scale.</span></div>
         <div class="tech"><span class="t">Deep VSLAM</span><span>Learned systems like DROID-SLAM now reach excellent accuracy — though LiDAR SLAM is still generally more robust.</span></div>
       </div>
     </div>
+
+
   </div>
 </section>
 
@@ -531,7 +820,10 @@ footer ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;
       <ul>
         <li><a href="#gnss">GNSS &amp; trilateration</a></li>
         <li><a href="#imu">IMU · 6-DOF</a></li>
-        <li><a href="#slam">LiDAR SLAM · ICP</a></li>
+        <li><a href="#odometry">Wheel odometry</a></li>
+        <li><a href="#registration">LiDAR odometry · registration</a></li>
+        <li><a href="#fusion">Sensor fusion</a></li>
+        <li><a href="#slam">SLAM · loop closure</a></li>
         <li><a href="#vslam">Visual SLAM</a></li>
       </ul>
     </div>
@@ -744,37 +1036,116 @@ vp.addEventListener('pointerup',endDrag); vp.addEventListener('pointercancel',en
 (function(){
   const svg=$('#driftSvg'),W=520,H=180,pad=30;
   const xs=t=>pad+ (t/120)*(W-pad-10), ys=v=>H-24-(v/100)*(H-40);
-  const cheap=t=>Math.min(100, 0.16*Math.pow(t,1.5)); const exp=t=>Math.min(100,0.012*Math.pow(t,1.5));
+  const reg=t=>Math.min(100,0.06*Math.pow(t,1.5));
   const path=f=>{let d='';for(let t=0;t<=120;t+=4){d+=(t?'L':'M')+xs(t).toFixed(1)+' '+ys(f(t)).toFixed(1)+' ';}return d;};
   svg.innerHTML=`<line x1="${pad}" y1="${H-24}" x2="${W-10}" y2="${H-24}" style="stroke:var(--border-2)" stroke-width="1"/>
     <line x1="${pad}" y1="16" x2="${pad}" y2="${H-24}" style="stroke:var(--border-2)" stroke-width="1"/>
-    <path d="${path(cheap)}" style="stroke:var(--alert);fill:none" stroke-width="2.5"/>
-    <path d="${path(exp)}" style="stroke:var(--good);fill:none" stroke-width="2.5"/>
-    <text x="${W-14}" y="${ys(cheap(120))-6}" text-anchor="end" style="fill:var(--alert);font-family:var(--mono);font-size:11px">cheap MEMS</text>
-    <text x="${W-14}" y="${ys(exp(120))-6}" text-anchor="end" style="fill:var(--good);font-family:var(--mono);font-size:11px">expensive MEMS</text>
+    <path d="${path(reg)}" style="stroke:var(--good);fill:none" stroke-width="2.5"/>
+    <text x="${W-14}" y="${ys(reg(120))-6}" text-anchor="end" style="fill:var(--good);font-family:var(--mono);font-size:11px">regular MEMS</text>
     <text x="${W/2}" y="${H-6}" text-anchor="middle" style="fill:var(--muted);font-family:var(--mono);font-size:11px">time (s) →</text>
     <text x="14" y="20" style="fill:var(--muted);font-family:var(--mono);font-size:11px">error</text>`;
 })();
 
+/* ============ WHEEL ODOMETRY (rolling wheel → distance) ============ */
+(function(){
+  const cv=$('#odoCv'); if(!cv) return; const ctx=cv.getContext('2d');
+  const R=0.33, TICKS=2048, RP=55, scale=RP/R;   // px per metre so wheel radius = RP px
+  const OD={theta:0, w:2.1, playing:false, raf:null, wx:110, last:0};
+  function readouts(){
+    $('#odoAng').textContent=OD.theta.toFixed(1)+' rad';
+    $('#odoTicks').textContent=Math.round(OD.theta/(2*Math.PI)*TICKS).toLocaleString();
+    $('#odoV').textContent=(R*OD.w).toFixed(2)+' m/s';
+    $('#odoDist').textContent=(R*OD.theta).toFixed(2)+' m';
+  }
+  function draw(){
+    const w=cv.width,h=cv.height, gy=h-52; ctx.clearRect(0,0,w,h);
+    ctx.fillStyle=cssvar('--viewport-bg'); ctx.fillRect(0,0,w,h);
+    ctx.strokeStyle=cssvar('--border-2'); ctx.lineWidth=2; ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(w,gy);ctx.stroke();
+    const off=(R*OD.theta*scale)%40;
+    ctx.strokeStyle='rgba(120,150,190,.4)'; ctx.lineWidth=1;
+    for(let x=-off;x<w;x+=40){ ctx.beginPath();ctx.moveTo(x,gy);ctx.lineTo(x,gy+9);ctx.stroke(); }
+    const cx=OD.wx, cy=gy-RP;
+    ctx.strokeStyle=cssvar('--accent'); ctx.lineWidth=4; ctx.beginPath();ctx.arc(cx,cy,RP,0,7);ctx.stroke();
+    ctx.strokeStyle=cssvar('--ink-2'); ctx.lineWidth=2.5;
+    for(let k=0;k<8;k++){ const a=OD.theta+k*Math.PI/4; ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(a)*RP*0.9,cy+Math.sin(a)*RP*0.9);ctx.stroke(); }
+    ctx.fillStyle=cssvar('--accent'); ctx.beginPath();ctx.arc(cx,cy,5,0,7);ctx.fill();
+    const ma=OD.theta; ctx.fillStyle=cssvar('--alert'); ctx.beginPath();ctx.arc(cx+Math.cos(ma)*RP,cy+Math.sin(ma)*RP,6,0,7);ctx.fill();
+    ctx.strokeStyle=cssvar('--viewport-bg'); ctx.lineWidth=1.5; ctx.stroke();
+    ctx.fillStyle='#8fa3bd'; ctx.font='11px IBM Plex Mono, monospace';
+    ctx.fillText('distance = r·θ = '+(R*OD.theta).toFixed(2)+' m', 12, 20);
+    readouts();
+  }
+  function loop(now){ if(!OD.playing) return; if(!OD.last) OD.last=now; const dt=Math.min(0.05,(now-OD.last)/1000); OD.last=now;
+    OD.theta+=OD.w*dt; OD.wx += R*OD.w*dt*scale; if(OD.wx>cv.width+RP) OD.wx=-RP;
+    draw(); OD.raf=requestAnimationFrame(loop); }
+  $('#odoPlay').addEventListener('click',function(){ OD.playing=!OD.playing; this.classList.toggle('primary',OD.playing); this.textContent=OD.playing?'⏸ Pause':'▶ Roll';
+    cancelAnimationFrame(OD.raf); if(OD.playing && !reduceMotion){ OD.last=0; OD.raf=requestAnimationFrame(loop); } });
+  $('#odoReset').addEventListener('click',()=>{ OD.playing=false; cancelAnimationFrame(OD.raf); const b=$('#odoPlay'); b.classList.remove('primary'); b.textContent='▶ Roll'; OD.theta=0; OD.wx=110; draw(); });
+  $('#odoW').addEventListener('input',function(){ OD.w=(+this.value)*0.035; $('#odoWV').textContent=OD.w.toFixed(1)+' rad/s'; if(!OD.playing) draw(); });
+  draw(); window.__drawOdo=draw;
+})();
+
 /* ============ ICP ============ */
 const icpCv=$('#icpCv'), ictx=icpCv.getContext('2d');
-let MAP=[], SCAN0=[], SCAN=[], icpState={iter:0,theta:0,err:null,corr:null,init:38*Math.PI/180,thresh:0.06,maxIter:20};
+let MAP=[], SCAN0=[], SCAN=[], icpState={iter:0,theta:0,err:null,corr:null,init:38*Math.PI/180,offX:0,offY:0,thresh:0.06,maxIter:20,done:false,stopped:false};
+let icpNoise=0.042;   // per-point scan noise magnitude (driven by the slider; matches its default)
+/* shared indoor room geometry — reused by the live solver AND the method diagrams.
+   Outer walls with a doorway gap on the bottom wall, plus one interior pillar. */
+const ROOM_SEGS=[
+  {a:[-1.3, 0.9], b:[ 1.3, 0.9]},    // top wall
+  {a:[ 1.3, 0.9], b:[ 1.3,-0.9]},    // right wall
+  {a:[ 1.3,-0.9], b:[ 0.25,-0.9]},   // bottom wall (right of doorway)
+  {a:[-0.35,-0.9], b:[-1.3,-0.9]},   // bottom wall (left of doorway)
+  {a:[-1.3,-0.9], b:[-1.3, 0.9]},    // left wall
+  {a:[ 0.35, 0.35], b:[ 0.75, 0.35]},// pillar (interior obstacle)
+  {a:[ 0.75, 0.35], b:[ 0.75,-0.05]},
+  {a:[ 0.75,-0.05], b:[ 0.35,-0.05]},
+  {a:[ 0.35,-0.05], b:[ 0.35, 0.35]},
+];
+function sampleRoom(spacing, jitter){
+  const pts=[];
+  ROOM_SEGS.forEach(s=>{
+    const dx=s.b[0]-s.a[0], dy=s.b[1]-s.a[1], L=Math.hypot(dx,dy), n=Math.max(1,Math.round(L/spacing));
+    for(let i=0;i<=n;i++){ const t=i/n;
+      pts.push({x:s.a[0]+dx*t+(jitter?(Math.random()-.5)*jitter:0),
+                y:s.a[1]+dy*t+(jitter?(Math.random()-.5)*jitter:0)}); }
+  });
+  return pts;
+}
+/* ===== SHARED registration scenario: structure + initial pose (θ, X, Y), used by ALL four solvers ===== */
+let regShape='room', regInit=34*Math.PI/180, regOffX=0, regOffY=0;
+const REG_GT={gt:0.5, tx:0.85, ty:-0.6};
+const REG_LCORNER=[{a:[-1.2,-0.8],b:[-1.2,0.95]},{a:[-1.2,-0.8],b:[1.05,-0.8]}];
+function sampleSegsN(segs,spacing){ const pts=[]; segs.forEach(s=>{ const dx=s.b[0]-s.a[0],dy=s.b[1]-s.a[1],L=Math.hypot(dx,dy),n=Math.max(1,Math.round(L/spacing)),nx=-dy/L,ny=dx/L;
+  for(let i=0;i<=n;i++){ const t=i/n; pts.push({x:s.a[0]+dx*t, y:s.a[1]+dy*t, nx, ny}); } }); return pts; }
+function regShapePts(shape){
+  if(shape==='lcorner') return sampleSegsN(REG_LCORNER,0.26);
+  if(shape==='circle'){ const pts=[],N=42,R=0.95; for(let i=0;i<N;i++){ const a=i/N*2*Math.PI; pts.push({x:R*Math.cos(a),y:R*Math.sin(a),nx:Math.cos(a),ny:Math.sin(a)}); } return pts; }
+  return sampleSegsN(ROOM_SEGS,0.30);   // 'room' and 'partial'
+}
+function drawShapeWalls(ctx, shape, M2S){
+  ctx.strokeStyle='rgba(150,178,212,.30)'; ctx.lineWidth=2;
+  if(shape==='circle'){ ctx.beginPath(); for(let i=0;i<=48;i++){ const a=i/48*2*Math.PI; const p=M2S({x:0.95*Math.cos(a),y:0.95*Math.sin(a)}); i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]); } ctx.stroke(); return; }
+  const segs = shape==='lcorner'?REG_LCORNER:ROOM_SEGS;
+  segs.forEach(sg=>{ const a=M2S({x:sg.a[0],y:sg.a[1]}), b=M2S({x:sg.b[0],y:sg.b[1]}); ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke(); });
+}
 function buildClouds(){
-  // L-shape map (like slides): horizontal + vertical arm
-  MAP=[]; for(let i=0;i<6;i++) MAP.push({x:-1.0+i*0.45, y:1.0}); // top row
-  for(let i=1;i<5;i++) MAP.push({x:-1.0, y:1.0-i*0.42});          // left column
-  // scan = map transformed by an unknown ground-truth pose + noise
-  const gt=0.55, tx=0.9, ty=-0.7;
-  SCAN0=MAP.map(m=>{ const c=Math.cos(-gt),s=Math.sin(-gt);
-    let x=c*(m.x)-s*(m.y)+tx + (Math.random()-.5)*0.05;
-    let y=s*(m.x)+c*(m.y)+ty + (Math.random()-.5)*0.05; return {x,y}; });
+  MAP=regShapePts(regShape);
+  // scan = the structure seen from a fixed ground-truth pose + sensor noise
+  const {gt,tx,ty}=REG_GT, nz=icpNoise, c=Math.cos(-gt), s=Math.sin(-gt);
+  let src=MAP; if(regShape==='partial') src=MAP.filter(m=>m.x<0.25);
+  SCAN0=src.map(m=>({ x:c*m.x - s*m.y + tx + (Math.random()-.5)*nz,
+                      y:s*m.x + c*m.y + ty + (Math.random()-.5)*nz }));
+  // spurious returns (outliers) appear as the noise level climbs
+  const nOut = icpNoise>0.09 ? Math.round((icpNoise-0.09)/0.018) : 0;
+  for(let k=0;k<nOut;k++) SCAN0.push({x:tx+(Math.random()-.5)*2.4, y:ty+(Math.random()-.5)*1.9});
 }
 function applyInit(){
-  const th=icpState.init, c=Math.cos(th), s=Math.sin(th);
-  // rotate SCAN0 around its centroid by init guess to create current SCAN
+  const th=regInit, c=Math.cos(th), s=Math.sin(th);
+  // rotate SCAN0 around its centroid by init guess, then apply the X/Y initial offset
   const cx=avg(SCAN0,'x'),cy=avg(SCAN0,'y');
-  SCAN=SCAN0.map(p=>{ const x=p.x-cx,y=p.y-cy; return {x:c*x-s*y+cx, y:s*x+c*y+cy}; });
-  icpState.iter=0; icpState.theta=0; icpState.err=meanError(); icpState.corr=null;
+  SCAN=SCAN0.map(p=>{ const x=p.x-cx,y=p.y-cy; return {x:c*x-s*y+cx+regOffX, y:s*x+c*y+cy+regOffY}; });
+  icpState.iter=0; icpState.theta=0; icpState.err=meanError(); icpState.corr=null; icpState.done=false; icpState.stopped=false;
   updateIcpUI(); markSteps(-1); drawIcp(); if(typeof setIcpStatus==='function') setIcpStatus('');
 }
 const avg=(a,k)=>a.reduce((s,p)=>s+p[k],0)/a.length;
@@ -797,27 +1168,42 @@ function icpSolveStep(){
   markSteps(3); updateIcpUI(); drawIcp();
   return Math.abs(th);
 }
+/* ===== live registration comparison table (shared by all four solvers) ===== */
+window.REGSTATE={icp:{},p2l:{},ndt:{},gicp:{}};
+function updateRegCmp(){ const T=document.getElementById('regCmp'); if(!T) return;
+  ['icp','p2l','ndt','gicp'].forEach(m=>{ const row=T.querySelector('tr[data-m="'+m+'"]'); if(!row) return;
+    const s=window.REGSTATE[m]||{};
+    row.querySelector('.it').textContent = s.iter!=null? s.iter : 0;
+    row.querySelector('.er').textContent = s.err!=null? s.err.toFixed(3) : '—';
+    row.querySelector('.st').textContent = s.done? (s.stopped?'stopped':'converged') : (s.iter>0?'running':'idle');
+    row.setAttribute('data-state', s.done?'done':(s.iter>0?'run':''));
+  });
+}
 function updateIcpUI(){
   $('#icpIter').textContent=icpState.iter;
   $('#icpErr').textContent= icpState.err==null?'—':icpState.err.toFixed(3);
   $('#icpTheta').textContent=Math.round(icpState.theta*180/Math.PI)+'°';
+  window.REGSTATE.icp={iter:icpState.iter, err:icpState.err, done:icpState.done, stopped:icpState.stopped};
+  updateRegCmp();
 }
 function markSteps(active){ $$('#icpSteps .step').forEach(el=>{ const s=+el.dataset.s; el.classList.toggle('done', active>=0 && s<=active); }); }
 function setIcpStatus(msg,kind){ const el=$('#icpStatus'); if(!msg){el.style.display='none';return;} el.style.display='block';
   el.innerHTML=msg; el.style.borderLeft='3px solid '+(kind==='ok'?cssvar('--good'):cssvar('--sat')); el.style.paddingLeft='12px'; }
 function icpCheckStop(){
-  if(icpState.err!=null && icpState.err < icpState.thresh){ setIcpStatus(`✓ <b>Converged</b> — error ${icpState.err.toFixed(3)} &lt; threshold ${icpState.thresh.toFixed(2)} after ${icpState.iter} iterations.`,'ok'); return true; }
-  if(icpState.iter >= icpState.maxIter){ setIcpStatus(`■ <b>Stopped</b> — reached max ${icpState.maxIter} iterations (error ${icpState.err.toFixed(3)}, still &gt; threshold ${icpState.thresh.toFixed(2)}).`,'warn'); return true; }
+  if(icpState.err!=null && icpState.err < icpState.thresh){ icpState.done=true; icpState.stopped=false; updateIcpUI(); setIcpStatus(`✓ <b>Converged</b> — error ${icpState.err.toFixed(3)} &lt; threshold ${icpState.thresh.toFixed(2)} after ${icpState.iter} iterations.`,'ok'); return true; }
+  if(icpState.iter >= icpState.maxIter){ icpState.done=true; icpState.stopped=true; updateIcpUI(); setIcpStatus(`■ <b>Stopped</b> — reached max ${icpState.maxIter} iterations (error ${icpState.err.toFixed(3)}, still &gt; threshold ${icpState.thresh.toFixed(2)}).`,'warn'); return true; }
   return false;
 }
-function W2S(p,w,h){ return [w*0.5 + p.x*(w*0.28), h*0.55 - p.y*(h*0.28)]; }
+function W2S(p,w,h){ return [w*0.5 + p.x*(w*0.16), h*0.5 - p.y*(h*0.17)]; }
 function drawIcp(){
   const w=icpCv.width,h=icpCv.height; ictx.clearRect(0,0,w,h);
   ictx.fillStyle=cssvar('--viewport-bg'); ictx.fillRect(0,0,w,h);
   // grid
   ictx.strokeStyle='rgba(120,150,190,.12)'; ictx.lineWidth=1;
   for(let gx=w*0.5%40;gx<w;gx+=40){ictx.beginPath();ictx.moveTo(gx,0);ictx.lineTo(gx,h);ictx.stroke();}
-  for(let gy=(h*0.55)%40;gy<h;gy+=40){ictx.beginPath();ictx.moveTo(0,gy);ictx.lineTo(w,gy);ictx.stroke();}
+  for(let gy=(h*0.5)%40;gy<h;gy+=40){ictx.beginPath();ictx.moveTo(0,gy);ictx.lineTo(w,gy);ictx.stroke();}
+  // map walls (outline of the current structure the points are sampled from)
+  drawShapeWalls(ictx, regShape, p=>W2S(p,w,h));
   // correspondences
   if(icpState.corr){ ictx.strokeStyle=cssvar('--accent'); ictx.lineWidth=1.2; ictx.globalAlpha=.7;
     icpState.corr.forEach(c=>{ const [ax,ay]=W2S(SCAN[c.i],w,h), [bx,by]=W2S(MAP[c.j],w,h);
@@ -832,9 +1218,10 @@ function drawIcp(){
   ictx.fillStyle='#8fa3bd'; ictx.font='11px IBM Plex Mono, monospace';
   ictx.fillText('mean error: '+(icpState.err==null?'—':icpState.err.toFixed(3)), 12, 20);
 }
-$('#icpInit').addEventListener('input',function(){ icpState.init=(+this.value)*Math.PI/180; $('#icpInitV').textContent=this.value+'°'; applyInit(); });
 $('#icpThresh').addEventListener('input',function(){ icpState.thresh=+this.value; $('#icpThreshV').textContent=(+this.value).toFixed(2); });
 $('#icpMax').addEventListener('input',function(){ icpState.maxIter=+this.value; $('#icpMaxV').textContent=this.value; });
+$('#icpNoise').addEventListener('input',function(){ const v=+this.value; icpNoise=0.02+(v/100)*0.16;
+  $('#icpNoiseV').textContent = v<33?'low':v<66?'medium':'high'; buildClouds(); applyInit(); });
 $('#icpMatch').addEventListener('click',findCorr);
 $('#icpStep').addEventListener('click',()=>{ icpSolveStep(); icpCheckStop(); });
 $('#icpReset').addEventListener('click',()=>{ buildClouds(); applyInit(); });
@@ -845,6 +1232,179 @@ $('#icpAuto').addEventListener('click',function(){
   setIcpStatus(''); this.textContent='⏸ Stop'; this.classList.add('primary');
   icpAutoTimer=setInterval(()=>{ findCorr(); setTimeout(()=>{ icpSolveStep(); if(icpCheckStop()){ stopIcpAuto(); } }, reduceMotion?0:180); }, reduceMotion?60:520);
 });
+
+/* ============ REGISTRATION METHOD SOLVERS (live: point-to-plane, NDT, GICP) ============ */
+const REGSOLVERS=[];
+(function(){
+  if(!$('#p2lCv')) return;
+  const inv2x2=A=>{ const d=A[0][0]*A[1][1]-A[0][1]*A[1][0]||1e-9; return [[A[1][1]/d,-A[0][1]/d],[-A[1][0]/d,A[0][0]/d]]; };
+  function covFromNormal(nx,ny,st,sn){ // st = along-surface variance, sn = across (normal) variance
+    return [[st*ny*ny+sn*nx*nx, -st*ny*nx+sn*nx*ny],[-st*ny*nx+sn*nx*ny, st*nx*nx+sn*ny*ny]]; }
+  function solve3(A,b){ // solve 3x3 A x = b  (Gauss elimination, partial pivot)
+    const M=[[A[0][0],A[0][1],A[0][2],b[0]],[A[1][0],A[1][1],A[1][2],b[1]],[A[2][0],A[2][1],A[2][2],b[2]]];
+    for(let i=0;i<3;i++){ let p=i; for(let r=i+1;r<3;r++) if(Math.abs(M[r][i])>Math.abs(M[p][i])) p=r;
+      const tmp=M[i]; M[i]=M[p]; M[p]=tmp; if(Math.abs(M[i][i])<1e-12) M[i][i]=1e-12;
+      for(let r=0;r<3;r++) if(r!==i){ const f=M[r][i]/M[i][i]; for(let c=i;c<4;c++) M[r][c]-=f*M[i][c]; } }
+    return [M[0][3]/M[0][0], M[1][3]/M[1][1], M[2][3]/M[2][2]]; }
+
+  function makeSolver(cfg){
+    const p=cfg.p, cv=$('#'+p+'Cv'), ctx=cv.getContext('2d');
+    const S2=(pt)=>[cv.width*0.5 + pt.x*(cv.width*0.16), cv.height*0.5 - pt.y*(cv.height*0.17)];
+    const st={map:[], scan:[], iter:0, theta:0, err:null, init:34*Math.PI/180, maxIter:20,
+      corr:null, cells:null, cell:0.55, aniso:10, done:false, auto:null};
+    function build(){
+      st.map=regShapePts(regShape);
+      const {gt,tx,ty}=REG_GT, c=Math.cos(-gt), s=Math.sin(-gt);
+      // 'partial': the scan sees only part of the structure (no full correspondence)
+      let src=st.map; if(regShape==='partial') src=st.map.filter(m=>m.x<0.25);
+      st.scan0=src.map(m=>({x:c*m.x-s*m.y+tx+(Math.random()-.5)*0.04, y:s*m.x+c*m.y+ty+(Math.random()-.5)*0.04}));
+    }
+    function buildCells(){ // NDT: partition space into square cells, fit a Gaussian per populated cell
+      const cs=st.cell, cells={};
+      st.map.forEach(m=>{ const cx=Math.floor(m.x/cs), cy=Math.floor(m.y/cs), key=cx+','+cy;
+        (cells[key]=cells[key]||[]).push(m); });
+      st.cells=[];
+      Object.keys(cells).forEach(key=>{ const pts=cells[key]; if(pts.length<3) return;
+        const mx=pts.reduce((a,q)=>a+q.x,0)/pts.length, my=pts.reduce((a,q)=>a+q.y,0)/pts.length;
+        let a=0,b=0,d=0; pts.forEach(q=>{const ex=q.x-mx,ey=q.y-my; a+=ex*ex;b+=ex*ey;d+=ey*ey;});
+        a/=pts.length;b/=pts.length;d/=pts.length; a+=1e-3; d+=1e-3;   // regularise
+        const kx=key.split(',').map(Number);
+        st.cells.push({key, cx:kx[0]*cs, cy:kx[1]*cs, cs, mean:[mx,my], cov:[[a,b],[b,d]], icov:inv2x2([[a,b],[b,d]])}); });
+    }
+    const nearestMap=q=>{ let bi=0,bd=1e9; for(let i=0;i<st.map.length;i++){const dx=st.map[i].x-q.x,dy=st.map[i].y-q.y,dd=dx*dx+dy*dy; if(dd<bd){bd=dd;bi=i;}} return bi; };
+    function cellOf(q){ const cx=Math.floor(q.x/st.cell), cy=Math.floor(q.y/st.cell), key=cx+','+cy;
+      return st.cells.find(c=>c.key===key)||null; }
+    // per scan point → {t:[x,y] target, W:[[..]] 2x2 weight}  (null = skip this point)
+    function targetsWeights(){
+      return st.scan.map(q=>{
+        if(cfg.method==='ndt'){ const c=cellOf(q); if(!c) return null; return {t:c.mean, W:c.icov}; }
+        const m=st.map[nearestMap(q)];
+        if(cfg.method==='p2l'){ return {t:[m.x,m.y], W:[[m.nx*m.nx,m.nx*m.ny],[m.nx*m.ny,m.ny*m.ny]]}; }
+        // gicp: sum of two flat surface covariances (map + scan), weight = its inverse
+        const Cm=covFromNormal(m.nx,m.ny,1,1/st.aniso), Cs=Cm;
+        return {t:[m.x,m.y], W:inv2x2([[Cm[0][0]+Cs[0][0],Cm[0][1]+Cs[0][1]],[Cm[1][0]+Cs[1][0],Cm[1][1]+Cs[1][1]]])};
+      });
+    }
+    // reported error = geometric alignment (nearest map point), comparable across all methods
+    function meanErrGeom(){ let e=0; st.scan.forEach(q=>{ const m=st.map[nearestMap(q)]; e+=Math.hypot(q.x-m.x,q.y-m.y); }); return st.scan.length? e/st.scan.length : 0; }
+    function applyInit(){
+      const th=regInit, c=Math.cos(th), s=Math.sin(th);
+      const cx=avg(st.scan0,'x'), cy=avg(st.scan0,'y');
+      st.scan=st.scan0.map(q=>{const x=q.x-cx,y=q.y-cy; return {x:c*x-s*y+cx+regOffX, y:s*x+c*y+cy+regOffY};});
+      st.iter=0; st.theta=0; st.corr=null; st.done=false; st.stopped=false; st.err=meanErrGeom(); ui(); draw(); status('');
+    }
+    function match(){ st.corr=targetsWeights(); draw(); }
+    function step(){
+      const tw=st.corr||targetsWeights();
+      const cx=avg(st.scan,'x'), cy=avg(st.scan,'y');
+      const A=[[0,0,0],[0,0,0],[0,0,0]], b=[0,0,0];
+      st.scan.forEach((q,i)=>{ const w=tw[i]; if(!w) return;
+        const J=[[-(q.y-cy),1,0],[(q.x-cx),0,1]];     // 2x3 Jacobian of R(θ)(q-c)+c+t
+        const d0=[q.x-w.t[0], q.y-w.t[1]], W=w.W;
+        const Wd=[W[0][0]*d0[0]+W[0][1]*d0[1], W[1][0]*d0[0]+W[1][1]*d0[1]];
+        const WJ=[[0,0,0],[0,0,0]];
+        for(let k=0;k<3;k++){ WJ[0][k]=W[0][0]*J[0][k]+W[0][1]*J[1][k]; WJ[1][k]=W[1][0]*J[0][k]+W[1][1]*J[1][k]; }
+        for(let r=0;r<3;r++){ for(let c2=0;c2<3;c2++) A[r][c2]+=J[0][r]*WJ[0][c2]+J[1][r]*WJ[1][c2]; b[r]+=J[0][r]*Wd[0]+J[1][r]*Wd[1]; }
+      });
+      A[0][0]+=1e-6; A[1][1]+=1e-6; A[2][2]+=1e-6;
+      const x=solve3(A,[-b[0],-b[1],-b[2]]);
+      const dth=clamp(x[0],-0.6,0.6), dtx=x[1], dty=x[2], c=Math.cos(dth), s=Math.sin(dth);
+      st.scan=st.scan.map(q=>{const vx=q.x-cx,vy=q.y-cy; return {x:c*vx-s*vy+cx+dtx, y:s*vx+c*vy+cy+dty};});
+      st.iter++; st.theta+=dth; st.corr=null; st.err=meanErrGeom(); ui(); draw();
+      return Math.hypot(dtx,dty)+Math.abs(dth);
+    }
+    function ui(){ $('#'+p+'Iter').textContent=st.iter; $('#'+p+'Err').textContent= st.err==null?'—':st.err.toFixed(3);
+      $('#'+p+'Theta').textContent=Math.round(st.theta*180/Math.PI)+'°';
+      if(window.REGSTATE){ window.REGSTATE[cfg.method]={iter:st.iter, err:st.err, done:st.done, stopped:st.stopped}; if(window.updateRegCmp) window.updateRegCmp(); } }
+    function status(msg,kind){ const el=$('#'+p+'Status'); if(!msg){el.style.display='none';return;} el.style.display='block';
+      el.innerHTML=msg; el.style.borderLeft='3px solid '+(kind==='ok'?cssvar('--good'):cssvar('--sat')); el.style.paddingLeft='12px'; }
+    function checkStop(upd){ if(upd!=null && upd<0.003){ st.done=true; st.stopped=false; ui(); status(`✓ <b>Converged</b> — settled after ${st.iter} iterations (mean error ${st.err.toFixed(3)}).`,'ok'); return true; }
+      if(st.iter>=st.maxIter){ st.done=true; st.stopped=true; ui(); status(`■ <b>Stopped</b> — reached max ${st.maxIter} iterations (mean error ${st.err.toFixed(3)}).`,'warn'); return true; } return false; }
+    // ---- drawing ----
+    function draw(){
+      const w=cv.width,h=cv.height; ctx.clearRect(0,0,w,h);
+      ctx.fillStyle=cssvar('--viewport-bg'); ctx.fillRect(0,0,w,h);
+      ctx.strokeStyle='rgba(120,150,190,.12)'; ctx.lineWidth=1;
+      for(let gx=w*0.5%40;gx<w;gx+=40){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,h);ctx.stroke();}
+      for(let gy=(h*0.5)%40;gy<h;gy+=40){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(w,gy);ctx.stroke();}
+      if(cfg.method==='ndt') drawCells();
+      // map walls (current structure)
+      drawShapeWalls(ctx, regShape, p=>S2(p));
+      // correspondences / overlays
+      if(st.corr && cfg.method!=='ndt'){ ctx.strokeStyle=cssvar('--accent'); ctx.lineWidth=1; ctx.globalAlpha=.55;
+        st.scan.forEach((q,i)=>{ const w2=st.corr[i]; if(!w2) return; const [ax,ay]=S2(q),[bx,by]=S2({x:w2.t[0],y:w2.t[1]}); ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.stroke(); }); ctx.globalAlpha=1; }
+      if(cfg.method==='p2l' && st.corr){ // draw wall normals + residual along the normal
+        st.scan.forEach((q,i)=>{ if(i%2) return; const w2=st.corr[i]; if(!w2)return; const m=st.map[nearestMap(q)];
+          const d=(q.x-m.x)*m.nx+(q.y-m.y)*m.ny, proj={x:q.x-d*m.nx,y:q.y-d*m.ny};
+          const [ax,ay]=S2(q),[px,py]=S2(proj),[mx,my]=S2(m);
+          ctx.strokeStyle=cssvar('--sat'); ctx.setLineDash([3,3]); ctx.lineWidth=1.3; ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(px,py);ctx.stroke(); ctx.setLineDash([]);
+          ctx.strokeStyle=cssvar('--good'); ctx.lineWidth=1.6; ctx.beginPath();ctx.moveTo(mx,my);ctx.lineTo(mx+m.nx*14,my-m.ny*14);ctx.stroke(); });
+      }
+      if(cfg.method==='gicp'){ drawDiscs(); }
+      // map points
+      st.map.forEach(m=>{ const [x,y]=S2(m); ctx.fillStyle='#c9d4e3'; ctx.beginPath();ctx.arc(x,y,3.5,0,7);ctx.fill(); ctx.strokeStyle='#54627a';ctx.lineWidth=1;ctx.stroke(); });
+      // scan points (NDT: shade by likelihood)
+      st.scan.forEach(q=>{ const [x,y]=S2(q);
+        if(cfg.method==='ndt'){ const c=cellOf(q); let good=false; if(c){ const dx=q.x-c.mean[0],dy=q.y-c.mean[1];
+            const md=dx*(c.icov[0][0]*dx+c.icov[0][1]*dy)+dy*(c.icov[1][0]*dx+c.icov[1][1]*dy); good=md<6; }
+          ctx.fillStyle=good?cssvar('--good'):cssvar('--alert'); }
+        else ctx.fillStyle=cssvar('--alert');
+        ctx.beginPath();ctx.arc(x,y,3.2,0,7);ctx.fill(); });
+      ctx.fillStyle='#8fa3bd'; ctx.font='11px IBM Plex Mono, monospace';
+      ctx.fillText('mean error: '+(st.err==null?'—':st.err.toFixed(3)), 12, 20);
+    }
+    function drawCells(){ if(!st.cells) return;
+      st.cells.forEach(c=>{ const e=eigEllipse(c.cov); const [cx,cy]=S2({x:c.mean[0],y:c.mean[1]});
+        ctx.save(); ctx.translate(cx,cy); ctx.rotate(-e.ang);
+        ctx.fillStyle='rgba(46,193,119,.16)'; ctx.strokeStyle=cssvar('--good'); ctx.lineWidth=1.2;
+        ctx.beginPath(); ctx.ellipse(0,0, Math.max(4,e.ax*cv.width*0.16*2.4), Math.max(2.5,e.ay*cv.height*0.17*2.4),0,0,7); ctx.fill(); ctx.stroke(); ctx.restore(); });
+    }
+    function drawDiscs(){ // covariance discs on map + matched scan points
+      for(let i=0;i<st.map.length;i+=2){ const m=st.map[i]; const ang=Math.atan2(m.nx,m.ny);
+        const rt=13, rn=Math.max(2.2, rt/st.aniso); const [mx,my]=S2(m);
+        const disc=(cx,cy,col,fill)=>{ ctx.save();ctx.translate(cx,cy);ctx.rotate(ang); ctx.fillStyle=fill;ctx.strokeStyle=col;ctx.lineWidth=1.1; ctx.beginPath();ctx.ellipse(0,0,rt,rn,0,0,7);ctx.fill();ctx.stroke();ctx.restore(); };
+        disc(mx,my, cssvar('--accent'),'rgba(0,100,175,.20)');
+      }
+      st.scan.forEach((q,i)=>{ if(i%2) return; const m=st.map[nearestMap(q)]; const ang=Math.atan2(m.nx,m.ny);
+        const rt=13, rn=Math.max(2.2, rt/st.aniso); const [sx,sy]=S2(q);
+        ctx.save();ctx.translate(sx,sy);ctx.rotate(ang); ctx.fillStyle='rgba(207,59,65,.20)';ctx.strokeStyle=cssvar('--alert');ctx.lineWidth=1.1; ctx.beginPath();ctx.ellipse(0,0,rt,rn,0,0,7);ctx.fill();ctx.stroke();ctx.restore(); });
+    }
+    // ---- controls ----
+    function stopAuto(){ if(st.auto){clearInterval(st.auto);st.auto=null;} const b=$('#'+p+'Auto'); b.textContent='▶ Auto-run'; b.classList.remove('primary'); }
+    function rebuild(){ stopAuto(); build(); if(cfg.method==='ndt') buildCells(); applyInit(); }
+    $('#'+p+'Match').addEventListener('click',match);
+    $('#'+p+'Step').addEventListener('click',()=>{ const u=step(); checkStop(u); });
+    $('#'+p+'Reset').addEventListener('click',rebuild);
+    $('#'+p+'Auto').addEventListener('click',function(){ if(st.auto){stopAuto();return;}
+      status(''); this.textContent='⏸ Stop'; this.classList.add('primary');
+      st.auto=setInterval(()=>{ match(); setTimeout(()=>{ const u=step(); if(checkStop(u)) stopAuto(); }, reduceMotion?0:150); }, reduceMotion?60:460); });
+    $('#'+p+'Max').addEventListener('input',function(){ st.maxIter=+this.value; $('#'+p+'MaxV').textContent=this.value; });
+    if(cfg.method==='ndt') $('#ndtCell').addEventListener('input',function(){ st.cell=(+this.value)/100; $('#ndtCellV').textContent=st.cell.toFixed(2); buildCells(); applyInit(); });
+    if(cfg.method==='gicp') $('#gicpAniso').addEventListener('input',function(){ st.aniso=+this.value; $('#gicpAnisoV').textContent=this.value+'×'; st.err=meanErrGeom(); draw(); });
+    build(); if(cfg.method==='ndt') buildCells(); applyInit();
+    return {draw, rebuild, reinit:()=>{ stopAuto(); applyInit(); }};
+  }
+  REGSOLVERS.push(makeSolver({p:'p2l', method:'p2l'}));
+  REGSOLVERS.push(makeSolver({p:'ndt', method:'ndt'}));
+  REGSOLVERS.push(makeSolver({p:'gicp',method:'gicp'}));
+  window.__drawAllReg=()=>REGSOLVERS.forEach(s=>s.draw());
+  // shared scenario controls (structure + translation offset)
+  const SHAPE_NOTE={
+    room:'A small indoor room with a doorway and a pillar — flat walls in two orientations.',
+    lcorner:'Two perpendicular walls — the classic corner. Point-to-plane lets the scan slide along each wall.',
+    circle:'A curved wall — the normal rotates continuously, so there are no flat planes to exploit.',
+    partial:'The scan sees only PART of the map — many scan points have no true match. Correspondence-free NDT stays robust where nearest-point matching mis-associates.'
+  };
+  // apply the shared scenario to ALL four solvers (ICP is global; the other three are in REGSOLVERS)
+  const rebuildAll=()=>{ if(typeof buildClouds==='function'){ buildClouds(); applyInit(); } REGSOLVERS.forEach(s=>s.rebuild()); };
+  const reinitAll =()=>{ if(typeof applyInit==='function') applyInit(); REGSOLVERS.forEach(s=>s.reinit()); };
+  $$('#regShapeSeg button').forEach(b=>b.addEventListener('click',function(){
+    regShape=this.dataset.shape; $$('#regShapeSeg button').forEach(x=>x.classList.toggle('active',x===this));
+    $('#regShapeNote').textContent=SHAPE_NOTE[regShape]||''; rebuildAll(); }));
+  $('#regInit').addEventListener('input',function(){ regInit=(+this.value)*Math.PI/180; $('#regInitV').textContent=this.value+'°'; reinitAll(); });
+  $('#regOffX').addEventListener('input',function(){ regOffX=(+this.value)/100; $('#regOffXV').textContent=regOffX.toFixed(2); reinitAll(); });
+  $('#regOffY').addEventListener('input',function(){ regOffY=(+this.value)/100; $('#regOffYV').textContent=regOffY.toFixed(2); reinitAll(); });
+})();
 
 /* ============ VSLAM: convolution/feature detection ============ */
 const convCv=$('#convCv'), cctx=convCv.getContext('2d');
@@ -985,7 +1545,8 @@ $('#matchReset').addEventListener('click',()=>{ newFramePair(); $('#matchInfo').
 /* ============ SENSOR FUSION · 2D KALMAN FILTER ============ */
 const kfCv=$('#kfCv'), kctx=kfCv.getContext('2d');
 const KF={ t:0, dt:0.06, playing:false, raf:null,
-  gnssNoise:16, driftRate:4, tunnel:false, lidarOn:true, lidarNoise:7,
+  gnssNoise:16, driftRate:4, tunnel:false, lidarNoise:7,
+  sensors:{wheel:true, imu:true, gnss:true, lidarOdom:true, registration:true},
   dr:{x:0,y:0}, x:[0,0], P:[[4,0],[0,4]], drift:0,
   trueTrail:[], drTrail:[], kfTrail:[], gnssDots:[], lidarDots:[], errDr:0, errKf:0, gnssOn:true };
 let kfSeed=1; function nrand(){ // deterministic-ish gaussian (Box-Muller w/ Math.random)
@@ -1003,39 +1564,43 @@ function kfInit(){
   KF.trueTrail=[]; KF.drTrail=[]; KF.kfTrail=[]; KF.gnssDots=[]; KF.lidarDots=[]; KF.errDr=0; KF.errKf=0;
   drawKf();
 }
+// one Kalman measurement update against an absolute position z with isotropic variance r
+function kfCorrect(zx,zy,r){
+  const S=add2(KF.P,[[r,0],[0,r]]); const K=mul2(KF.P,inv2(S));
+  const yx=zx-KF.x[0], yy=zy-KF.x[1];
+  KF.x=[KF.x[0]+K[0][0]*yx+K[0][1]*yy, KF.x[1]+K[1][0]*yx+K[1][1]*yy];
+  const IK=[[1-K[0][0],-K[0][1]],[-K[1][0],1-K[1][1]]]; KF.P=mul2(IK,KF.P);
+}
 function kfStep(){
   const dt=KF.dt; KF.t+=dt;
   const pt=truePos(KF.t), pp=truePos(KF.t-dt);
-  const tdx=pt.x-pp.x, tdy=pt.y-pp.y;
-  // odometry delta: accumulating heading drift + noise (the classic dead-reckoning error)
-  KF.drift += (KF.driftRate*0.0016)*dt*60;
-  const c=Math.cos(KF.drift), s=Math.sin(KF.drift), on=KF.driftRate*0.10;
-  const od={ x:c*tdx - s*tdy + nrand()*on, y:s*tdx + c*tdy + nrand()*on };
+  const tdx=pt.x-pp.x, tdy=pt.y-pp.y;     // true motion delta this step
+  const S=KF.sensors;
+  const hasWheel=S.wheel, hasLO=S.lidarOdom, anyMotion=hasWheel||hasLO||S.imu;
+  // heading drift: worst on IMU-only, tamed by IMU aiding, almost none from LiDAR odometry
+  const driftGain = hasLO ? 0.05 : hasWheel ? (S.imu?0.30:1.0) : S.imu ? 1.6 : 0;
+  KF.drift += (KF.driftRate*0.0016)*dt*60*driftGain;
+  const c=Math.cos(KF.drift), s=Math.sin(KF.drift);
+  // motion / prediction — average of the enabled dead-reckoning sources
+  let od={x:0,y:0}, nSrc=0;
+  const push=(dx,dy,nz)=>{ od.x+=dx+nrand()*nz; od.y+=dy+nrand()*nz; nSrc++; };
+  if(hasLO)   push(tdx, tdy, 1.4);                                   // LiDAR odometry: accurate, tunnel-proof
+  if(hasWheel)push(c*tdx-s*tdy, s*tdx+c*tdy, KF.driftRate*0.10);     // wheel odometry: drifts
+  if(!hasWheel && !hasLO && S.imu) push(c*tdx-s*tdy, s*tdx+c*tdy, KF.driftRate*0.16+1.2); // IMU-only DR: poor
+  if(nSrc){ od.x/=nSrc; od.y/=nSrc; }
   KF.dr.x+=od.x; KF.dr.y+=od.y;
-  // KF predict
+  // KF predict — grow uncertainty; grow a lot when there's no motion sensor at all
   KF.x[0]+=od.x; KF.x[1]+=od.y;
-  const q=0.6+KF.driftRate*0.15; KF.P=add2(KF.P,[[q,0],[0,q]]);
-  // GNSS correct
-  KF.gnssOn = !insideTunnel(pt);
-  if(KF.gnssOn){
-    const z=[pt.x+nrand()*KF.gnssNoise, pt.y+nrand()*KF.gnssNoise];
-    const r=KF.gnssNoise*KF.gnssNoise;
-    const S=add2(KF.P,[[r,0],[0,r]]); const K=mul2(KF.P,inv2(S));
-    const yx=z[0]-KF.x[0], yy=z[1]-KF.x[1];
-    KF.x=[KF.x[0]+K[0][0]*yx+K[0][1]*yy, KF.x[1]+K[1][0]*yx+K[1][1]*yy];
-    const IK=[[1-K[0][0],-K[0][1]],[-K[1][0],1-K[1][1]]]; KF.P=mul2(IK,KF.P);
-    KF.gnssDots.push({x:z[0],y:z[1]}); if(KF.gnssDots.length>45) KF.gnssDots.shift();
-  }
-  // LiDAR + ICP scan-matching correction (accurate; works even in the tunnel)
-  if(KF.lidarOn){
-    const zl=[pt.x+nrand()*KF.lidarNoise, pt.y+nrand()*KF.lidarNoise];
-    const rl=KF.lidarNoise*KF.lidarNoise;
-    const S=add2(KF.P,[[rl,0],[0,rl]]); const K=mul2(KF.P,inv2(S));
-    const yx=zl[0]-KF.x[0], yy=zl[1]-KF.x[1];
-    KF.x=[KF.x[0]+K[0][0]*yx+K[0][1]*yy, KF.x[1]+K[1][0]*yx+K[1][1]*yy];
-    const IK=[[1-K[0][0],-K[0][1]],[-K[1][0],1-K[1][1]]]; KF.P=mul2(IK,KF.P);
-    KF.lidarDots.push({x:zl[0],y:zl[1]}); if(KF.lidarDots.length>45) KF.lidarDots.shift();
-  }
+  const q=0.6+KF.driftRate*0.15 + (anyMotion?0:6); KF.P=add2(KF.P,[[q,0],[0,q]]);
+  // GNSS correction — absolute, noisy, lost in the tunnel
+  KF.gnssOn = S.gnss && !insideTunnel(pt);
+  if(KF.gnssOn){ const zx=pt.x+nrand()*KF.gnssNoise, zy=pt.y+nrand()*KF.gnssNoise;
+    kfCorrect(zx,zy, KF.gnssNoise*KF.gnssNoise);
+    KF.gnssDots.push({x:zx,y:zy}); if(KF.gnssDots.length>45) KF.gnssDots.shift(); }
+  // Registration / map-matching correction — accurate, works even in the tunnel
+  if(S.registration){ const zx=pt.x+nrand()*KF.lidarNoise, zy=pt.y+nrand()*KF.lidarNoise;
+    kfCorrect(zx,zy, KF.lidarNoise*KF.lidarNoise);
+    KF.lidarDots.push({x:zx,y:zy}); if(KF.lidarDots.length>45) KF.lidarDots.shift(); }
   KF.trueTrail.push({x:pt.x,y:pt.y}); KF.drTrail.push({x:KF.dr.x,y:KF.dr.y}); KF.kfTrail.push({x:KF.x[0],y:KF.x[1]});
   [KF.trueTrail,KF.drTrail,KF.kfTrail].forEach(a=>{ if(a.length>320)a.shift(); });
   KF.errDr=Math.hypot(KF.dr.x-pt.x,KF.dr.y-pt.y); KF.errKf=Math.hypot(KF.x[0]-pt.x,KF.x[1]-pt.y);
@@ -1075,7 +1640,7 @@ function drawKf(){
   const mk=(x,y,col,r)=>{ kctx.fillStyle=col; kctx.beginPath();kctx.arc(x,y,r,0,7);kctx.fill(); kctx.strokeStyle=cssvar('--viewport-bg');kctx.lineWidth=1.5;kctx.stroke(); };
   mk(pt.x,pt.y,cssvar('--good'),5); mk(KF.dr.x,KF.dr.y,cssvar('--axY'),4.5); mk(KF.x[0],KF.x[1],cssvar('--alert'),5);
   if(KF.gnssOn && KF.gnssDots.length){ const g=KF.gnssDots[KF.gnssDots.length-1]; mk(g.x,g.y,cssvar('--accent'),4); }
-  if(KF.lidarOn && KF.lidarDots.length){ const l=KF.lidarDots[KF.lidarDots.length-1]; mk(l.x,l.y,'#a98bef',4); }
+  if(KF.sensors.registration && KF.lidarDots.length){ const l=KF.lidarDots[KF.lidarDots.length-1]; mk(l.x,l.y,'#a98bef',4); }
   // readouts (px → metres, 1px ≈ 0.08 m)
   const M=0.08; $('#kfErrDr').textContent=(KF.errDr*M).toFixed(1)+' m'; $('#kfErrKf').textContent=(KF.errKf*M).toFixed(1)+' m';
 }
@@ -1086,19 +1651,148 @@ $('#kfPlay').addEventListener('click',function(){
   if(KF.playing) kfLoop();
 });
 $('#kfReset').addEventListener('click',()=>{ kfInit(); });
-$('#kfTunnel').addEventListener('change',e=>{ KF.tunnel=e.target.checked; drawKf(); });
-$('#kfLidar').addEventListener('change',e=>{ KF.lidarOn=e.target.checked; });
+$('#kfTunnel').addEventListener('change',e=>{ KF.tunnel=e.target.checked; kfVerdict(); drawKf(); });
 $('#kfGnss').addEventListener('input',function(){ KF.gnssNoise=+this.value; $('#kfGnssV').textContent=this.value; });
 $('#kfDrift').addEventListener('input',function(){ KF.driftRate=+this.value; $('#kfDriftV').textContent=this.value; });
+
+/* sensor box system + scenario presets */
+const SENSORS=[
+  {k:'wheel',        name:'Wheel odometry', role:'motion · drifts',       motion:true},
+  {k:'imu',          name:'IMU',            role:'attitude aiding',       motion:true},
+  {k:'gnss',         name:'GNSS',           role:'absolute · noisy',      motion:false},
+  {k:'lidarOdom',    name:'LiDAR odometry', role:'motion · tunnel-proof', motion:true},
+  {k:'registration', name:'Registration',   role:'absolute · map match',  motion:false},
+];
+function renderSensorGrid(){
+  const g=$('#sensorGrid'); if(!g) return;
+  g.innerHTML=SENSORS.map(sd=>{ const on=KF.sensors[sd.k];
+    return `<div class="sensor-box ${on?'on':'off'} ${sd.motion?'motion':''}" data-k="${sd.k}" role="button" tabindex="0" aria-pressed="${on}">
+      <div class="sb-top"><span class="sb-name">${sd.name}</span><span class="sb-dot"></span></div>
+      <div class="sb-role">${sd.role}</div></div>`; }).join('');
+  $$('#sensorGrid .sensor-box').forEach(el=>{
+    const toggle=()=>{ const k=el.dataset.k; KF.sensors[k]=!KF.sensors[k]; renderSensorGrid(); kfVerdict(); if(!KF.playing) drawKf(); };
+    el.addEventListener('click',toggle);
+    el.addEventListener('keydown',e=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); toggle(); } });
+  });
+}
+const PRESETS=[
+  {n:'Highway',       s:{wheel:1,imu:1,gnss:1,lidarOdom:0,registration:0}, tunnel:0, gnss:8,  drift:4},
+  {n:'Tunnel',        s:{wheel:1,imu:1,gnss:1,lidarOdom:1,registration:1}, tunnel:1, gnss:16, drift:4},
+  {n:'Urban canyon',  s:{wheel:1,imu:1,gnss:1,lidarOdom:0,registration:1}, tunnel:0, gnss:30, drift:5},
+  {n:'Sensor failure',s:{wheel:1,imu:0,gnss:0,lidarOdom:0,registration:0}, tunnel:0, gnss:16, drift:7},
+];
+function applyPreset(p){
+  Object.keys(KF.sensors).forEach(k=>KF.sensors[k]=!!p.s[k]);
+  KF.tunnel=!!p.tunnel; $('#kfTunnel').checked=KF.tunnel;
+  KF.gnssNoise=p.gnss; $('#kfGnss').value=p.gnss; $('#kfGnssV').textContent=p.gnss;
+  KF.driftRate=p.drift; $('#kfDrift').value=p.drift; $('#kfDriftV').textContent=p.drift;
+  renderSensorGrid(); kfInit(); kfVerdict();
+}
+function renderPresets(){
+  const r=$('#presetRow'); if(!r) return;
+  r.innerHTML=PRESETS.map((p,i)=>`<button class="preset-btn" data-i="${i}">${p.n}</button>`).join('');
+  $$('#presetRow .preset-btn').forEach(b=>b.addEventListener('click',()=>applyPreset(PRESETS[+b.dataset.i])));
+}
+function kfVerdict(){
+  const el=$('#kfStatus'); if(!el) return; const S=KF.sensors;
+  const motion=S.wheel||S.lidarOdom||S.imu, abs=S.gnss||S.registration; let msg;
+  if(!motion && !abs){ msg='<b>No sensors.</b> The estimate is blind — it can neither predict motion nor correct. Switch something on.'; }
+  else if(!motion){ msg='<b>No motion sensor.</b> With only absolute fixes the estimate snaps to each measurement but can\'t predict between them — jittery and jumpy.'; }
+  else if(!abs){ msg='<b>Dead-reckoning only.</b> '+(S.lidarOdom?'LiDAR odometry drifts slowly':(S.wheel?'Wheel odometry drifts':'IMU integration drifts fast'))+' with no absolute reference — the path steadily walks away from truth. Add GNSS or registration to anchor it.'; }
+  else {
+    const parts=SENSORS.filter(sd=>S[sd.k]).map(sd=>sd.name.toLowerCase());
+    msg='<b>Fusing '+parts.length+' source'+(parts.length>1?'s':'')+'</b> ('+parts.join(', ')+'). ';
+    if(KF.tunnel){ msg += (S.registration||S.lidarOdom) ? 'In the tunnel GNSS is gone, but '+(S.registration?'map registration':'LiDAR odometry')+' holds the fix locked.' : '⚠ In the tunnel GNSS drops and nothing structural is left — expect the estimate to drift.'; }
+    else { msg += (S.gnss?'GNSS anchors the absolute position; ':'') + ((S.imu&&S.wheel)?'the IMU keeps heading honest.':'the motion sensors smooth it between fixes.'); }
+  }
+  el.innerHTML=msg;
+}
+
+/* ============ VSLAM PIPELINE (clickable) ============ */
+(function(){
+  const pipe=$('#vsPipe'); if(!pipe) return; const desc=$('#vsPipeDesc');
+  $$('#vsPipe .pstep').forEach(el=>{
+    const show=()=>{ $$('#vsPipe .pstep').forEach(x=>x.classList.toggle('act',x===el)); desc.innerHTML='<b>'+el.textContent.trim()+':</b> '+el.dataset.d; };
+    el.addEventListener('click',show); el.addEventListener('mouseenter',show);
+  });
+})();
+
+/* ============ GRAPH SLAM / RTAB-MAP LOOP CLOSURE ============ */
+(function(){
+  const cv=$('#loopCv'); if(!cv) return; const ctx=cv.getContext('2d');
+  const LP={NK:26, nodes:[], revealed:1, alpha:0, closed:false, drift:15, showGraph:true, driving:false, timer:null};
+  const KFAT=[0,4,8,12,16,20,25];   // which nodes are keyframes (graph nodes)
+  function truePos(u){ const w=cv.width,h=cv.height,cx=w*0.5,cy=h*0.52,A=w*0.34,B=h*0.34,a=u*2*Math.PI-Math.PI/2; return {x:cx+A*Math.cos(a),y:cy+B*Math.sin(a)}; }
+  function build(){ LP.nodes=[]; let ox=0,oy=0,dr=0; const per=LP.drift*0.0022;
+    for(let k=0;k<=LP.NK;k++){ const tp=truePos(k/LP.NK);
+      if(k===0){ ox=tp.x; oy=tp.y; }
+      else{ const pp=truePos((k-1)/LP.NK); const dx=tp.x-pp.x,dy=tp.y-pp.y; dr+=per; const c=Math.cos(dr),s=Math.sin(dr);
+        ox+= c*dx-s*dy + (Math.random()-.5)*1.6; oy+= s*dx+c*dy + (Math.random()-.5)*1.6; }
+      LP.nodes.push({t:tp, o:{x:ox,y:oy}}); }
+  }
+  const disp=n=>({x:n.o.x+(n.t.x-n.o.x)*LP.alpha, y:n.o.y+(n.t.y-n.o.y)*LP.alpha});
+  function status(m){ $('#loopStatus').innerHTML=m; }
+  function poly(arr,col,wd,dash){ if(arr.length<2)return; ctx.strokeStyle=col;ctx.lineWidth=wd; ctx.setLineDash(dash||[]);
+    ctx.beginPath(); arr.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y)); ctx.stroke(); ctx.setLineDash([]); }
+  function draw(){
+    const w=cv.width,h=cv.height; ctx.clearRect(0,0,w,h); ctx.fillStyle=cssvar('--viewport-bg'); ctx.fillRect(0,0,w,h);
+    ctx.strokeStyle='rgba(120,150,190,.12)';ctx.lineWidth=1;
+    for(let x=0;x<w;x+=38){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
+    for(let y=0;y<h;y+=38){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+    const tru=[]; for(let k=0;k<=LP.NK;k++) tru.push(truePos(k/LP.NK)); tru.push(tru[0]);
+    poly(tru,'rgba(46,193,119,.42)',2,[6,5]);
+    const rev=LP.nodes.slice(0,LP.revealed).map(disp);
+    if(LP.showGraph){ ctx.strokeStyle=cssvar('--accent');ctx.lineWidth=1.2;ctx.globalAlpha=.6;
+      for(let i=1;i<rev.length;i++){ctx.beginPath();ctx.moveTo(rev[i-1].x,rev[i-1].y);ctx.lineTo(rev[i].x,rev[i].y);ctx.stroke();} ctx.globalAlpha=1; }
+    poly(rev, LP.alpha>0.5?cssvar('--good'):cssvar('--axY'), 2.6);
+    if(LP.closed && rev.length){ const a=disp(LP.nodes[0]), b=disp(LP.nodes[LP.revealed-1]);
+      ctx.strokeStyle='#a98bef';ctx.lineWidth=2;ctx.setLineDash([6,5]);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle='#a98bef';ctx.font='600 11px IBM Plex Mono, monospace';ctx.fillText('loop-closure edge',(a.x+b.x)/2-40,(a.y+b.y)/2-6); }
+    rev.forEach((p,i)=>{
+      if(i===0){ ctx.fillStyle=cssvar('--good'); ctx.beginPath();ctx.arc(p.x,p.y,6,0,7);ctx.fill(); }
+      else if(KFAT.includes(i)){ ctx.fillStyle=cssvar('--sat'); ctx.fillRect(p.x-4.5,p.y-4.5,9,9); ctx.strokeStyle=cssvar('--viewport-bg');ctx.lineWidth=1;ctx.strokeRect(p.x-4.5,p.y-4.5,9,9); }
+      else { ctx.fillStyle=cssvar('--accent'); ctx.beginPath();ctx.arc(p.x,p.y,3.2,0,7);ctx.fill(); } });
+    if(rev.length){ const p=rev[rev.length-1]; ctx.fillStyle=cssvar('--alert'); ctx.beginPath();ctx.arc(p.x,p.y,5,0,7);ctx.fill(); ctx.strokeStyle=cssvar('--viewport-bg');ctx.lineWidth=1.5;ctx.stroke(); }
+    ctx.fillStyle='#8fa3bd';ctx.font='11px IBM Plex Mono, monospace';
+    ctx.fillText('keyframes stored: '+KFAT.filter(ni=>ni<LP.revealed).length+(LP.closed?'   ·   appearance match: current ↔ #0':''), 12, 20);
+  }
+  function reset(){ if(LP.timer){clearTimeout(LP.timer);LP.timer=null;} LP.driving=false; build(); LP.revealed=1; LP.alpha=0; LP.closed=false; draw();
+    status('Press <b>Drive the loop</b> — watch the orange odometry trajectory bend away from the true green loop.'); }
+  function drive(){ if(LP.driving) return; if(LP.revealed>=LP.nodes.length){ LP.revealed=1; LP.alpha=0; LP.closed=false; }
+    LP.driving=true; status('<b>Driving…</b> tracking features frame-to-frame — the pose drifts a little each step.');
+    if(reduceMotion){ LP.revealed=LP.nodes.length; LP.driving=false; draw(); status('Loop complete — drift is visible. Now <b>Detect loop closure</b>.'); return; }
+    (function fr(){ if(LP.revealed<LP.nodes.length){ LP.revealed++; draw(); LP.timer=setTimeout(()=>requestAnimationFrame(fr), 70); }
+      else{ LP.driving=false; status('Loop complete — the orange estimate ends far from where it started. Now <b>Detect loop closure</b>.'); } })();
+  }
+  function closeLoop(){ if(LP.revealed<LP.nodes.length){ status('Finish <b>driving the loop</b> first.'); return; }
+    LP.closed=true; draw(); status('📸 <b>Appearance match!</b> The current view matches keyframe #0 in the bag-of-words database — a loop-closure constraint is added. Now <b>Optimise graph</b>.'); }
+  function optimise(){ if(!LP.closed){ status('Detect the <b>loop closure</b> first.'); return; }
+    const a0=LP.alpha, t0=performance.now();
+    const done=()=>status('✓ <b>Graph optimised</b> — the loop-closure correction is spread across every node; drift is gone and the loop is consistent.');
+    if(reduceMotion){ LP.alpha=1; draw(); done(); return; }
+    (function fr(){ const k=Math.min(1,(performance.now()-t0)/1000); LP.alpha=a0+(1-a0)*k; draw(); if(k<1) requestAnimationFrame(fr); else done(); })();
+  }
+  $('#loopDrive').addEventListener('click',drive);
+  $('#loopClose').addEventListener('click',closeLoop);
+  $('#loopOpt').addEventListener('click',optimise);
+  $('#loopReset').addEventListener('click',reset);
+  $('#loopShowGraph').addEventListener('change',e=>{ LP.showGraph=e.target.checked; draw(); });
+  $('#loopDrift').addEventListener('input',function(){ LP.drift=+this.value; $('#loopDriftV').textContent=this.value; reset(); });
+  build(); draw();
+  window.__drawLoop=draw;
+})();
 
 /* ============ INIT ============ */
 function init(){
   gnssExplain(); if(reduceMotion){ drawGnss(); } else requestAnimationFrame(drawGnss);
   setCube();
   buildClouds(); applyInit();
-  kfInit();
+  renderSensorGrid(); renderPresets(); kfInit(); kfVerdict();
   buildScene(); drawConv(null,null,[]);
   newFramePair();
+  // repaint theme-dependent static canvases when the colour scheme flips
+  try{ new MutationObserver(()=>{ if(window.__drawAllReg) window.__drawAllReg(); if(window.__drawLoop) window.__drawLoop(); if(window.__drawOdo) window.__drawOdo(); drawIcp(); if(!KF.playing) drawKf(); })
+    .observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']}); }catch(e){}
 }
 document.addEventListener('DOMContentLoaded',init);
 if(document.readyState!=='loading') init();
