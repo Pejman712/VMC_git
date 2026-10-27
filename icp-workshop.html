@@ -4,11 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ICP Workshop · Vehicle Mechatronics</title>
-  <meta name="description" content="Build an indoor map from 50 consecutive LiDAR scans. Write and run your own Python ICP registration algorithm and inspect the resulting map and robot trajectory.">
+  <meta name="description" content="Build an indoor map from 100 consecutive LiDAR scans. Write and run your own Python ICP registration algorithm and inspect the resulting map and robot trajectory.">
   <link rel="stylesheet" href="assets/icp/workshop.css">
   <script>try{const t=localStorage.getItem('ros-theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
   <script src="assets/qrcode.min.js" defer></script>
   <script src="assets/site.js" defer></script>
+  <script src="assets/icp/comparison.js" defer></script>
   <script src="assets/icp/workshop.js" defer></script>
 </head>
 <body>
@@ -24,10 +25,10 @@
 </div></nav>
 <header class="hero"><div class="wrap hero-in">
   <div class="eyebrow">Hands-on lab / perception &amp; mapping</div>
-  <h1>ICP Workshop<span>50 scans. One indoor map.</span></h1>
+  <h1>ICP Workshop<span>100 scans. One indoor map.</span></h1>
   <p>Give a small robot a sense of where it is. Complete the Python registration function, align consecutive point clouds, and watch your map take shape.</p>
-  <div class="hero-tags"><span>50 consecutive scans</span><span>3D points · metres</span><span>Python + NumPy</span><span>No ROS setup needed</span></div>
-</div></header>
+  <div class="hero-tags"><span>100 consecutive scans</span><span>24 × 16 m indoor lab</span><span>Python + NumPy</span><span>No ROS setup needed</span></div>
+<p class="hero-jumps"><a href="#comparison">Compare with ground truth ↓</a><a href="#implementation">Implementation guide ↓</a></p></div></header>
 <main class="wrap">
   <div class="steps" aria-label="Workshop steps">
     <div><b>01</b><span><strong>Inspect the scans</strong><small>Each cloud is in its own sensor frame.</small></span></div>
@@ -55,17 +56,37 @@
       </article>
     </div>
     <div class="timeline-panel">
-      <div class="timeline-heading"><label for="frameRange">Scan <b id="frameCount">01 / 50</b></label><span id="frameState">Waiting for dataset</span></div>
-      <input id="frameRange" type="range" min="0" max="49" value="0" step="1" disabled aria-label="Inspect scan">
+      <div class="timeline-heading"><label for="frameRange">Scan <b id="frameCount">01 / 100</b></label><span id="frameState">Waiting for dataset</span></div>
+      <input id="frameRange" type="range" min="0" max="99" value="0" step="1" disabled aria-label="Inspect scan">
       <div class="timeline" id="timeline" aria-label="Select scan"></div>
       <div class="playback"><button id="playBtn" disabled>▶ Play sequence</button><button id="nextBtn" disabled>Next scan →</button><span>Scrub through inputs before running, or replay your completed map.</span></div>
     </div>
   </section>
 
+  <section id="comparison" class="panel comparison" aria-labelledby="comparisonTitle">
+    <div class="section-heading"><div><div class="kicker">Evaluate your mapping</div><h2 id="comparisonTitle">Estimated trajectory vs ground truth</h2></div><span class="badge" id="comparisonStatus">No estimated poses yet</span></div>
+    <p class="small">Both trajectories use scan 01 as the origin. We compare them directly, without a best-fit alignment that could hide drift. Click a plotted point to select its scan, or use the scan slider above.</p>
+    <div class="plot-legend"><span><i class="truth-line"></i>Ground truth (dashed)</span><span><i class="estimate-line"></i>Your computed result (solid)</span></div>
+    <div class="plot-grid">
+      <article><h3>Robot path · top-down XY</h3><canvas id="trajectoryPlot" role="img" aria-label="Estimated and ground-truth robot trajectories in metres. Selected coordinates are listed below."></canvas></article>
+      <article><h3>Position error by scan</h3><canvas id="errorPlot" role="img" aria-label="Three-dimensional position error for each computed scan. Selected error is listed below."></canvas></article>
+    </div>
+    <div class="comparison-metrics metrics">
+      <div><span>Selected position error</span><b id="positionError">—</b></div>
+      <div><span>Selected rotation error</span><b id="rotationError">—</b></div>
+      <div><span>Trajectory position RMSE</span><b id="trajectoryRmse">—</b></div>
+      <div><span id="endErrorLabel">Latest position error</span><b id="endError">—</b></div>
+    </div>
+    <p class="small" id="comparisonNote">Run your registration to compare it with ground truth.</p>
+    <p class="pose-readout" id="comparisonValues">Ground-truth coordinates are loading.</p>
+    <details><summary>How these metrics are calculated</summary><p>For scan i, position error is <code>eᵢ = ||t_estimated,i − t_true,i||₂</code> using all three XYZ coordinates. Trajectory position RMSE is <code>sqrt(mean(eᵢ²))</code> over all currently computed poses, including the origin. The path plot shows XY only; vertical drift still contributes to the error plot.</p><p>Rotation error is the angle of <code>R_true.T @ R_estimated</code>: <code>acos(clip((trace(R_true.T @ R_estimated) − 1) / 2, −1, 1))</code>, converted to degrees. It measures the full 3D rotation, not only heading. These errors use known synthetic poses; the pairwise NN RMSE beside the editor measures scan alignment and is a different quantity.</p></details>
+  </section>
+
   <section class="coding-grid" aria-label="Python exercise and results">
     <article class="panel editor-panel">
       <div class="panel-head"><div><div class="kicker">Your implementation</div><h2>registration.py</h2></div><span class="badge">Python / NumPy</span></div>
-      <p class="panel-intro">Return a <b>4 × 4 rigid transformation</b> that aligns <code>source</code> (current scan) with <code>target</code> (previous scan). The runner reads all 50 scans in order and calls your function 49 times.</p>
+      <p class="panel-intro"><a href="#implementation">Read the step-by-step implementation guide →</a></p>
+      <p class="panel-intro">Return a <b>4 × 4 rigid transformation</b> that aligns <code>source</code> (current scan) with <code>target</code> (previous scan). The runner reads all 100 scans in order and calls your function 99 times.</p>
       <label class="editor-label" for="code">Python code <span id="saveStatus">Saved in this browser as you type</span></label>
       <textarea id="code" spellcheck="false" autocapitalize="off" autocomplete="off" aria-describedby="editorHelp" disabled></textarea>
       <div class="editor-help" id="editorHelp">Tab inserts 4 spaces · Ctrl/Cmd + Enter runs · NumPy is available as <code>np</code></div>
@@ -78,7 +99,7 @@
       <article class="panel">
         <div class="panel-head"><div><div class="kicker">Selected scan</div><h2>Registration output</h2></div></div>
         <p class="status" id="status" role="status">Loading the indoor sequence…</p>
-        <div class="metrics"><div><span>Scans mapped</span><b id="mappedCount">1 / 50</b></div><div><span>Pairwise NN RMSE</span><b id="rmse">—</b></div></div>
+        <div class="metrics"><div><span>Scans mapped</span><b id="mappedCount">1 / 100</b></div><div><span>Pairwise NN RMSE</span><b id="rmse">—</b></div></div>
         <label class="matrix-label" for="matrixType">Transformation <select id="matrixType"><option value="relative">Current → previous scan</option><option value="pose">Current → map frame</option></select></label>
         <pre id="matrix" class="matrix" aria-label="Selected transformation matrix">No transformation yet.</pre>
         <p class="small" id="matrixNote">Scan 01 fixes the map origin with an identity matrix.</p>
@@ -93,14 +114,115 @@
 T_map_current = T_map_previous @ T</pre>
         <p>For row-wise NumPy points:</p><pre>aligned = source @ T[:3, :3].T + T[:3, 3]</pre>
         <p>The bottom row is <code>[0, 0, 0, 1]</code>. Rotation must be orthonormal with determinant +1. Scan 01 is the map frame.</p>
-        <details><summary>Hints for point-to-point ICP</summary><ol><li>Start with <code>T = np.eye(4)</code> and transform the source.</li><li>Find nearest neighbours in the target; reject matches farther than 0.5 m. Keep at least three non-collinear pairs.</li><li>Subtract both centroids and form <code>H = A.T @ B</code>.</li><li>Compute <code>U, S, Vt = np.linalg.svd(H)</code>, then <code>R = Vt.T @ U.T</code>. Correct a negative determinant by flipping the last row of <code>Vt</code>.</li><li>Use <code>t = centroid_B - R @ centroid_A</code>. Put R and t in an identity matrix <code>delta</code>.</li><li>Update <code>T = delta @ T</code>. Stop when the error change is small or after about 40 iterations.</li></ol></details>
+        <details><summary>Hints for point-to-point ICP</summary><ol><li>Start with <code>T = np.eye(4)</code> and transform the source.</li><li>Find nearest neighbours in the target; reject matches farther than 0.5 m. Keep at least three non-collinear pairs.</li><li>Subtract both centroids and form <code>H = A.T @ B</code>.</li><li>Compute <code>U, S, Vt = np.linalg.svd(H)</code>, then <code>R = Vt.T @ U.T</code>. Correct a negative determinant by flipping the last row of <code>Vt</code>.</li><li>Use <code>t = centroid_B - R @ centroid_A</code>. Put R and t in an identity matrix <code>delta</code>.</li><li>Update <code>T = delta @ T</code>. Stop when the error change is small or after at most 60 iterations.</li></ol></details>
       </article>
     </aside>
   </section>
 
+  <section id="implementation" class="panel implementation" aria-labelledby="guideTitle">
+    <div class="section-heading"><div><div class="kicker">Build it step by step</div><h2 id="guideTitle">How to implement registration(source, target)</h2></div><a class="button" href="assets/icp/sample_solution.py" download>Download the worked example</a></div>
+    <p>Your task is to estimate how one scan must move to overlap the previous scan. The two clouds observe the same static environment, but the robot moved between measurements. <b>Iterative Closest Point (ICP)</b> alternates between guessing which points correspond and solving the rigid transformation of those pairs. Start with the runnable identity baseline, add each step below, then compare the resulting trajectory with ground truth.</p>
+    <nav class="guide-nav" aria-label="Implementation guide sections"><a href="#guide-contract">1. Inputs &amp; output</a><a href="#guide-transform">2. Transform</a><a href="#guide-match">3. Match</a><a href="#guide-filter">4. Filter</a><a href="#guide-solve">5. Solve R and t</a><a href="#guide-compose">6. Compose</a><a href="#guide-stop">7. Stop</a><a href="#guide-map">8. Map &amp; debug</a></nav>
+    <article id="guide-contract" class="guide-step"><h3>1. Understand exactly what goes in and what comes out</h3>
+      <p><code>source</code> is the current scan: an <code>(N, 3)</code> NumPy array. <code>target</code> is the previous scan: an <code>(M, 3)</code> array. Each row contains <code>[x, y, z]</code> in metres, relative to that scan’s own sensor. The numbers of points can differ. Dropout, occlusion and shuffled ordering mean that <code>source[k]</code> and <code>target[k]</code> generally describe different surfaces.</p>
+      <p>Return one matrix <code>T_previous_current</code> of shape <code>(4, 4)</code>. It converts current-sensor coordinates into previous-sensor coordinates:</p>
+      <pre><code>T = [[R00, R01, R02, tx],
+     [R10, R11, R12, ty],
+     [R20, R21, R22, tz],
+     [  0,   0,   0,  1]]</code></pre>
+      <p><code>R</code> is a 3 × 3 rotation and <code>t</code> a 3-vector. For example, if the robot moves 0.16 m along +X without rotating, a stationary object appears 0.16 m closer in the new sensor frame. The current-to-previous transform therefore has <code>tx = +0.16</code>, not −0.16.</p>
+      <p>The runner handles file loading and order. It initializes scan 01 at identity, then calls your function 99 times: scan 02 → 01, scan 03 → 02, …, scan 100 → 99. The page numbers scans 01–100; the corresponding CSV filenames are <code>scan_00.csv</code> through <code>scan_99.csv</code>. Your function solves <b>one pair</b>; do not load files, traverse all scans, or return the whole trajectory inside it. Ground truth is for evaluation only and is not passed to your function.</p>
+    </article>
+    <article id="guide-transform" class="guide-step"><h3>2. Start from identity and transform the source</h3>
+      <p>Initialize <code>T = np.eye(4)</code>. Identity is a reasonable first guess here because neighbouring scans have small motion and substantial overlap. With large motion, ICP may converge to a wrong local solution; running more iterations cannot always fix a bad initial guess.</p>
+      <pre><code>T = np.eye(4)
+previous_error = float("inf")
+for iteration in range(60):
+    moved = source @ T[:3, :3].T + T[:3, 3]</code></pre>
+      <p>The mathematical convention is <code>p_previous = R @ p_current + t</code> for column vectors. NumPy stores our points as rows, so use <code>source @ R.T + t</code>. Translation broadcasts over all rows. Always recompute <code>moved</code> from the original source and the accumulated T; repeatedly applying T to an already transformed source would apply old corrections twice.</p>
+    </article>
+    <article id="guide-match" class="guide-step"><h3>3. Find nearest-neighbour correspondences</h3>
+      <p>For each point in <code>moved</code>, find the target point with the smallest Euclidean distance. Squared distances give the same nearest neighbour and avoid unnecessary square roots. The small-batch implementation below is the one used in the sample:</p>
+      <pre><code>indices = np.empty(len(source), dtype=int)
+squared_errors = np.empty(len(source))
+for start in range(0, len(source), 128):
+    batch = moved[start:start + 128]
+    distances = ((batch[:, None, :] - target[None, :, :]) ** 2).sum(axis=2)
+    nearest = distances.argmin(axis=1)
+    indices[start:start + len(batch)] = nearest
+    squared_errors[start:start + len(batch)] = distances[np.arange(len(batch)), nearest]</code></pre>
+      <p><code>distances</code> has shape <code>(batch_size, M)</code>; each row compares one source point with every target point. <code>argmin(axis=1)</code> gives the target index for each source point. This brute-force search costs O(NM) work per iteration. Batching limits temporary memory; it does not change the matches. A spatial index such as a KD-tree is an extension for larger clouds, but this workshop’s sample only needs NumPy.</p>
+      <p>Recompute correspondences after every transform update. Matching once and solving once is a rigid least-squares fit of guessed pairs, not the full ICP loop.</p>
+    </article>
+    <article id="guide-filter" class="guide-step"><h3>4. Reject implausible pairs</h3>
+      <p>A newly visible wall may have no counterpart in the previous scan. Do not force every return into a correspondence. Start with a 0.5 m distance gate:</p>
+      <pre><code>keep = squared_errors &lt; 0.5 ** 2
+if keep.sum() &lt; 3:
+    raise ValueError("Too few matches within 0.5 m")
+a = moved[keep]
+b = target[indices[keep]]</code></pre>
+      <p>The comparison is with <code>0.5 ** 2</code> because the stored errors are squared. <code>a</code> and <code>b</code> now have the same shape and corresponding rows. Use at least three non-collinear pairs. A tiny gate can remove the pairs needed to recover motion; an overly large gate can accept points on unrelated surfaces. Inspect the map and error curves when changing it.</p>
+    </article>
+    <article id="guide-solve" class="guide-step"><h3>5. Solve the incremental rotation and translation with SVD</h3>
+      <p>For the fixed pairs, minimize <code>Σ ||R @ aᵢ + t − bᵢ||²</code>. First subtract each set’s centroid. This separates the rotation problem from translation:</p>
+      <pre><code>centroid_a = a.mean(axis=0)
+centroid_b = b.mean(axis=0)
+A = a - centroid_a
+B = b - centroid_b
+H = A.T @ B
+U, singular_values, Vt = np.linalg.svd(H)</code></pre>
+      <p><code>H</code> is 3 × 3. NumPy returns <code>Vt</code>, the transpose of V. With this definition of H, the source-to-target rotation is <code>Vt.T @ U.T</code>. A reflection can also minimize the unconstrained fit, so enforce a proper rotation with determinant +1:</p>
+      <pre><code>if singular_values[1] &lt; 1e-10:
+    raise ValueError("Collinear or coincident matches")
+if np.linalg.det(Vt.T @ U.T) &lt; 0:
+    Vt[-1] *= -1
+R = Vt.T @ U.T
+t = centroid_b - R @ centroid_a</code></pre>
+      <p>The second singular value checks whether the matched geometry has collapsed to a line or point. Planar but non-collinear points can still provide a rigid fit; do not reject all planar data just because the third singular value is small. Translation moves the rotated source centroid onto the target centroid.</p>
+    </article>
+    <article id="guide-compose" class="guide-step"><h3>6. Compose the correction in the right order</h3>
+      <p>This R and t align <b>the already transformed</b> points in <code>moved</code> to the target. They form an incremental correction called <code>delta</code>, not the complete source-to-target estimate:</p>
+      <pre><code>delta = np.eye(4)
+delta[:3, :3] = R
+delta[:3, 3] = t
+T = delta @ T</code></pre>
+      <p>Read this right to left: first apply the existing T to the original source, then apply delta. Overwriting <code>T = delta</code> discards earlier iterations. Using <code>T @ delta</code> applies the correction in a different frame. Adding translations separately also fails once rotation is present.</p>
+    </article>
+    <article id="guide-stop" class="guide-step"><h3>7. Check convergence and return the accumulated matrix</h3>
+      <p>Measure the mean squared distance of the retained nearest-neighbour pairs on each iteration. The sample stops when the change between consecutive iterations falls below <code>1e-9</code> m², or after 60 iterations:</p>
+      <pre><code>error = squared_errors[keep].mean()
+if abs(previous_error - error) &lt; 1e-9:
+    break
+previous_error = error
+
+# Outside the iteration loop:
+return T</code></pre>
+      <p>A small change means the optimizer has stopped moving much; it does not guarantee the correct pose. The page checks that the returned matrix is finite, has bottom row <code>[0, 0, 0, 1]</code>, and contains an orthonormal rotation with determinant +1. Those checks verify the matrix format, while ground-truth plots assess accuracy.</p>
+      <p>The sample’s stopping error uses only retained pairs. The page’s pairwise NN RMSE uses all current-source points after the returned transform. They can differ, especially where occlusion creates unmatched surfaces.</p>
+    </article>
+    <article id="guide-map" class="guide-step"><h3>8. Follow the runner from pairwise transforms to a map</h3>
+      <p>The runner multiplies your current-to-previous estimate by the previous global pose. This multiplication is different from the incremental correction inside ICP:</p>
+      <pre><code># Runner logic; you do not need to put this inside registration().
+T_map_current = T_map_previous @ T_previous_current
+points_in_map = source @ T_map_current[:3, :3].T + T_map_current[:3, 3]
+robot_position = T_map_current[:3, 3]</code></pre>
+      <p>Each small pose error affects later scans. Over this roughly 16 m route, even a modest rotation error can produce noticeable translation drift and doubled walls. The sample performs scan-to-scan registration; it has no loop closure or global map optimization. Use the ground-truth overlay to see this accumulation.</p>
+      <div class="guide-table-wrap"><table><caption>What to check when the result looks wrong</caption><thead><tr><th>Symptom</th><th>Likely check</th></tr></thead><tbody>
+        <tr><td>Robot never moves</td><td>Are you still returning identity, or returning before the loop runs?</td></tr>
+        <tr><td>Path moves in the opposite direction</td><td>Check current → previous direction; avoid swapping source and target.</td></tr>
+        <tr><td>Map spins or expands</td><td>Check row-vector transposes, <code>R = Vt.T @ U.T</code>, and determinant correction.</td></tr>
+        <tr><td>First pair works, later pairs fail</td><td>Check both composition orders and that input arrays remain unchanged.</td></tr>
+        <tr><td>Low pairwise RMSE, but large path error</td><td>Inspect accumulated drift and ambiguous wall matches; scan-fit error is not pose error.</td></tr>
+        <tr><td>Few matches or very slow execution</td><td>Check the distance gate and iteration limit. Batch the distance calculation; use Stop if needed.</td></tr>
+      </tbody></table></div>
+      <p>For a quick self-test, make a random non-degenerate target cloud, choose a small known R and t, and construct <code>source = (target - t) @ R</code>. Shuffle the source. Your function should recover the chosen transformation. Then run all 100 workshop scans in sequence (99 calls), inspect the trajectory plot, and compare the selected position error with the overall position RMSE.</p>
+      <p class="small">Further reading: the <a href="https://www.open3d.org/docs/release/tutorial/pipelines/icp_registration.html" target="_blank" rel="noopener">Open3D ICP tutorial</a> describes correspondence search and rigid alignment; <a href="https://numpy.org/doc/stable/reference/generated/numpy.linalg.svd.html" target="_blank" rel="noopener">NumPy’s SVD reference</a> explains its returned matrices. Open3D is not required to run this workshop.</p>
+    </article>
+  </section>
+
   <section class="panel dataset" aria-labelledby="datasetTitle">
-    <div><div class="kicker">Take the lab with you</div><h2 id="datasetTitle">One room. 50 viewpoints.</h2><p>A reproducible, <b>synthetic indoor sequence</b> with walls, a partition, workbenches, a cabinet and a pillar. A 360° LiDAR samples four elevation rings, with occlusion, a 9 m range limit, dropped returns and 6 mm range noise. The robot takes small steps with overlapping views.</p><p>Work locally: unzip the kit, install NumPy, finish <code>registration.py</code>, and run <code>python registration.py</code>. For a worked example, run <code>python sample_solution.py</code>. Import the resulting <code>transformations.json</code> here to see your map.</p></div>
-    <div class="downloads"><a class="button primary" href="assets/icp/icp-workshop.zip" download>↓ Download Python + 50 scans</a><a class="button" href="assets/icp/sample_solution.py" download>↓ Sample Python solution</a><a class="button" href="assets/icp/sequence.json" download>↓ Point clouds as JSON</a><label class="button import-label">↑ Import transformations<input id="importFile" type="file" accept=".json,application/json" disabled></label><span class="small">ZIP includes starter, runner, JSON sequence and 50 XYZ CSV files and one sample ICP solution.</span></div>
+    <div><div class="kicker">Take the lab with you</div><h2 id="datasetTitle">Three connected bays. 100 viewpoints.</h2><p>A reproducible, <b>synthetic indoor sequence</b> in a 24 × 16 m lab with two partitions, wide doorways, workbenches, cabinets and pillars. The 100-scan route travels about 16 m through all three bays. A 360° LiDAR samples four elevation rings, with occlusion, a 12 m range limit, dropped returns and 6 mm range noise. The robot takes small steps with overlapping views.</p><p>Work locally: unzip the kit, install NumPy, finish <code>registration.py</code>, and run <code>python registration.py</code>. For a worked example, run <code>python sample_solution.py</code>. Import the resulting <code>transformations.json</code> here to see your map.</p></div>
+    <div class="downloads"><a class="button primary" href="assets/icp/icp-workshop.zip" download>↓ Download Python + 100 scans</a><a class="button" href="assets/icp/sample_solution.py" download>↓ Sample Python solution</a><a class="button" href="assets/icp/sequence.json" download>↓ Point clouds as JSON</a><label class="button import-label">↑ Import transformations<input id="importFile" type="file" accept=".json,application/json" disabled></label><span class="small">ZIP includes starter, runner, JSON sequence 100 XYZ CSV files, and one sample ICP solution.</span></div>
   </section>
 </main>
 <footer class="wrap"><p>Vehicle Mechatronics · Aalto University</p><p><a href="localisation.html#registration">Revisit registration theory</a> · <a href="index.html">ROS Ecosystem Explorer</a></p></footer>

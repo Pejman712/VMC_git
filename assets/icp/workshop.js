@@ -16,6 +16,7 @@
   const KEY = "vmc-icp-python-v1";
   let dataset, expectedPoses, starter, sample, frame = 0, mode = "input", results = [];
   let worker = null, timeout = null, playback = null, revision = "", dirty = false;
+  const transformedClouds = new WeakMap();
   const scanCount = () => dataset.scans.length;
   const camera = { yaw: -.52, pitch: .83, zoom: 1 };
 
@@ -69,9 +70,19 @@
       b.setAttribute("aria-pressed", i === frame);
       b.title = `Scan ${pad(i)}${i < visible.length ? " · mapped" : " · input only"}`;
     });
+    const selectedButton = $("timeline").children[frame];
+    const timeline = $("timeline");
+    if (selectedButton && timeline.scrollHeight > timeline.clientHeight) {
+      const top = selectedButton.getBoundingClientRect().top - timeline.getBoundingClientRect().top;
+      if (top < 0 || top + selectedButton.offsetHeight > timeline.clientHeight) timeline.scrollTop += top - timeline.clientHeight / 2;
+    }
     draw($("inputCanvas"), [{ points: dataset.scans[frame].points, current: true }], [identity()], false);
-    const clouds = mapped.map((r) => ({ points: dataset.scans[r.index].points.map((p) => transform(r.pose, p)), current: r.index === frame }));
+    const clouds = mapped.map((r) => {
+      if (!transformedClouds.has(r.pose)) transformedClouds.set(r.pose, dataset.scans[r.index].points.map((p) => transform(r.pose, p)));
+      return { points: transformedClouds.get(r.pose), current: r.index === frame };
+    });
     draw($("mapCanvas"), clouds, mapped.map((r) => r.pose), true);
+    ICPComparison.render(expectedPoses, results, frame, dirty);
   }
 
   // Lightweight orthographic 3D canvas renderer: the measurements remain XYZ.
@@ -83,10 +94,13 @@
     ctx.scale(ratio, ratio);
     const w = rect.width, h = rect.height, top = $("projection").value === "top";
     ctx.fillStyle = "#0b1422"; ctx.fillRect(0, 0, w, h);
-    const scale = Math.min(w / 17, h / 12) * camera.zoom;
+    const bounds = dataset.map_bounds;
+    const center = isMap ? bounds.min.map((v, i) => (v + bounds.max[i]) / 2) : [0, 0, 0];
+    const span = isMap ? Math.max(bounds.max[0] - bounds.min[0], bounds.max[1] - bounds.min[1]) : dataset.sensor_range * 2;
+    const scale = Math.min(w / (span * 1.18), h / (span * .88)) * camera.zoom;
     const c = Math.cos(camera.yaw), s = Math.sin(camera.yaw);
     function project(p) {
-      const x = p[0] - (isMap ? 1.8 : 0), y = p[1], z = p[2];
+      const x = p[0] - center[0], y = p[1] - center[1], z = p[2];
       if (top) return [w / 2 + x * scale, h / 2 - y * scale, z];
       const a = x * c - y * s, b = x * s + y * c;
       return [w / 2 + a * scale, h / 2 + 30 - (b * Math.sin(camera.pitch) + z * Math.cos(camera.pitch)) * scale,
@@ -96,9 +110,12 @@
       const pa = project(a), pb = project(b);
       ctx.strokeStyle = color; ctx.lineWidth = width; ctx.beginPath(); ctx.moveTo(pa[0], pa[1]); ctx.lineTo(pb[0], pb[1]); ctx.stroke();
     }
-    for (let i = -10; i <= 12; i++) {
-      line([i, -10, -.65], [i, 10, -.65], "#1c2a3b");
-      line([-10, i, -.65], [12, i, -.65], "#1c2a3b");
+    const grid = isMap ? bounds : { min: [-dataset.sensor_range, -dataset.sensor_range], max: [dataset.sensor_range, dataset.sensor_range] };
+    for (let i = Math.floor(grid.min[0]); i <= grid.max[0]; i++) {
+      line([i, grid.min[1], -.65], [i, grid.max[1], -.65], "#1c2a3b");
+    }
+    for (let i = Math.floor(grid.min[1]); i <= grid.max[1]; i++) {
+      line([grid.min[0], i, -.65], [grid.max[0], i, -.65], "#1c2a3b");
     }
     const points = [];
     clouds.forEach((cloud) => cloud.points.forEach((p) => points.push({ screen: project(p), current: cloud.current })));
@@ -267,7 +284,7 @@
       });
       haltPlayback(); results = imported; revision = ""; dirty = false; mode = "result";
       $("resultBtn").disabled = false; $("exportBtn").disabled = false; selectFrame(scanCount() - 1);
-      status(`Imported ${scanCount()} poses. RMSE is not available for imported results.`);
+      status(`Imported ${scanCount()} poses. Pairwise NN RMSE is unavailable; ground-truth pose errors are shown above.`);
       log(`Imported local Python results; map poses recomputed from the ${scanCount() - 1} relative transforms.`);
     } catch (error) { status("Import failed: " + error.message); log(error.message, true); }
     e.target.value = "";
@@ -299,6 +316,7 @@
   }
   new ResizeObserver(render).observe($("inputCanvas"));
   document.addEventListener("themechange", render);
+  ICPComparison.init((index) => { haltPlayback(); selectFrame(index); });
 
   async function init() {
     try {

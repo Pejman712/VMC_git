@@ -20,16 +20,18 @@ sample_spec.loader.exec_module(sample)
 class WorkshopTest(unittest.TestCase):
     def test_dataset_and_local_kit(self):
         data = json.loads((ASSETS / "sequence.json").read_text())
-        self.assertEqual(len(data["scans"]), 50)
+        self.assertEqual(len(data["scans"]), 100)
+        self.assertEqual(data["room_size"], [24, 16, 3.2])
+        self.assertEqual(data["id"], "vmc-indoor-100-v1")
         for i, scan in enumerate(data["scans"]):
             points = np.asarray(scan["points"])
             self.assertEqual(scan["name"], f"scan_{i:02d}.csv")
             self.assertEqual(points.shape[1], 3)
             self.assertGreater(len(points), 800)
             self.assertTrue(np.isfinite(points).all())
-            self.assertLess(np.linalg.norm(points, axis=1).max(), 9.05)
+            self.assertLess(np.linalg.norm(points, axis=1).max(), 12.05)
         with zipfile.ZipFile(ASSETS / "icp-workshop.zip") as archive:
-            self.assertEqual(len([n for n in archive.namelist() if n.endswith(".csv")]), 50)
+            self.assertEqual(len([n for n in archive.namelist() if n.endswith(".csv")]), 100)
             for name in ["registration.py", "sample_solution.py", "runner.py", "sequence.json"]:
                 self.assertEqual(archive.read(name), (ASSETS / name).read_bytes())
 
@@ -50,8 +52,8 @@ class WorkshopTest(unittest.TestCase):
             return np.linalg.inv(poses[i - 1]) @ poses[i]
 
         results = runner.run_sequence(clouds, register, reported.append)
-        self.assertEqual(calls, list(range(1, 50)))
-        self.assertEqual(len(reported), 50)
+        self.assertEqual(calls, list(range(1, 100)))
+        self.assertEqual(len(reported), 100)
         for i, result in enumerate(results):
             np.testing.assert_allclose(result["pose"], poses[i], atol=1e-9)
             np.testing.assert_array_equal(clouds[i], saved[i])
@@ -75,7 +77,7 @@ class WorkshopTest(unittest.TestCase):
     def test_expected_alignment_improves_on_identity(self):
         clouds = [np.asarray(s["points"]) for s in json.loads((ASSETS / "sequence.json").read_text())["scans"]]
         poses = [np.asarray(p) for p in json.loads((ASSETS / "expected-poses.json").read_text())]
-        for i in range(1, 50):
+        for i in range(1, 100):
             T = np.linalg.inv(poses[i - 1]) @ poses[i]
             aligned = clouds[i] @ T[:3, :3].T + T[:3, 3]
             self.assertLess(runner.nearest_rmse(aligned, clouds[i - 1]), runner.nearest_rmse(clouds[i], clouds[i - 1]))
@@ -91,19 +93,20 @@ class WorkshopTest(unittest.TestCase):
         np.random.default_rng(7).shuffle(source)
         np.testing.assert_allclose(sample.registration(source, target), T, atol=1e-6)
 
-    def test_sample_maps_all_50_scans(self):
+    def test_sample_maps_all_100_scans(self):
         data = json.loads((ASSETS / "sequence.json").read_text())
         clouds = [np.asarray(s["points"]) for s in data["scans"]]
         expected = np.asarray(json.loads((ASSETS / "expected-poses.json").read_text()))
         results = runner.run_sequence(clouds, sample.registration)
-        self.assertEqual(len(results), 50)
+        self.assertEqual(len(results), 100)
         poses = np.asarray([r["pose"] for r in results])
         for result in results[1:]:
             i = result["index"]
             self.assertLess(result["rmse"], runner.nearest_rmse(clouds[i], clouds[i - 1]))
-        # Pairwise ICP accumulates drift; it should still follow the ~6 m route.
+        # Pairwise ICP accumulates drift. It should improve on a stationary robot.
         errors = np.linalg.norm(poses[:, :3, 3] - expected[:, :3, 3], axis=1)
-        self.assertLess(errors.max(), 1.0)
+        baseline_errors = np.linalg.norm(expected[:, :3, 3], axis=1)
+        self.assertLess(np.sqrt(np.mean(errors ** 2)), np.sqrt(np.mean(baseline_errors ** 2)) / 3)
 
 
 if __name__ == "__main__":

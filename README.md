@@ -9,7 +9,7 @@ A static collection of teaching pages — no build step.
 - **Sensors & hardware** — representative ROS 2 drivers grouped by the standard message they publish.
 - **Interactive Pub/Sub** — publish messages, change the rate, add/remove listeners, watch callbacks fire.
 - **Tools** — `rqt_graph`, `RViz`, and `ros2 bag`, all wired to the live demo state.
-- **[ICP Workshop](icp-workshop.html)** — 50 consecutive synthetic indoor LiDAR
+- **[ICP Workshop](icp-workshop.html)** — 100 consecutive synthetic indoor LiDAR
   scans, an editable Python `registration(source, target)` exercise, and linked 3D
   input/map views with a robot trajectory. Includes scan playback, expected-pose
   comparison, rigid-matrix validation, and a downloadable local Python kit.
@@ -34,14 +34,27 @@ The sample uses nearest-neighbour matching, outlier rejection, SVD, and converge
 checking; it does not use the known synthetic poses.
 
 `registration(source, target)` returns a 4×4 transform from the **current scan
-to the previous scan**. The runner calls it 49 times for scans 02–50, uses scan
+to the previous scan**. The runner calls it 99 times for scans 02–100, uses scan
 01 as the map frame, and composes `T_map_current = T_map_previous @ T`.
-The expected-map preview uses known synthetic poses, independently of student
-results. NN RMSE is an alignment diagnostic, not a correctness grade.
+The 24 × 16 m lab has three connected bays, with a roughly 16 m path, 100 scans,
+12 m sensor range, and 6 mm measurement noise. The expected-map preview uses known
+synthetic poses, independently of student results.
+
+The **Estimated trajectory vs ground truth** section plots both XY paths and 3D
+position error by scan. Click a point to select its scan. Metrics include selected
+position/rotation error, position RMSE over computed poses (including the origin),
+and the latest/final position error. Poses are compared directly in scan 01's frame;
+there is no fitted alignment. Previewing the expected map does not replace computed
+results in these plots. Partial runs and imported results are supported. NN RMSE
+measures scan alignment and is different from ground-truth pose error.
+
+The **Implementation guide** explains the function contract, nearest-neighbour
+matching, distance rejection, SVD and reflection correction, matrix composition,
+convergence, mapping, and common mistakes, with NumPy snippets matching the sample.
 
 For local Python, download `assets/icp/icp-workshop.zip`, unzip it, install NumPy,
 and edit/run `registration.py`. Import its `transformations.json` into the page.
-The kit contains the same 50 scans as both JSON and individual XYZ CSV files.
+The kit contains the same 100 scans as both JSON and individual XYZ CSV files.
 The ZIP also includes `sample_solution.py`; run it with `python sample_solution.py`
 to generate `transformations.json` using the worked example.
 The renderer recomputes map poses from imported relative transforms.
@@ -52,6 +65,11 @@ Dataset generation and verification (tests require NumPy):
 python3 assets/icp/generate_dataset.py
 python3 -m unittest discover -s tests -v
 ```
+
+To check the plot calculations in the workshop browser console, run
+`eval(await (await fetch('tests/icp_comparison.test.js')).text())`.
+These tests cover empty/partial runs, 3D translation error, rotation error,
+RMSE normalization, and numerical clamping.
 
 Regenerate the kit after editing `registration.py`, `sample_solution.py`, `runner.py`, or the generator.
 The dataset uses ray/box intersections in a synthetic room, with occlusion, range
