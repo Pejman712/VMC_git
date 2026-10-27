@@ -14,8 +14,9 @@
   };
   const pad = (n) => String(n + 1).padStart(2, "0");
   const KEY = "vmc-icp-python-v1";
-  let dataset, expectedPoses, starter, frame = 0, mode = "input", results = [];
+  let dataset, expectedPoses, starter, sample, frame = 0, mode = "input", results = [];
   let worker = null, timeout = null, playback = null, revision = "", dirty = false;
+  const scanCount = () => dataset.scans.length;
   const camera = { yaw: -.52, pitch: .83, zoom: 1 };
 
   function log(message, error = false) {
@@ -40,7 +41,7 @@
     clearInterval(playback); playback = null; $("playBtn").textContent = "▶ Play sequence";
   }
   function selectFrame(index) {
-    frame = Math.max(0, Math.min(9, index));
+    frame = Math.max(0, Math.min(scanCount() - 1, index));
     $("frameRange").value = frame;
     render();
   }
@@ -49,12 +50,12 @@
     const visible = shownResults(), result = visible[frame];
     const mapped = visible.slice(0, frame + 1);
     $("frameRange").value = frame;
-    $("frameCount").textContent = `${pad(frame)} / 10`;
+    $("frameCount").textContent = `${pad(frame)} / ${scanCount()}`;
     $("inputLabel").textContent = `Scan ${pad(frame)} · ${dataset.scans[frame].points.length} points`;
     $("modeBadge").textContent = mode === "expected" ? "Expected map · known poses" : mode === "result" ? (dirty ? "My result · code changed" : "My registration") : "Input preview";
     $("frameState").textContent = result ? (mode === "expected" ? "Known pose · comparison only" : frame === 0 ? "Map origin" : "Registered") : "Not registered yet · run your code";
     $("mapLabel").textContent = `Scans 01–${pad(mapped.length - 1)} · ${mode === "expected" ? "expected poses" : "map frame = scan 01"}`;
-    $("mappedCount").textContent = `${mapped.length} / 10`;
+    $("mappedCount").textContent = `${mapped.length} / ${scanCount()}`;
     $("rmse").textContent = result?.rmse == null ? "—" : `${result.rmse.toFixed(4)} m`;
     const matrix = result?.[$("matrixType").value];
     $("matrix").textContent = matrix ? matrix.map((r) => "[ " + r.map((v) => (Math.abs(v) < .00005 ? 0 : v).toFixed(4).padStart(8)).join(" ") + " ]").join("\n") : "No transformation for this scan.\nRun your registration first.";
@@ -139,9 +140,9 @@
     clearTimeout(timeout); timeout = null;
     if (worker) worker.terminate(); worker = null;
     $("runBtn").disabled = false; $("stopBtn").disabled = true;
-    $("starterBtn").disabled = false; $("code").readOnly = false;
+    $("starterBtn").disabled = false; $("solutionBtn").disabled = false; $("code").readOnly = false;
     $("importFile").disabled = false; $("playBtn").disabled = false;
-    $("exportBtn").disabled = results.length !== 10;
+    $("exportBtn").disabled = results.length !== scanCount();
     $("resultBtn").disabled = results.length < 2;
     render();
   }
@@ -155,7 +156,7 @@
     $("console").textContent = "Starting a fresh Python run…"; $("console").classList.remove("error");
     status("Loading Python. The first run may take a moment.");
     $("runBtn").disabled = true; $("stopBtn").disabled = false;
-    $("starterBtn").disabled = true; $("code").readOnly = true;
+    $("starterBtn").disabled = true; $("solutionBtn").disabled = true; $("code").readOnly = true;
     $("importFile").disabled = true; $("exportBtn").disabled = true;
     $("resultBtn").disabled = true; $("playBtn").disabled = true;
     try {
@@ -170,15 +171,15 @@
         if (data.type === "frame") {
           results.push(data.result); mode = "result";
           selectFrame(data.result.index);
-          status(`Registered ${results.length} / 10 scans${data.result.index ? ` · scan ${pad(data.result.index)} → ${pad(data.result.index - 1)}` : " · origin initialized"}`);
+          status(`Registered ${results.length} / ${scanCount()} scans${data.result.index ? ` · scan ${pad(data.result.index)} → ${pad(data.result.index - 1)}` : " · origin initialized"}`);
           if (data.result.index) log(`Scan ${pad(data.result.index)} → ${pad(data.result.index - 1)} | NN RMSE ${data.result.rmse.toFixed(4)} m`);
           armTimeout(30000, "Stopped: a registration call exceeded 30 seconds. Check convergence or reduce iterations.");
         }
         if (data.type === "done") {
           finishWorker();
           const baseline = results.every((r) => r.relative.every((row, i) => row.every((v, j) => Math.abs(v - (i === j ? 1 : 0)) < 1e-9)));
-          status(baseline ? "Identity baseline complete. The robot stays still; implement ICP to align the moving scans." : "Run complete: 10 scans mapped. Compare your map and trajectory with the expected preview.");
-          log(baseline ? "All returned matrices are identity. Valid format; registration still needs implementing." : "Complete. All 9 returned matrices passed rigid-transform validation.");
+          status(baseline ? "Identity baseline complete. The robot stays still; implement ICP to align the moving scans." : `Run complete: ${scanCount()} scans mapped. Compare your map and trajectory with the expected preview.`);
+          log(baseline ? "All returned matrices are identity. Valid format; registration still needs implementing." : `Complete. All ${scanCount() - 1} returned matrices passed rigid-transform validation.`);
         }
         if (data.type === "error") { finishWorker(); status("Python error. Check the output below your code, then run again."); log(data.message, true); }
       };
@@ -213,13 +214,21 @@
     if (!confirm("Replace your current Python code with the starter? Downloaded files are unaffected.")) return;
     $("code").value = starter; saveCode();
   };
+  $("solutionBtn").onclick = () => {
+    if (worker) return;
+    if ($("code").value !== starter && $("code").value !== sample &&
+        !confirm("Replace your current code with the sample ICP solution? Copy any edits you want to keep first.")) return;
+    $("code").value = sample; saveCode();
+    status("Sample ICP solution loaded. Run it to calculate all transforms from the point clouds.");
+    log("Loaded the NumPy point-to-point ICP sample. It estimates poses without using ground truth.");
+  };
   $("frameRange").oninput = (e) => { haltPlayback(); selectFrame(Number(e.target.value)); };
-  $("nextBtn").onclick = () => { haltPlayback(); selectFrame((frame + 1) % 10); };
+  $("nextBtn").onclick = () => { haltPlayback(); selectFrame((frame + 1) % scanCount()); };
   $("playBtn").onclick = () => {
     if (playback) { haltPlayback(); return; }
-    if (frame === 9) selectFrame(0);
+    if (frame === scanCount() - 1) selectFrame(0);
     $("playBtn").textContent = "Ⅱ Pause";
-    playback = setInterval(() => { if (frame >= 9) haltPlayback(); else selectFrame(frame + 1); }, 700);
+    playback = setInterval(() => { if (frame >= scanCount() - 1) haltPlayback(); else selectFrame(frame + 1); }, 700);
   };
   $("expectedBtn").onclick = () => {
     haltPlayback(); mode = "expected";
@@ -246,10 +255,10 @@
     try {
       if (file.size > 1000000) throw new Error("Choose a transformations.json file smaller than 1 MB.");
       const data = JSON.parse(await file.text());
-      if (data.dataset !== dataset.id || !Array.isArray(data.results) || data.results.length !== 10) throw new Error("Expected 10 results for " + dataset.id + ".");
+      if (data.dataset !== dataset.id || !Array.isArray(data.results) || data.results.length !== scanCount()) throw new Error(`Expected ${scanCount()} results for ${dataset.id}.`);
       let pose = identity();
       const imported = data.results.map((r, i) => {
-        if (r.index !== i) throw new Error("Scan indices must be in order from 0 to 9.");
+        if (r.index !== i) throw new Error(`Scan indices must be in order from 0 to ${scanCount() - 1}.`);
         validateMatrix(r.relative);
         if (!i && r.relative.some((row, j) => row.some((v, k) => Math.abs(v - (j === k ? 1 : 0)) > 1e-6))) throw new Error("The first scan must use an identity transformation.");
         pose = multiply(pose, r.relative);
@@ -257,9 +266,9 @@
         return { index: i, relative: r.relative, pose, rmse: null };
       });
       haltPlayback(); results = imported; revision = ""; dirty = false; mode = "result";
-      $("resultBtn").disabled = false; $("exportBtn").disabled = false; selectFrame(9);
-      status("Imported 10 poses. RMSE is not available for imported results.");
-      log("Imported local Python results; map poses recomputed from the 9 relative transforms.");
+      $("resultBtn").disabled = false; $("exportBtn").disabled = false; selectFrame(scanCount() - 1);
+      status(`Imported ${scanCount()} poses. RMSE is not available for imported results.`);
+      log(`Imported local Python results; map poses recomputed from the ${scanCount() - 1} relative transforms.`);
     } catch (error) { status("Import failed: " + error.message); log(error.message, true); }
     e.target.value = "";
   };
@@ -293,23 +302,25 @@
 
   async function init() {
     try {
-      const responses = await Promise.all(["sequence.json", "expected-poses.json", "registration.py"].map(async (name) => {
+      const responses = await Promise.all(["sequence.json", "expected-poses.json", "registration.py", "sample_solution.py"].map(async (name) => {
         const res = await fetch("assets/icp/" + name);
         if (!res.ok) throw new Error(`Could not load ${name} (HTTP ${res.status}).`);
         return name.endsWith("json") ? res.json() : res.text();
       }));
-      [dataset, expectedPoses, starter] = responses;
+      [dataset, expectedPoses, starter, sample] = responses;
       // The editor contains only the function/imports; the ZIP retains the local CLI.
       starter = starter.split('if __name__ == "__main__":')[0].trimEnd() + "\n";
       try { $("code").value = localStorage.getItem(KEY) ?? starter; }
       catch (_) { $("code").value = starter; }
-      for (let i = 0; i < 10; i++) {
+      sample = sample.split('if __name__ == "__main__":')[0].trimEnd() + "\n";
+      $("frameRange").max = scanCount() - 1;
+      for (let i = 0; i < scanCount(); i++) {
         const button = document.createElement("button"); button.textContent = pad(i);
         button.setAttribute("aria-label", `Inspect scan ${pad(i)}`);
         button.onclick = () => { haltPlayback(); selectFrame(i); };
         $("timeline").appendChild(button);
       }
-      ["runBtn", "starterBtn", "expectedBtn", "frameRange", "playBtn", "nextBtn", "code", "importFile"].forEach((id) => { $(id).disabled = false; });
+      ["runBtn", "starterBtn", "solutionBtn", "expectedBtn", "frameRange", "playBtn", "nextBtn", "code", "importFile"].forEach((id) => { $(id).disabled = false; });
       $("console").textContent = "Ready. The starter returns identity matrices. Implement ICP, then run your registration.";
       status("Inspect the scans or run the identity baseline. Scan 01 is already at the map origin."); render();
     } catch (error) {

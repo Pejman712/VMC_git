@@ -13,6 +13,7 @@ import random
 import zipfile
 
 ROOT = Path(__file__).resolve().parent
+SCAN_COUNT = 50
 BOXES = [
     ((-.1, -.1, 0), (12.1, 0, 2.8)),  # outer walls
     ((-.1, 8, 0), (12.1, 8.1, 2.8)),
@@ -45,8 +46,10 @@ def intersection(origin, direction, low, high):
 def generate():
     rng = random.Random(20261027)
     scans, poses = [], []
-    for i in range(10):
-        x, y, yaw = 3 + i * .16, 3.4 + .12 * math.sin(i * .23), i * .018
+    for i in range(SCAN_COUNT):
+        # Follow a gentle curve through the opening, clear of walls/furniture.
+        x, y = 3 + i * .12, 3.4 + .55 * (1 - math.cos(i * .05))
+        yaw = math.atan2(.55 * .05 * math.sin(i * .05), .12)
         c, s = math.cos(yaw), math.sin(yaw)
         points = []
         # Avoid a floor-dominated ring whose near-identical returns at every pose
@@ -67,14 +70,14 @@ def generate():
         # The first sensor frame is the world/map frame, including its height.
         poses.append([[c, -s, 0, round(x - 3, 8)], [s, c, 0, round(y - 3.4, 8)],
                       [0, 0, 1, 0], [0, 0, 0, 1]])
-    data = {"id": "vmc-indoor-10-v1", "units": "metres", "axes": "x forward, y left, z up",
+    data = {"id": "vmc-indoor-50-v1", "units": "metres", "axes": "x forward, y left, z up",
             "description": "Synthetic raycast office: walls, partition, benches, cabinet and pillar. "
                            "360 degree LiDAR, four elevation rings, 9 m range, 6 mm range noise.",
             "scans": scans}
     (ROOT / "sequence.json").write_text(json.dumps(data, separators=(",", ":")) + "\n")
     (ROOT / "expected-poses.json").write_text(json.dumps(poses, separators=(",", ":")) + "\n")
     with zipfile.ZipFile(ROOT / "icp-workshop.zip", "w", zipfile.ZIP_DEFLATED) as archive:
-        for name in ["sequence.json", "registration.py", "runner.py"]:
+        for name in ["sequence.json", "registration.py", "sample_solution.py", "runner.py"]:
             archive.write(ROOT / name, name)
         for scan in scans:
             buffer = io.StringIO()
@@ -85,8 +88,9 @@ def generate():
         archive.writestr("README.txt", "ICP Workshop\n\nInstall Python 3 and NumPy (python -m pip install numpy).\n"
                          "Complete registration(source, target) in registration.py.\n"
                          "Run: python registration.py\n"
+                         "Or run the included NumPy ICP sample: python sample_solution.py\n"
                          "Import transformations.json into the ICP Workshop page.\n\n"
-                         "sequence.json and scans/*.csv contain the same ten ordered scans.\n"
+                         "sequence.json and scans/*.csv contain the same 50 ordered scans.\n"
                          "Coordinates: metres; x forward, y left, z up, in each sensor frame.\n"
                          "Return a 4x4 rigid transform from current scan to previous scan.\n"
                          "Map frame = scan 00; T_map_current = T_map_previous @ T_previous_current.\n"

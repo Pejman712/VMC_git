@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ICP Workshop · Vehicle Mechatronics</title>
-  <meta name="description" content="Build an indoor map from ten consecutive LiDAR scans. Write and run your own Python ICP registration algorithm and inspect the resulting map and robot trajectory.">
+  <meta name="description" content="Build an indoor map from 50 consecutive LiDAR scans. Write and run your own Python ICP registration algorithm and inspect the resulting map and robot trajectory.">
   <link rel="stylesheet" href="assets/icp/workshop.css">
   <script>try{const t=localStorage.getItem('ros-theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
   <script src="assets/qrcode.min.js" defer></script>
@@ -24,9 +24,9 @@
 </div></nav>
 <header class="hero"><div class="wrap hero-in">
   <div class="eyebrow">Hands-on lab / perception &amp; mapping</div>
-  <h1>ICP Workshop<span>Ten scans. One indoor map.</span></h1>
+  <h1>ICP Workshop<span>50 scans. One indoor map.</span></h1>
   <p>Give a small robot a sense of where it is. Complete the Python registration function, align consecutive point clouds, and watch your map take shape.</p>
-  <div class="hero-tags"><span>10 consecutive scans</span><span>3D points · metres</span><span>Python + NumPy</span><span>No ROS setup needed</span></div>
+  <div class="hero-tags"><span>50 consecutive scans</span><span>3D points · metres</span><span>Python + NumPy</span><span>No ROS setup needed</span></div>
 </div></header>
 <main class="wrap">
   <div class="steps" aria-label="Workshop steps">
@@ -55,8 +55,8 @@
       </article>
     </div>
     <div class="timeline-panel">
-      <div class="timeline-heading"><label for="frameRange">Scan <b id="frameCount">01 / 10</b></label><span id="frameState">Waiting for dataset</span></div>
-      <input id="frameRange" type="range" min="0" max="9" value="0" step="1" disabled aria-label="Inspect scan">
+      <div class="timeline-heading"><label for="frameRange">Scan <b id="frameCount">01 / 50</b></label><span id="frameState">Waiting for dataset</span></div>
+      <input id="frameRange" type="range" min="0" max="49" value="0" step="1" disabled aria-label="Inspect scan">
       <div class="timeline" id="timeline" aria-label="Select scan"></div>
       <div class="playback"><button id="playBtn" disabled>▶ Play sequence</button><button id="nextBtn" disabled>Next scan →</button><span>Scrub through inputs before running, or replay your completed map.</span></div>
     </div>
@@ -65,11 +65,11 @@
   <section class="coding-grid" aria-label="Python exercise and results">
     <article class="panel editor-panel">
       <div class="panel-head"><div><div class="kicker">Your implementation</div><h2>registration.py</h2></div><span class="badge">Python / NumPy</span></div>
-      <p class="panel-intro">Return a <b>4 × 4 rigid transformation</b> that aligns <code>source</code> (current scan) with <code>target</code> (previous scan). The runner reads all ten scans in order and calls your function nine times.</p>
+      <p class="panel-intro">Return a <b>4 × 4 rigid transformation</b> that aligns <code>source</code> (current scan) with <code>target</code> (previous scan). The runner reads all 50 scans in order and calls your function 49 times.</p>
       <label class="editor-label" for="code">Python code <span id="saveStatus">Saved in this browser as you type</span></label>
       <textarea id="code" spellcheck="false" autocapitalize="off" autocomplete="off" aria-describedby="editorHelp" disabled></textarea>
       <div class="editor-help" id="editorHelp">Tab inserts 4 spaces · Ctrl/Cmd + Enter runs · NumPy is available as <code>np</code></div>
-      <div class="run-controls"><button class="primary" id="runBtn" disabled>▶ Run my registration</button><button id="stopBtn" disabled>Stop</button><button id="starterBtn" disabled>Restore starter</button></div>
+      <div class="run-controls"><button class="primary" id="runBtn" disabled>▶ Run my registration</button><button id="stopBtn" disabled>Stop</button><button id="solutionBtn" disabled>Load sample solution</button><button id="starterBtn" disabled>Restore starter</button></div>
       <p class="runtime-note">Python runs in your browser using <a href="https://pyodide.org/en/stable/usage/index.html" target="_blank" rel="noopener">Pyodide</a>. The first run downloads the runtime and NumPy; internet access is required. A run can be stopped at any time.</p>
       <div class="console" id="console" role="log" aria-label="Python execution output" aria-live="polite">Loading workshop files…</div>
     </article>
@@ -78,7 +78,7 @@
       <article class="panel">
         <div class="panel-head"><div><div class="kicker">Selected scan</div><h2>Registration output</h2></div></div>
         <p class="status" id="status" role="status">Loading the indoor sequence…</p>
-        <div class="metrics"><div><span>Scans mapped</span><b id="mappedCount">1 / 10</b></div><div><span>Pairwise NN RMSE</span><b id="rmse">—</b></div></div>
+        <div class="metrics"><div><span>Scans mapped</span><b id="mappedCount">1 / 50</b></div><div><span>Pairwise NN RMSE</span><b id="rmse">—</b></div></div>
         <label class="matrix-label" for="matrixType">Transformation <select id="matrixType"><option value="relative">Current → previous scan</option><option value="pose">Current → map frame</option></select></label>
         <pre id="matrix" class="matrix" aria-label="Selected transformation matrix">No transformation yet.</pre>
         <p class="small" id="matrixNote">Scan 01 fixes the map origin with an identity matrix.</p>
@@ -99,8 +99,8 @@ T_map_current = T_map_previous @ T</pre>
   </section>
 
   <section class="panel dataset" aria-labelledby="datasetTitle">
-    <div><div class="kicker">Take the lab with you</div><h2 id="datasetTitle">One room. Ten viewpoints.</h2><p>A reproducible, <b>synthetic indoor sequence</b> with walls, a partition, workbenches, a cabinet and a pillar. A 360° LiDAR samples four elevation rings, with occlusion, a 9 m range limit, dropped returns and 6 mm range noise. The robot takes small steps with overlapping views.</p><p>Work locally: unzip the kit, install NumPy, finish <code>registration.py</code>, and run <code>python registration.py</code>. Import the resulting <code>transformations.json</code> here to see your map.</p></div>
-    <div class="downloads"><a class="button primary" href="assets/icp/icp-workshop.zip" download>↓ Download Python + 10 scans</a><a class="button" href="assets/icp/sequence.json" download>↓ Point clouds as JSON</a><label class="button import-label">↑ Import transformations<input id="importFile" type="file" accept=".json,application/json" disabled></label><span class="small">ZIP includes starter, runner, JSON sequence and 10 XYZ CSV files. No reference solution is included.</span></div>
+    <div><div class="kicker">Take the lab with you</div><h2 id="datasetTitle">One room. 50 viewpoints.</h2><p>A reproducible, <b>synthetic indoor sequence</b> with walls, a partition, workbenches, a cabinet and a pillar. A 360° LiDAR samples four elevation rings, with occlusion, a 9 m range limit, dropped returns and 6 mm range noise. The robot takes small steps with overlapping views.</p><p>Work locally: unzip the kit, install NumPy, finish <code>registration.py</code>, and run <code>python registration.py</code>. For a worked example, run <code>python sample_solution.py</code>. Import the resulting <code>transformations.json</code> here to see your map.</p></div>
+    <div class="downloads"><a class="button primary" href="assets/icp/icp-workshop.zip" download>↓ Download Python + 50 scans</a><a class="button" href="assets/icp/sample_solution.py" download>↓ Sample Python solution</a><a class="button" href="assets/icp/sequence.json" download>↓ Point clouds as JSON</a><label class="button import-label">↑ Import transformations<input id="importFile" type="file" accept=".json,application/json" disabled></label><span class="small">ZIP includes starter, runner, JSON sequence and 50 XYZ CSV files and one sample ICP solution.</span></div>
   </section>
 </main>
 <footer class="wrap"><p>Vehicle Mechatronics · Aalto University</p><p><a href="localisation.html#registration">Revisit registration theory</a> · <a href="index.html">ROS Ecosystem Explorer</a></p></footer>

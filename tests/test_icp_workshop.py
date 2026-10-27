@@ -12,12 +12,15 @@ ASSETS = ROOT / "assets" / "icp"
 spec = importlib.util.spec_from_file_location("runner", ASSETS / "runner.py")
 runner = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(runner)
+sample_spec = importlib.util.spec_from_file_location("sample_solution", ASSETS / "sample_solution.py")
+sample = importlib.util.module_from_spec(sample_spec)
+sample_spec.loader.exec_module(sample)
 
 
 class WorkshopTest(unittest.TestCase):
     def test_dataset_and_local_kit(self):
         data = json.loads((ASSETS / "sequence.json").read_text())
-        self.assertEqual(len(data["scans"]), 10)
+        self.assertEqual(len(data["scans"]), 50)
         for i, scan in enumerate(data["scans"]):
             points = np.asarray(scan["points"])
             self.assertEqual(scan["name"], f"scan_{i:02d}.csv")
@@ -26,8 +29,8 @@ class WorkshopTest(unittest.TestCase):
             self.assertTrue(np.isfinite(points).all())
             self.assertLess(np.linalg.norm(points, axis=1).max(), 9.05)
         with zipfile.ZipFile(ASSETS / "icp-workshop.zip") as archive:
-            self.assertEqual(len([n for n in archive.namelist() if n.endswith(".csv")]), 10)
-            for name in ["registration.py", "runner.py", "sequence.json"]:
+            self.assertEqual(len([n for n in archive.namelist() if n.endswith(".csv")]), 50)
+            for name in ["registration.py", "sample_solution.py", "runner.py", "sequence.json"]:
                 self.assertEqual(archive.read(name), (ASSETS / name).read_bytes())
 
     def test_composition_direction_and_input_isolation(self):
@@ -47,8 +50,8 @@ class WorkshopTest(unittest.TestCase):
             return np.linalg.inv(poses[i - 1]) @ poses[i]
 
         results = runner.run_sequence(clouds, register, reported.append)
-        self.assertEqual(calls, list(range(1, 10)))
-        self.assertEqual(len(reported), 10)
+        self.assertEqual(calls, list(range(1, 50)))
+        self.assertEqual(len(reported), 50)
         for i, result in enumerate(results):
             np.testing.assert_allclose(result["pose"], poses[i], atol=1e-9)
             np.testing.assert_array_equal(clouds[i], saved[i])
@@ -72,10 +75,35 @@ class WorkshopTest(unittest.TestCase):
     def test_expected_alignment_improves_on_identity(self):
         clouds = [np.asarray(s["points"]) for s in json.loads((ASSETS / "sequence.json").read_text())["scans"]]
         poses = [np.asarray(p) for p in json.loads((ASSETS / "expected-poses.json").read_text())]
-        for i in range(1, 10):
+        for i in range(1, 50):
             T = np.linalg.inv(poses[i - 1]) @ poses[i]
             aligned = clouds[i] @ T[:3, :3].T + T[:3, 3]
             self.assertLess(runner.nearest_rmse(aligned, clouds[i - 1]), runner.nearest_rmse(clouds[i], clouds[i - 1]))
+
+    def test_sample_recovers_known_rigid_transform(self):
+        target = np.random.default_rng(42).uniform(-2, 2, (80, 3))
+        angle = .025
+        T = np.eye(4)
+        T[:3, :3] = [[np.cos(angle), -np.sin(angle), 0],
+                     [np.sin(angle), np.cos(angle), 0], [0, 0, 1]]
+        T[:3, 3] = [.04, -.03, .02]
+        source = (target - T[:3, 3]) @ T[:3, :3]
+        np.random.default_rng(7).shuffle(source)
+        np.testing.assert_allclose(sample.registration(source, target), T, atol=1e-6)
+
+    def test_sample_maps_all_50_scans(self):
+        data = json.loads((ASSETS / "sequence.json").read_text())
+        clouds = [np.asarray(s["points"]) for s in data["scans"]]
+        expected = np.asarray(json.loads((ASSETS / "expected-poses.json").read_text()))
+        results = runner.run_sequence(clouds, sample.registration)
+        self.assertEqual(len(results), 50)
+        poses = np.asarray([r["pose"] for r in results])
+        for result in results[1:]:
+            i = result["index"]
+            self.assertLess(result["rmse"], runner.nearest_rmse(clouds[i], clouds[i - 1]))
+        # Pairwise ICP accumulates drift; it should still follow the ~6 m route.
+        errors = np.linalg.norm(poses[:, :3, 3] - expected[:, :3, 3], axis=1)
+        self.assertLess(errors.max(), 1.0)
 
 
 if __name__ == "__main__":
