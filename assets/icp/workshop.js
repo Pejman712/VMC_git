@@ -1,5 +1,7 @@
 "use strict";
 (() => {
+  const assetVersion = new URL(document.currentScript.src).searchParams.get("v") || "100-v1";
+  const assetURL = (name) => `assets/icp/${name}?v=${encodeURIComponent(assetVersion)}`;
   const $ = (id) => document.getElementById(id);
   const identity = () => [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]];
   const multiply = (a, b) => a.map((row) => b[0].map((_, j) => row.reduce((s, v, k) => s + v * b[k][j], 0)));
@@ -177,7 +179,7 @@
     $("importFile").disabled = true; $("exportBtn").disabled = true;
     $("resultBtn").disabled = true; $("playBtn").disabled = true;
     try {
-      worker = new Worker("assets/icp/worker.js", { type: "module" });
+      worker = new Worker(assetURL("worker.js"), { type: "module" });
       worker.onmessage = ({ data }) => {
         if (data.type === "status") { status(data.message); log(data.message); }
         if (data.type === "stdout") log(data.message);
@@ -321,10 +323,14 @@
   async function init() {
     try {
       const responses = await Promise.all(["sequence.json", "expected-poses.json", "registration.py", "sample_solution.py"].map(async (name) => {
-        const res = await fetch("assets/icp/" + name);
+        const res = await fetch(assetURL(name), { cache: "no-cache" });
         if (!res.ok) throw new Error(`Could not load ${name} (HTTP ${res.status}).`);
         return name.endsWith("json") ? res.json() : res.text();
       }));
+      const [nextDataset, nextPoses] = responses;
+      if (nextDataset.id !== "vmc-indoor-100-v1" || nextDataset.scans?.length !== 100 || nextPoses.length !== 100) {
+        throw new Error("Workshop files are out of date. Reload this page to get the 100-scan dataset.");
+      }
       [dataset, expectedPoses, starter, sample] = responses;
       // The editor contains only the function/imports; the ZIP retains the local CLI.
       starter = starter.split('if __name__ == "__main__":')[0].trimEnd() + "\n";
@@ -342,7 +348,7 @@
       $("console").textContent = "Ready. The starter returns identity matrices. Implement ICP, then run your registration.";
       status("Inspect the scans or run the identity baseline. Scan 01 is already at the map origin."); render();
     } catch (error) {
-      status("Workshop files could not load. Serve this folder over HTTP(S) and reload.");
+      status("Workshop files could not load. Reload the page and check that it is served over HTTP(S).");
       log(error.message + "\nLocal preview: python3 -m http.server 8000", true);
     }
   }

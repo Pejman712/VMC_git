@@ -25,7 +25,10 @@ python3 -m http.server 8000
 
 Open `http://localhost:8000/icp-workshop.html`. The first Python run downloads
 [Pyodide](https://pyodide.org/en/stable/usage/index.html) and NumPy from jsDelivr;
-the rest of the workshop assets are local. Student Python runs in a Web Worker
+the rest of the workshop assets are local. Workshop asset URLs carry a release
+version, and data files are revalidated on load to avoid mixing cached releases.
+Bump the `v` query in the workshop HTML and navigation links when releasing
+changed assets; the loader forwards it to data files and the Python worker. Student Python runs in a Web Worker
 with Stop and a 30-second limit per registration call. Edits persist in browser
 local storage. The initial identity implementation deliberately leaves ICP for
 the student to complete. Use **Load sample solution** for a complete NumPy

@@ -14,7 +14,9 @@ self.onmessage = async ({ data }) => {
     const py = await loadPyodide({ indexURL: RUNTIME, stdout: output, stderr: output });
     self.postMessage({ type: "status", message: "Loading NumPy…" });
     await py.loadPackage("numpy");
-    const response = await fetch("runner.py");
+    const runnerURL = new URL("runner.py", self.location.href);
+    runnerURL.search = new URL(self.location.href).search;
+    const response = await fetch(runnerURL, { cache: "no-cache" });
     if (!response.ok) throw new Error("Could not load the Python sequence runner.");
     await py.runPythonAsync(await response.text());
     py.globals.set("_student_code", data.code);
