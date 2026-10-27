@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ICP Workshop · Vehicle Mechatronics</title>
   <meta name="description" content="Build an indoor map from 100 consecutive LiDAR scans. Write and run your own Python ICP registration algorithm and inspect the resulting map and robot trajectory.">
-  <link rel="stylesheet" href="assets/icp/workshop.css?v=100-v1">
+  <link rel="stylesheet" href="assets/icp/workshop.css?v=100-v2">
   <script>try{const t=localStorage.getItem('ros-theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
   <script src="assets/qrcode.min.js" defer></script>
   <script src="assets/site.js" defer></script>
-  <script src="assets/icp/comparison.js?v=100-v1" defer></script>
-  <script src="assets/icp/workshop.js?v=100-v1" defer></script>
+  <script src="assets/icp/comparison.js?v=100-v2" defer></script>
+  <script src="assets/icp/workshop.js?v=100-v2" defer></script>
 </head>
 <body>
 <nav class="nav" aria-label="Main navigation"><div class="nav-in">
@@ -19,7 +19,7 @@
   <div class="nav-links">
     <a class="home" href="index.html">ROS Explorer</a>
     <a class="home" href="localisation.html#registration">Localisation</a>
-    <a class="home" href="icp-workshop.html?v=100-v1" aria-current="page">ICP Workshop</a>
+    <a class="home" href="icp-workshop.html?v=100-v2" aria-current="page">ICP Workshop</a>
     <button class="tgl" id="themeBtn" aria-label="Choose colour theme" title="Choose colour theme">◐</button>
   </div>
 </div></nav>
@@ -120,7 +120,7 @@ T_map_current = T_map_previous @ T</pre>
   </section>
 
   <section id="implementation" class="panel implementation" aria-labelledby="guideTitle">
-    <div class="section-heading"><div><div class="kicker">Build it step by step</div><h2 id="guideTitle">How to implement registration(source, target)</h2></div><a class="button" href="assets/icp/sample_solution.py?v=100-v1" download>Download the worked example</a></div>
+    <div class="section-heading"><div><div class="kicker">Build it step by step</div><h2 id="guideTitle">How to implement registration(source, target)</h2></div><a class="button" href="assets/icp/sample_solution.py?v=100-v2" download>Download the worked example</a></div>
     <p>Your task is to estimate how one scan must move to overlap the previous scan. The two clouds observe the same static environment, but the robot moved between measurements. <b>Iterative Closest Point (ICP)</b> alternates between guessing which points correspond and solving the rigid transformation of those pairs. Start with the runnable identity baseline, add each step below, then compare the resulting trajectory with ground truth.</p>
     <nav class="guide-nav" aria-label="Implementation guide sections"><a href="#guide-contract">1. Inputs &amp; output</a><a href="#guide-transform">2. Transform</a><a href="#guide-match">3. Match</a><a href="#guide-filter">4. Filter</a><a href="#guide-solve">5. Solve R and t</a><a href="#guide-compose">6. Compose</a><a href="#guide-stop">7. Stop</a><a href="#guide-map">8. Map &amp; debug</a></nav>
     <article id="guide-contract" class="guide-step"><h3>1. Understand exactly what goes in and what comes out</h3>
@@ -206,7 +206,7 @@ return T</code></pre>
 T_map_current = T_map_previous @ T_previous_current
 points_in_map = source @ T_map_current[:3, :3].T + T_map_current[:3, 3]
 robot_position = T_map_current[:3, 3]</code></pre>
-      <p>Each small pose error affects later scans. Over this roughly 16 m route, even a modest rotation error can produce noticeable translation drift and doubled walls. The sample performs scan-to-scan registration; it has no loop closure or global map optimization. Use the ground-truth overlay to see this accumulation.</p>
+      <p>Each small pose error affects later scans. Over this roughly 20 m route, even a modest rotation error can produce noticeable translation drift and doubled walls. The sample performs scan-to-scan registration; it has no loop closure or global map optimization. Use the ground-truth overlay to see this accumulation.</p>
       <div class="guide-table-wrap"><table><caption>What to check when the result looks wrong</caption><thead><tr><th>Symptom</th><th>Likely check</th></tr></thead><tbody>
         <tr><td>Robot never moves</td><td>Are you still returning identity, or returning before the loop runs?</td></tr>
         <tr><td>Path moves in the opposite direction</td><td>Check current → previous direction; avoid swapping source and target.</td></tr>
@@ -221,8 +221,8 @@ robot_position = T_map_current[:3, 3]</code></pre>
   </section>
 
   <section class="panel dataset" aria-labelledby="datasetTitle">
-    <div><div class="kicker">Take the lab with you</div><h2 id="datasetTitle">Three connected bays. 100 viewpoints.</h2><p>A reproducible, <b>synthetic indoor sequence</b> in a 24 × 16 m lab with two partitions, wide doorways, workbenches, cabinets and pillars. The 100-scan route travels about 16 m through all three bays. A 360° LiDAR samples four elevation rings, with occlusion, a 12 m range limit, dropped returns and 6 mm range noise. The robot takes small steps with overlapping views.</p><p>Work locally: unzip the kit, install NumPy, finish <code>registration.py</code>, and run <code>python registration.py</code>. For a worked example, run <code>python sample_solution.py</code>. Import the resulting <code>transformations.json</code> here to see your map.</p></div>
-    <div class="downloads"><a class="button primary" href="assets/icp/icp-workshop.zip?v=100-v1" download>↓ Download Python + 100 scans</a><a class="button" href="assets/icp/sample_solution.py?v=100-v1" download>↓ Sample Python solution</a><a class="button" href="assets/icp/sequence.json?v=100-v1" download>↓ Point clouds as JSON</a><label class="button import-label">↑ Import transformations<input id="importFile" type="file" accept=".json,application/json" disabled></label><span class="small">ZIP includes starter, runner, JSON sequence 100 XYZ CSV files, and one sample ICP solution.</span></div>
+    <div><div class="kicker">Take the lab with you</div><h2 id="datasetTitle">Three connected bays. 100 viewpoints.</h2><p>A reproducible, <b>synthetic indoor sequence</b> in a 24 × 16 m lab with two partitions, wide doorways, workbenches, cabinets and pillars. The 100-scan route travels about 20 m through all three bays, with an S-shaped path, left and right turns, and a final north-facing pose. A 360° LiDAR samples four elevation rings, with occlusion, a 12 m range limit, dropped returns and 6 mm range noise. The robot follows the path tangent, with headings from about −50° to +90°. Scans are closer together around bends to keep successive rotations below 5° and preserve overlap.</p><p>Work locally: unzip the kit, install NumPy, finish <code>registration.py</code>, and run <code>python registration.py</code>. For a worked example, run <code>python sample_solution.py</code>. Import the resulting <code>transformations.json</code> here to see your map.</p></div>
+    <div class="downloads"><a class="button primary" href="assets/icp/icp-workshop.zip?v=100-v2" download>↓ Download Python + 100 scans</a><a class="button" href="assets/icp/sample_solution.py?v=100-v2" download>↓ Sample Python solution</a><a class="button" href="assets/icp/sequence.json?v=100-v2" download>↓ Point clouds as JSON</a><label class="button import-label">↑ Import transformations<input id="importFile" type="file" accept=".json,application/json" disabled></label><span class="small">ZIP includes starter, runner, JSON sequence 100 XYZ CSV files, and one sample ICP solution.</span></div>
   </section>
 </main>
 <footer class="wrap"><p>Vehicle Mechatronics · Aalto University</p><p><a href="localisation.html#registration">Revisit registration theory</a> · <a href="index.html">ROS Ecosystem Explorer</a></p></footer>

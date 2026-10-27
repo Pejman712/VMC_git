@@ -1,6 +1,6 @@
 "use strict";
 (() => {
-  const assetVersion = new URL(document.currentScript.src).searchParams.get("v") || "100-v1";
+  const assetVersion = new URL(document.currentScript.src).searchParams.get("v") || "100-v2";
   const assetURL = (name) => `assets/icp/${name}?v=${encodeURIComponent(assetVersion)}`;
   const $ = (id) => document.getElementById(id);
   const identity = () => [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]];
@@ -63,7 +63,8 @@
     const matrix = result?.[$("matrixType").value];
     $("matrix").textContent = matrix ? matrix.map((r) => "[ " + r.map((v) => (Math.abs(v) < .00005 ? 0 : v).toFixed(4).padStart(8)).join(" ") + " ]").join("\n") : "No transformation for this scan.\nRun your registration first.";
     $("matrixNote").textContent = mode === "expected" ? "Known synthetic pose, shown for comparison. This is not output from your code." : frame === 0 ? "Scan 01 fixes the map origin with an identity matrix." : dirty ? "Code has changed since this result. Run again to update the matrix and map." : "Returned transforms are composed in scan order. The robot follows your estimated poses.";
-    $("poseReadout").textContent = result ? "Robot position: " + ["x", "y", "z"].map((axis, i) => `${axis} ${result.pose[i][3].toFixed(3)}`).join(" · ") + " m" : "Robot remains at the last registered pose.";
+    $("poseReadout").textContent = result ? "Robot position: " + ["x", "y", "z"].map((axis, i) => `${axis} ${result.pose[i][3].toFixed(3)}`).join(" · ") +
+      ` m · heading ${(Math.atan2(result.pose[1][0], result.pose[0][0]) * 180 / Math.PI).toFixed(1)}°` : "Robot remains at the last registered pose.";
     $("expectedBtn").setAttribute("aria-pressed", mode === "expected");
     $("resultBtn").setAttribute("aria-pressed", mode === "result");
     $("timeline").querySelectorAll("button").forEach((b, i) => {
@@ -328,7 +329,7 @@
         return name.endsWith("json") ? res.json() : res.text();
       }));
       const [nextDataset, nextPoses] = responses;
-      if (nextDataset.id !== "vmc-indoor-100-v1" || nextDataset.scans?.length !== 100 || nextPoses.length !== 100) {
+      if (nextDataset.id !== "vmc-indoor-100-v2" || nextDataset.scans?.length !== 100 || nextPoses.length !== 100) {
         throw new Error("Workshop files are out of date. Reload this page to get the 100-scan dataset.");
       }
       [dataset, expectedPoses, starter, sample] = responses;

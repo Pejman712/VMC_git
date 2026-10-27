@@ -99,8 +99,9 @@ window.ICPComparison = (() => {
     if (!rows.length) error.message("Run Python to measure error");
 
     // A textual equivalent of the selected points is available without canvas.
-    $("comparisonValues").textContent = `Scan ${frame + 1} ground truth XYZ: ${gt[frame].map((v) => v.toFixed(3)).join(", ")} m. ` +
-      (selected ? `Estimated XYZ: ${selected.estimated.map((v) => v.toFixed(3)).join(", ")} m.` : "Estimated XYZ: not available.");
+    const heading = (T) => (Math.atan2(T[1][0], T[0][0]) * 180 / Math.PI).toFixed(1);
+    $("comparisonValues").textContent = `Scan ${frame + 1} ground truth XYZ: ${gt[frame].map((v) => v.toFixed(3)).join(", ")} m; heading ${heading(truth[frame])}°. ` +
+      (selected ? `Estimated XYZ: ${selected.estimated.map((v) => v.toFixed(3)).join(", ")} m; heading ${heading(results.find((r) => r.index === frame).pose)}°.` : "Estimated pose: not available.");
   }
 
   function init(onSelect) {

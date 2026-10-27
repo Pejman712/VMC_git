@@ -15,14 +15,46 @@ spec.loader.exec_module(runner)
 sample_spec = importlib.util.spec_from_file_location("sample_solution", ASSETS / "sample_solution.py")
 sample = importlib.util.module_from_spec(sample_spec)
 sample_spec.loader.exec_module(sample)
+generator_spec = importlib.util.spec_from_file_location("generator", ASSETS / "generate_dataset.py")
+generator = importlib.util.module_from_spec(generator_spec)
+generator_spec.loader.exec_module(generator)
 
 
 class WorkshopTest(unittest.TestCase):
+    def test_route_turns_smoothly_and_clears_obstacles(self):
+        route = np.asarray(generator.robot_route())
+        self.assertEqual(route.shape, (100, 3))
+        heading = np.unwrap(route[:, 2])
+        self.assertLess(np.degrees(heading.min()), -45)
+        self.assertGreater(np.degrees(heading.max()), 85)
+        self.assertAlmostEqual(heading[0], 0)
+        self.assertAlmostEqual(heading[-1], np.pi / 2)
+        changes = np.degrees(np.diff(heading))
+        self.assertLess(changes.min(), -2)
+        self.assertGreater(changes.max(), 2)
+        self.assertLess(np.abs(changes).max(), 5)
+        steps = np.linalg.norm(np.diff(route[:, :2], axis=0), axis=1)
+        self.assertLess(steps.max(), .32)
+        self.assertGreater(steps.sum(), 19)
+        # Check the robot footprint between scans too, not only at their centres.
+        for start, end in zip(route, route[1:]):
+            for t in np.linspace(0, 1, 10):
+                x, y = (start + t * (end - start))[:2]
+                for low, high in generator.BOXES:
+                    if not low[2] < .65 < high[2]:
+                        continue  # Floor/ceiling do not intersect the robot body.
+                    dx = max(low[0] - x, 0, x - high[0])
+                    dy = max(low[1] - y, 0, y - high[1])
+                    self.assertGreater(np.hypot(dx, dy), .55)
+        truth = np.asarray(json.loads((ASSETS / "expected-poses.json").read_text()))
+        np.testing.assert_allclose(truth[:, :2, 3], route[:, :2] - [3, 6], atol=1e-8)
+        np.testing.assert_allclose(np.arctan2(truth[:, 1, 0], truth[:, 0, 0]), heading, atol=1e-8)
+
     def test_dataset_and_local_kit(self):
         data = json.loads((ASSETS / "sequence.json").read_text())
         self.assertEqual(len(data["scans"]), 100)
         self.assertEqual(data["room_size"], [24, 16, 3.2])
-        self.assertEqual(data["id"], "vmc-indoor-100-v1")
+        self.assertEqual(data["id"], "vmc-indoor-100-v2")
         for i, scan in enumerate(data["scans"]):
             points = np.asarray(scan["points"])
             self.assertEqual(scan["name"], f"scan_{i:02d}.csv")
@@ -107,6 +139,10 @@ class WorkshopTest(unittest.TestCase):
         errors = np.linalg.norm(poses[:, :3, 3] - expected[:, :3, 3], axis=1)
         baseline_errors = np.linalg.norm(expected[:, :3, 3], axis=1)
         self.assertLess(np.sqrt(np.mean(errors ** 2)), np.sqrt(np.mean(baseline_errors ** 2)) / 3)
+        estimated_yaw = np.arctan2(poses[:, 1, 0], poses[:, 0, 0])
+        true_yaw = np.arctan2(expected[:, 1, 0], expected[:, 0, 0])
+        yaw_error = np.arctan2(np.sin(estimated_yaw - true_yaw), np.cos(estimated_yaw - true_yaw))
+        self.assertLess(np.degrees(np.abs(yaw_error)).max(), 10)
 
 
 if __name__ == "__main__":

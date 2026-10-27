@@ -39,8 +39,12 @@ checking; it does not use the known synthetic poses.
 `registration(source, target)` returns a 4×4 transform from the **current scan
 to the previous scan**. The runner calls it 99 times for scans 02–100, uses scan
 01 as the map frame, and composes `T_map_current = T_map_previous @ T`.
-The 24 × 16 m lab has three connected bays, with a roughly 16 m path, 100 scans,
-12 m sensor range, and 6 mm measurement noise. The expected-map preview uses known
+The 24 × 16 m lab has three connected bays, with a roughly 20 m S-shaped path, 100 scans,
+12 m sensor range, and 6 mm measurement noise. The route turns left and right,
+spans headings of approximately −50° to +90°, and ends facing north. Scan spacing
+adapts to curvature, limiting each translation to 0.32 m and each heading change
+to 5°. The dataset is `vmc-indoor-100-v2`; earlier result files must be rerun.
+The expected-map preview uses known
 synthetic poses, independently of student results.
 
 The **Estimated trajectory vs ground truth** section plots both XY paths and 3D
